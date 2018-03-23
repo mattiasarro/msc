@@ -1,0 +1,9 @@
+problems
+    high label complexity
+    long train times
+    unbalanced data
+    ensembling vs joint training
+    interpretability of the ensemble
+    combining deterministic system with manual labels + active learning
+experiments
+    

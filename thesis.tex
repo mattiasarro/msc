@@ -1,0 +1,89 @@
+\documentclass[a4paper,11pt]{kth-mag}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+\usepackage{lmodern}
+\usepackage[latin1]{inputenc}
+\usepackage[swedish,english]{babel}
+\usepackage{modifications}
+\usepackage[]{nomencl}
+\makenomenclature
+    \title{
+      Data-Efficient Deep Learning
+      \\for Independent Binary Outputs
+    }
+    \subtitle{
+      Exploration of importance-weighted active learning, ensembling,
+      joint training and class imbalance correction to reduce label complexity
+      and training time in affiliate e-commerce product clasification
+    }
+    \foreigntitle{}
+    \author{Mattias Arro}
+    \date{June 2018}
+    \blurb{Master's Thesis at KTH Information and Communication Technology
+    \\MSc Data Science (EIT Digital track)
+    \newline
+    \\Academic Examiner: Magnus Boman
+    \\Academic Supervisor: Jim Dowling
+    \\Industrial Supervisor: Abubakrelsedik Karali
+    }
+    \trita{2018}
+\begin{document}
+
+\frontmatter
+
+% \pagestyle{empty}
+
+\removepagenumbers
+\maketitle
+\selectlanguage{english}
+
+\begin{abstract}
+\input{extras/abstract_en}
+\end{abstract}
+\clearpage
+
+\begin{foreignabstract}{swedish}
+\input{extras/abstract_se}
+\end{foreignabstract}
+\clearpage
+
+\chapter*{Acknowledgment}
+\input{extras/Acknowledgment}
+
+\clearpage
+\tableofcontents*
+
+% \mainmatter
+% \listoffigures
+%
+% \newpage
+% \listoftables
+
+\newpage
+\input{extras/_abbreviations}
+
+\pagenumbering{arabic}
+\pagestyle{newchap}
+\input{chapters/1_Introduction}
+\input{chapters/8_Discussion}
+\input{chapters/9_Conclusion}
+
+\renewcommand\bibname{References}
+\bibliographystyle{plain}
+\bibliography{extras/_bibliography}
+
+\input{extras/Declaration}
+
+\appendix
+\addappheadtotoc
+\chapter{RDF}\label{appA}
+\input{appendices/A}
+\end{document}
