@@ -10,3 +10,5 @@
 *.nlo
 *.out
 *.toc
+*.nlg
+*.nls
