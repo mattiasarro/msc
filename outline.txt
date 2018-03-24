@@ -5,6 +5,8 @@ problems
     ensembling vs joint training
     interpretability of the ensemble
     combining deterministic system with manual labels + active learning
+desiredata
+    no need to tweak the original algo by too much to incorporate AL
 experiments
     train on rule-based labels
         baseline models
@@ -68,10 +70,14 @@ theory
             retraining-free
             sampling strategies
                 compensating for sampling bias
+            for deep learning
+                not as common, maybe because it requires an explicit list of hypotheses
+                    intractable for DL but cohn 1994 is one approach
     interpretability of models
         weights of ensemble parts / meta-learner coefficients
         CNN visualizations
         RNN hidden state analysis
+
 
 active learning sampling strategies
     query by committee: label items with biggest disagreement between committee members
@@ -85,6 +91,17 @@ active learning sampling strategies
     expected error reduction [8]:
     variance reduction [2]
     min-max
+
+    how we chose the strategy
+        see if there is much disagreement between ensemble components
+            if so, use disagreement-based sampling
+        there could be many reasons for having poor results
+            image looks a bit like sth else (solution: disagreement sampling)
+            a misleading keyword puts it in the wrong class (solution: disagreement sampling)
+            the initial dataset was noisy
+                many FNs: learn a low bias, most products aren't in most classes
+                    solution: correcting for class imbalance?
+                some FPs: correlated with the text query rules (solution: disagreement sampling)
 
 architecture
 
@@ -108,3 +125,6 @@ quotes
         2 types of AL:
             retraining-based (retrain model after labelling each data point)
             retraining-free (uncertainty sampling, query by committee)
+    Improving Generalization with Active Learning* (Cohn 1994)
+        learn a general and specific NN
+        use the disagreement between them as a measure of likelihood of selecting a data point
