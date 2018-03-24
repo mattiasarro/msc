@@ -1,3 +1,8 @@
+plan
+    decide on AL sampling and weighting scheme
+    decide on fine-tune system architecture
+    research class imbalance correction
+
 problems
     high label complexity
     long train times
@@ -5,11 +10,11 @@ problems
     ensembling vs joint training
     interpretability of the ensemble
     combining deterministic system with manual labels + active learning
-desiredata
-    no need to tweak the original algo by too much to incorporate AL
 experiments
     train on rule-based labels
+        experiment with correcting for label imbalance
         baseline models
+            random: based on class frequencies
             text
                 both linear and deep
                     normalized histogram
@@ -35,18 +40,20 @@ experiments
                 wide: tfidf
                 conv: image
     pick the best performing model from the above
-        experiment with correcting for label imbalance (can be done earlier)
         interpret contribution of ensemble parts
     fine-tune pre-trained model with active learning
         ask users to label
-            pages of randomly sampled products
-            pages of uncertainty-sampled products
-                softmax of each class's error rate (1 - AUC_PR)
-                    frac = gives the fraction of products to label in that class
-                    labels_per_class = frac * total num labels
-                get candidate products
-                    uncertainty: |0.5 - P(product belongs to class)|
-                    candidates: sample all products with P(uncertainty)
+            decide we need to label n products per iteration
+            ask labels proportionally to a class's error rate
+                per-class softmax( F1_SCORE)
+                frac = gives the fraction of products to label in that class
+                labels_per_class = frac * n
+
+            users see a page of products per that has products from different sampling strategies
+                random
+                vis/text disagreement: abs(P_vis(class) - P_text(class))
+                uncertainty
+                    candidates: sample all products with P(entropy)
                     take a random sample of size labels_per_class from candidates
         when retraining, run these experiments in parallel
             training a model on
@@ -93,15 +100,22 @@ active learning sampling strategies
     min-max
 
     how we chose the strategy
+        trained a naive wide & deep model
+            key errors reasons (see below)
+            unsure of the contributions of mixtures
+
         see if there is much disagreement between ensemble components
             if so, use disagreement-based sampling
         there could be many reasons for having poor results
             image looks a bit like sth else (solution: disagreement sampling)
             a misleading keyword puts it in the wrong class (solution: disagreement sampling)
             the initial dataset was noisy
-                many FNs: learn a low bias, most products aren't in most classes
+                many FNs: learns a low bias, most products aren't in most classes
                     solution: correcting for class imbalance?
-                some FPs: correlated with the text query rules (solution: disagreement sampling)
+                    solution: try to find equal numbers of positive / negative labels?
+                        should happen anyway with uncertainty sampling?
+                some FPs: correlated with the text query rules
+                    solution: disagreement sampling
 
 architecture
 
