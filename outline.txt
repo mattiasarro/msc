@@ -39,6 +39,13 @@ experiments
         ask users to label
             pages of randomly sampled products
             pages of uncertainty-sampled products
+                softmax of each class's error rate (1 - AUC_PR)
+                    frac = gives the fraction of products to label in that class
+                    labels_per_class = frac * total num labels
+                get candidate products
+                    uncertainty: |0.5 - P(product belongs to class)|
+                    candidates: sample all products with P(uncertainty)
+                    take a random sample of size labels_per_class from candidates
         when retraining, run these experiments in parallel
             training a model on
                 model-R: randomly sampled samples
@@ -49,6 +56,7 @@ experiments
             each re-labeling iteration
                 gives us a metric of how well the models did
                 random sample labels give TP/FP of all models
+                    from each model's prediction on the previous iteration
 
 quotes
     It is important that the selection probabilities are always greater than
@@ -57,3 +65,5 @@ quotes
     missed cluster problem (Dasgupta and Hsu, 2008) explains how simple
     active learners can end up in a local optimum and can produce a classiĕer
     that is very far from the optimal classiĕer.
+
+    Active Learning Using Uncertainty Information
