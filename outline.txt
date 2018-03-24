@@ -55,6 +55,15 @@ experiments
                 uncertainty
                     candidates: sample all products with P(entropy)
                     take a random sample of size labels_per_class from candidates
+            quantify how much each sampling strategy gets surprising values
+                number of products that got a "surprise" label
+                    P(class) was on the other side of thres than label
+                xentropy of model's previous predictions and new labels
+                    would it favour one or the other type of sampling?
+                if there is a clear winner
+                    use that sampling strategy
+                else
+                    combine disagreement and uncertainty
         when retraining, run these experiments in parallel
             training a model on
                 model-R: randomly sampled samples
@@ -63,8 +72,8 @@ experiments
                     importance weight changes with the model's prediction?
                     importance weight stays the same as it was when it was predicted
             each re-labeling iteration
-                gives us a metric of how well the models did
-                random sample labels give TP/FP of all models
+                gives us a metric of how well each model did
+                    random sample labels give TP/FP of all models
                     from each model's prediction on the previous iteration
 
 theory
