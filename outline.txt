@@ -6,4 +6,54 @@ problems
     interpretability of the ensemble
     combining deterministic system with manual labels + active learning
 experiments
-    
+    train on rule-based labels
+        baseline models
+            text
+                both linear and deep
+                    normalized histogram
+                    tfidf
+                    embeddings
+                    embeddings weighted by tfidf
+                deep learning
+                    CNN of text: predict class
+                    LSTM of text: predict class
+            image
+                pretrained imagenet
+                pretrained imagenet + finetune
+        ensembling
+            weights between ensemble components
+            meta learner (logistic regression)
+        joint training
+            deep & wide & convolutional:
+                deep: embeddings of text
+                wide: tfidf
+                conv: image
+            recurrent & wide & convolutional:
+                recurrent: precomputed text embeddings from RNNs + DNN
+                wide: tfidf
+                conv: image
+    pick the best performing model from the above
+        experiment with correcting for label imbalance (can be done earlier)
+        interpret contribution of ensemble parts
+    fine-tune pre-trained model with active learning
+        ask users to label
+            pages of randomly sampled products
+            pages of uncertainty-sampled products
+        when retraining, run these experiments in parallel
+            training a model on
+                model-R: randomly sampled samples
+                model-U: uncertainty sampled samples
+                model-IWAL: uncertainty sampled samples with importance weighting
+                    importance weight changes with the model's prediction?
+                    importance weight stays the same as it was when it was predicted
+            each re-labeling iteration
+                gives us a metric of how well the models did
+                random sample labels give TP/FP of all models
+
+quotes
+    It is important that the selection probabilities are always greater than
+    zero. is guarantees that the algorithm will eventually converge to the
+    optimal hypothesis and does not show the missed cluster problem. e
+    missed cluster problem (Dasgupta and Hsu, 2008) explains how simple
+    active learners can end up in a local optimum and can produce a classiĕer
+    that is very far from the optimal classiĕer.
