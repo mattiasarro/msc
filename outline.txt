@@ -58,12 +58,53 @@ experiments
                 random sample labels give TP/FP of all models
                     from each model's prediction on the previous iteration
 
-quotes
-    It is important that the selection probabilities are always greater than
-    zero. is guarantees that the algorithm will eventually converge to the
-    optimal hypothesis and does not show the missed cluster problem. e
-    missed cluster problem (Dasgupta and Hsu, 2008) explains how simple
-    active learners can end up in a local optimum and can produce a classiĕer
-    that is very far from the optimal classiĕer.
+theory
+    data-efficient learning
+        ensembling
+            bagging
+            boosting
+        active learning
+            retraining-based
+            retraining-free
+            sampling strategies
+                compensating for sampling bias
+    interpretability of models
+        weights of ensemble parts / meta-learner coefficients
+        CNN visualizations
+        RNN hidden state analysis
 
+active learning sampling strategies
+    query by committee: label items with biggest disagreement between committee members
+        could use our ensemble components as committee
+        For measuring the level of disagreement, two main approaches have been proposed.
+            The first is vote entropy (Dagan and Engelson, 1995):
+            Another disagreement measure that has been proposed is average Kullback-Leibler (KL) divergence (McCallum and Nigam 1998):
+    uncertainty sampling
+        maximum  entropy  of  the  estimated  label  [5]
+        minimum distance from the decision boundary [6,7]
+    expected error reduction [8]:
+    variance reduction [2]
+    min-max
+
+architecture
+
+
+quotes
+    ...
+        It is important that the selection probabilities are always greater than
+        zero. is guarantees that the algorithm will eventually converge to the
+        optimal hypothesis and does not show the missed cluster problem. e
+        missed cluster problem (Dasgupta and Hsu, 2008) explains how simple
+        active learners can end up in a local optimum and can produce a classiĕer
+        that is very far from the optimal classiĕer.
+    cohn 1994
+        Since an entire neural network configuration represents a single concept, a complete version
+        space cannot be directly represented by any single neural network. In fact, Haussler
+        (1987) pointed out that the size of the S and G sets could grow exponentially in the size
+        of the training set. Representing these sets completely would require keeping track of and
+        manipulating an exponential number of network configurations.
     Active Learning Using Uncertainty Information
+        Query-by-committee put forward multiple mod-els  as  the  committees  and  selected  the  samples  which  receivehighest  level  of  disagreement  from  the  committees  [4].
+        2 types of AL:
+            retraining-based (retrain model after labelling each data point)
+            retraining-free (uncertainty sampling, query by committee)
