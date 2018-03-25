@@ -16,13 +16,43 @@ report
                 because it can deal with very rich input / output types
                 but is notoriously data-heavy
             in real-world settings, the data we gather is noisy and labelling expensive
+                we would like to have systems that
+                    are efficient in learning from few labels
+                    are able to learn from noisy inputs
+            ML is largely an empirical science
+                given a new dataset, it is hard to tell
+                    what kind of model would work best
+                    how many labels might one need
+                data scientists have some intuition about this
+                    which comes from experience and from reading papers
+                    another case study can therefore be valuable
+            active learning datasets are often synthetic
+            in this thesis we explore
+                different types of models
+                    for classifying (or predicting attributes of) affiliate products
+                    on various types of input (visual, textual, categorical, numerical).
+                combining models with the best performance into an ensemble
+                and using an active learning strategy to label products efficiently
 
         Problem
             e-commerce setting, binary prediction
             Data:
                 columns, distributions
                 preprocessing
-        Purpose and Goal
+        Purpose & Goal
+            The purpose of this thesis is to
+                give insight into relative strengths of different models
+                show how much ensembling improves performance on the baseline models
+                how active learning can reduce label complexity in real-world scenarios
+                what kind of sampling strategy works best for active learning
+            The goal is to
+                train a baseline model (Wide&Deep) on rule-based labels
+                gather a small sample of ground-truth labels from users
+                train several different models on affiliate data that is labeled by a rule-based system
+                    evaluate these models on rule-based test set and ground-truth data
+                train an ensemble of the best-performing components + eval
+                train for up to 10 iterations with active learning
+
         Research Questions
             Which of the models are best baseline predictors?
             Does ensembling increase performance considerably?
@@ -35,6 +65,7 @@ report
         Ethics and Sustainability
             ethics: when making critical decisions, should be interpretable
             sust: selling products is inherently non-sustainable, unless recycling is ramped up
+        Contributions
         Delimitations
             excluded models mentioned in section x
             can't eval well on random sample, as these would usually be negative
