@@ -9,11 +9,20 @@ plan
 
 report
     Introduction
+        general
+            machine learning has become very successful, applied in many contexts
+            supervised learning is the most successful example
+            deep learning is also seeing a lot of attention
+                because it can deal with very rich input / output types
+                but is notoriously data-heavy
+            in real-world settings, the data we gather is noisy and labelling expensive
+
         Problem
             e-commerce setting, binary prediction
             Data:
                 columns, distributions
                 preprocessing
+        Purpose and Goal
         Research Questions
             Which of the models are best baseline predictors?
             Does ensembling increase performance considerably?
@@ -21,7 +30,6 @@ report
             Does which active learning sampling strategy decreases label complexity more?
                 disagreement
                 uncertainty
-        Purpose and Goal
         Risks
             class imbalance (mitigate by aiming to get similar nr of pos/neg samples)
         Ethics and Sustainability
@@ -31,7 +39,7 @@ report
             excluded models mentioned in section x
             can't eval well on random sample, as these would usually be negative
             no time for CNN vis
-
+        Outline
     Background
         Possible models:
             linear for all cat vars
@@ -44,6 +52,8 @@ report
             prefer dnn and xgboost because no need to impute missing values
             DNNs generalize well. can use the embeddings
         Ensembling Strategies
+        Semisupervised Learning
+            cvae
         Active Learning
 
     Method
