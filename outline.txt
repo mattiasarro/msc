@@ -1,7 +1,9 @@
 plan
     decide on AL sampling and weighting scheme
     decide on fine-tune system architecture
-    research class imbalance correction
+    coding todo
+        web: was the product positively labeled by old system?
+        if it's in a child, it's in the parent
 
 problems
     high label complexity
@@ -12,7 +14,8 @@ problems
     combining deterministic system with manual labels + active learning
 experiments
     train on rule-based labels
-        experiment with correcting for label imbalance
+        correcting for label imbalance
+            maybe not necessary to do, because imbalance might arise from sparse labels
         baseline models
             random: based on class frequencies
             text
@@ -63,18 +66,30 @@ experiments
                 if there is a clear winner
                     use that sampling strategy
                 else
-                    combine disagreement and uncertainty
+                    combine disagreement and uncertainty (mult or avg)
+                    can be done separately for each following AL train iteration
         when retraining, run these experiments in parallel
             training a model on
                 model-R: randomly sampled samples
-                model-U: uncertainty sampled samples
+                model-A: combined disagreement & uncertainty sampling
+
                 model-IWAL: uncertainty sampled samples with importance weighting
+                    can't be reasonably implemented, because
+                        when a leaf gets a label, all ancestors get a label,
+                            i.e. hard to know what's the correct weighting
+                        when initial prediction is bad we may want to allow
+                            manually mass-assigning new labels
+                        training could get unstable because classes would have variable weights
+                        couldn't be combined with class-imbalance work
                     importance weight changes with the model's prediction?
                     importance weight stays the same as it was when it was predicted
-            each re-labeling iteration
-                gives us a metric of how well each model did
-                    random sample labels give TP/FP of all models
-                    from each model's prediction on the previous iteration
+            each re-labeling iteration gives us a metric of how well each model did
+                random sample labels give TP/FP of both models
+                from each model's prediction on the previous iteration
+            we can mostly label leaves
+                we can auto-label all its parents
+                sometimes leaves don't have many good examples
+                    need to label parent
 
 theory
     data-efficient learning
@@ -101,7 +116,7 @@ active learning sampling strategies
         For measuring the level of disagreement, two main approaches have been proposed.
             The first is vote entropy (Dagan and Engelson, 1995):
             Another disagreement measure that has been proposed is average Kullback-Leibler (KL) divergence (McCallum and Nigam 1998):
-    uncertainty sampling
+    uncertainty sampling (review paper)
         maximum  entropy  of  the  estimated  label  [5]
         minimum distance from the decision boundary [6,7]
     expected error reduction [8]:
