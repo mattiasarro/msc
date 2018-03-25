@@ -2,8 +2,69 @@ plan
     decide on AL sampling and weighting scheme
     decide on fine-tune system architecture
     coding todo
+        save hparams as JSON
+        preprocess: don't precompute img features
         web: was the product positively labeled by old system?
         if it's in a child, it's in the parent
+
+report
+    Introduction
+        Problem
+            e-commerce setting, binary prediction
+            Data:
+                columns, distributions
+                preprocessing
+        Research Questions
+            Which of the models are best baseline predictors?
+            Does ensembling increase performance considerably?
+            Does fine-tuning CNN increase performance considerably?
+            Does which active learning sampling strategy decreases label complexity more?
+                disagreement
+                uncertainty
+        Purpose and Goal
+        Risks
+            class imbalance (mitigate by aiming to get similar nr of pos/neg samples)
+        Ethics and Sustainability
+            ethics: when making critical decisions, should be interpretable
+            sust: selling products is inherently non-sustainable, unless recycling is ramped up
+        Delimitations
+            excluded models mentioned in section x
+            can't eval well on random sample, as these would usually be negative
+            no time for CNN vis
+
+    Background
+        Possible models:
+            linear for all cat vars
+            deep for all cat vars
+            CNN/LSTM for text vars separately
+            xgboost for all vars
+            precomputed img embs
+            pretrained CNN finetuned
+        Selected models
+        Ensembling Strategies
+        Active Learning
+
+    Method
+        Methodology
+        Experiments
+            train naively deep & wide, hyperparam tuning [old labels]
+            obtain first random sample of ground truth labels
+            train ensemble components separately [old labels]
+            train a meta-learner [old labels]
+            active learning
+                10x 10 000 labeling sessions
+                50% labels randomly selected, 50% actively selected (uncertainty + disagreement)
+                train the same model on randomly vs actively selected data
+                at each step t > 2, evaluate both models on random sample
+        Evaluation
+
+    Implementation & Deployment
+        Code Organization
+        Deployment Architecture
+        Model Hyperparameters
+
+    Discussion
+    Conclusions
 
 problems
     high label complexity
@@ -14,12 +75,12 @@ problems
     combining deterministic system with manual labels + active learning
 experiments
     train on rule-based labels
-        correcting for label imbalance
+        correcting for label imbalance6
             maybe not necessary to do, because imbalance might arise from sparse labels
         baseline models
             random: based on class frequencies
             text
-                both linear and deep
+                both linear and deep, with / without text colors
                     normalized histogram
                     tfidf
                     embeddings
