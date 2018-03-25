@@ -41,6 +41,8 @@ report
             precomputed img embs
             pretrained CNN finetuned
         Selected models
+            prefer dnn and xgboost because no need to impute missing values
+            DNNs generalize well. can use the embeddings
         Ensembling Strategies
         Active Learning
 
@@ -48,6 +50,7 @@ report
         Methodology
         Experiments
             train naively deep & wide, hyperparam tuning [old labels]
+                visual similarity
             obtain first random sample of ground truth labels
             train ensemble components separately [old labels]
             train a meta-learner [old labels]
