@@ -27,6 +27,9 @@ experiments
                 deep learning
                     CNN of text: predict class
                     LSTM of text: predict class
+                other
+                    xgboost:
+                    random forest: requires pre-processing for missing values [not used]
             image
                 pretrained imagenet
                 pretrained imagenet + finetune
@@ -51,9 +54,11 @@ experiments
                 frac = gives the fraction of products to label in that class
                     (1-F1_SCORE(class)) / sum of all class's F1 scores
                     could consider giving preference to lower-level categories, i.e.
-                        (x * 1/y), x between 0 and 1, y between 1 and 5
-                        (x * 1/log(y)), x between 0 and 1, y between 1 and 5
-                        sigmoid((x * 1/log(y))), x between 0 and 1, y between 1 and 5
+                        1 - (x * 1/y), x between 0 and 1, y between 1 and 5
+                        1 - (x * 1/log(y)), x between 0 and 1, y between 1 and 5
+                        1 - sigmoid((x * 1/log(y))), x between 0 and 1, y between 1 and 5
+                            looks good, most smooth version
+                            sigmoid might not be needed as we normalize anyway
                         but it might happen automatically that higher-level cats
                         will require fewer labels as we continue training
                 labels_per_class = frac * n
@@ -102,10 +107,6 @@ experiments
             each re-labeling iteration gives us a metric of how well each model did
                 random sample labels give TP/FP of both models
                 from each model's prediction on the previous iteration
-            we can mostly label leaves
-                we can auto-label all its parents
-                sometimes leaves don't have many good examples
-                    need to label parent
 
 theory
     data-efficient learning
