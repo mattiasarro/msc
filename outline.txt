@@ -28,7 +28,7 @@ experiments
                     CNN of text: predict class
                     LSTM of text: predict class
                 other
-                    xgboost:
+                    xgboost
                     random forest: requires pre-processing for missing values [not used]
             image
                 pretrained imagenet
