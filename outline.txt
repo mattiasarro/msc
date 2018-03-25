@@ -46,23 +46,37 @@ experiments
         interpret contribution of ensemble parts
     fine-tune pre-trained model with active learning
         ask users to label
-            decide we need to label n products per iteration
+            decide we need to label n=10 * 1000 products per iteration
             ask labels proportionally to a class's error rate
-                per-class softmax( F1_SCORE)
                 frac = gives the fraction of products to label in that class
+                    (1-F1_SCORE(class)) / sum of all class's F1 scores
+                    could consider giving preference to lower-level categories, i.e.
+                        (x * 1/y), x between 0 and 1, y between 1 and 5
+                        (x * 1/log(y)), x between 0 and 1, y between 1 and 5
+                        sigmoid((x * 1/log(y))), x between 0 and 1, y between 1 and 5
+                        but it might happen automatically that higher-level cats
+                        will require fewer labels as we continue training
                 labels_per_class = frac * n
 
             users see a page of products per that has products from different sampling strategies
-                random
-                vis/text disagreement: abs(P_vis(class) - P_text(class))
-                uncertainty
+                random (50%)
+                vis/text disagreement (25%)
+                    abs(P_vis(class) - P_text(class))
+                uncertainty (25%)
                     candidates: sample all products with P(entropy)
                     take a random sample of size labels_per_class from candidates
+
             quantify how much each sampling strategy gets surprising values
                 number of products that got a "surprise" label
                     P(class) was on the other side of thres than label
                 xentropy of model's previous predictions and new labels
                     would it favour one or the other type of sampling?
+                combined
+                    sum of xentropy of products that got a surprise value
+                    quantifies how much the model would change compared to random
+                    might help choose between merging these two
+                        if mult gives higher score for how much a model would change, use mult, else use avg
+
                 if there is a clear winner
                     use that sampling strategy
                 else
@@ -81,8 +95,10 @@ experiments
                             manually mass-assigning new labels
                         training could get unstable because classes would have variable weights
                         couldn't be combined with class-imbalance work
-                    importance weight changes with the model's prediction?
-                    importance weight stays the same as it was when it was predicted
+                    hard to tell
+                        importance weight changes with the model's prediction?
+                        importance weight stays the same as it was when it was predicted
+                    xntropy already kind of takes this into account
             each re-labeling iteration gives us a metric of how well each model did
                 random sample labels give TP/FP of both models
                 from each model's prediction on the previous iteration
