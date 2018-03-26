@@ -83,6 +83,10 @@ report
         Selected models
             prefer dnn and xgboost because no need to impute missing values
             DNNs generalize well. can use the embeddings
+            use simpler models:
+                An Analysis of Neural Language Modeling at Multiple Scales (QRRNs)
+                     This paper follows prior work showing that many of our existing AI components are more powerful than researchers suspected, and follows research that has shown that fairly old systems like GANs or DCGANs can adeptly model data distributions more effectively than sophisticated successor systems.
+                Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks https://arxiv.org/abs/1511.06434
         Ensembling Strategies
         Semisupervised Learning
             cvae
@@ -297,6 +301,7 @@ architecture
                 train, predict
                     eval on test set, insert metrics to ES
                     eval on valid set, insert metrics to ES
+                determine next to-be labels
 
 quotes
     ...
