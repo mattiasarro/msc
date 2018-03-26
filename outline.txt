@@ -80,6 +80,9 @@ report
             xgboost for all vars
             precomputed img embs
             pretrained CNN finetuned
+        Semisupervised Learning
+            cvae
+            dcgan
         Selected models
             prefer dnn and xgboost because no need to impute missing values
             DNNs generalize well. can use the embeddings
@@ -88,9 +91,11 @@ report
                      This paper follows prior work showing that many of our existing AI components are more powerful than researchers suspected, and follows research that has shown that fairly old systems like GANs or DCGANs can adeptly model data distributions more effectively than sophisticated successor systems.
                 Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks https://arxiv.org/abs/1511.06434
         Ensembling Strategies
-        Semisupervised Learning
-            cvae
+
         Active Learning
+
+meta learner as cvae? nah, no rich input data
+
 
     Method
         Methodology
