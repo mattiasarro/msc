@@ -4,6 +4,7 @@ plan
     coding todo
         save hparams as JSON
         preprocess: don't precompute img features
+        AF: pipeline without update
         web: was the product positively labeled by old system?
         if it's in a child, it's in the parent
 
@@ -264,7 +265,38 @@ active learning sampling strategies
                     solution: disagreement sampling
 
 architecture
-
+    tuning ensemble components
+        run each component independently to ensure it works (AF train_pred)
+        test set: small set of ground truth data (inputs + labels)
+        AF pipeline: hypertune
+            create dirs
+            dump everything as dev set
+            dump test set
+            schedule TF job per ensemble component
+                hypertune, each train run
+                    has its own num trials and hyperparam ranges
+                    creates its own train / valid split
+                at the end of each model train
+                    eval on test set, insert metrics to ES
+                    eval on valid set, insert metrics to ES
+        AF pipeline: active learning retrain
+            create dirs
+            dump dev / test sets
+            copy ground truth labels
+            schedule TF job per ensemble component
+                creates its own train / valid split
+                at the end
+                    eval on test set, insert metrics to ES
+                    eval on valid set, insert metrics to ES
+            schedule meta-learner TF job
+                create dir
+                compose dataset:
+                    read each components preds into dataset
+                    zip datasets together
+                    shuffle&batch
+                train, predict
+                    eval on test set, insert metrics to ES
+                    eval on valid set, insert metrics to ES
 
 quotes
     ...
