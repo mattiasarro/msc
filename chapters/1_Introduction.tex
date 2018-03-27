@@ -50,12 +50,11 @@ The goals of the work, in chronological order, is to:
 
 \begin{itemize}
   \item Train  baseline model to reproduce the behaviour of the rule-based system.
-  \item Build an interface for labelling products and obtain small dataset with ground truth labels (referred to as the ``ground truth dataset'' from now on).
-  \item Train a number of different models on the rule-based labels.  Evaluate these models on the test set of the rule-based  labels as well as the ground truth dataset.
-  \item
-  \item
-  \item
-  \item
+  \item Build an interface for labelling products and obtain small dataset with ground truth labels (further referred to as the ``ground truth dataset'').
+  \item Train a number of different models on the rule-based labels.  Evaluate these models on the rule-based test set as well as the ground truth dataset.
+  \item Train a selection of models that had good performance as an ensemble, preferring model diversity over good performance. Evaluate this model on the rule-based test set as well as the ground truth dataset.
+  \item Implement the active labelling mechanism defined in [ref] and fine-tune the ensemble (that is pre-trained on rule-based labels) in 10 labelling rounds.
+  \item Document the results as well as the technical architecture and workflow.
 \end{itemize}
 
 \section{Research Questions}
