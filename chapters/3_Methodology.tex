@@ -17,20 +17,26 @@ The experiments were conducted in four distinct stages:
 \section{System Architecture}
 \label{architecture}
 
- The following technologies were used to build the system which had to interact with  existing services  at the client company:
+ The following technologies were used to build the system which had to interact with existing services  at the client company:
 
 \begin{itemize}
-  \item ElasticSearch - 
-  \item
-  \item
-  \item
-  \item
-  \item
-  \item
-  \item
-  \item
-  \item
+  \item ElasticSearch - a NoSQL database with powerful full-text search and querying capabilities.
+  \item RabbitMQ - a message queue, used for transferring data among our microservices (using the Logstash adapter, that can read from and write to (among other things) ElasticSearch and RabbitMQ).
+  \item MySQL - a relational database.
+  \item Flask - a simple backend web framework for Python.
+  \item Node.js - a JacaScript backend web framework.
+  \item React.js - a JavaScript front-end framework for JavaScript.
+  \item Redux - a framework for persisting user interface (UI) state and application data in single page applications.
+  \item Apache Beam - a data processing engine akin akin to Apache Spark and Apache Flink.
+  \item Dataflow - a Google Cloud Platform (GCP) service for executing Apache Beam workloads.
+  \item TensorFlow - ML framework for Python, capable of defining many kinds of models as a computation graph, and executing this graph locally or in a distributed manner.
+  \item GCP ML Engine - 
 \end{itemize}
+
+All the product data was read from and written to ElasticSearch.
+was used for storing information about categories, but this was transitioned over to ElasticSearch
+was used for building the initial application for displaying the results of the baseline (predictions, averaged and per-class evaluation metrics). The front end was built with React.
+the web application was later rewritten by another employee of the client company, so  that he could implement the more labour-intensive  passing a language is more familiar with.
 
 \section{Experiments}
 \subsection{Independent Models}
