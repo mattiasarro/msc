@@ -10,9 +10,13 @@
     urlcolor=black
 }
 
+% decrease line spacing English
 \usepackage{enumitem}
 \setlist{noitemsep}
 \setlist[itemize]{itemsep=5pt,topsep=0pt}
+\setlist[enumerate]{itemsep=5pt,topsep=0pt}
+
+\setsecnumdepth{subsection}
 
 \usepackage{lmodern}
 \usepackage[latin1]{inputenc}
@@ -78,6 +82,8 @@
 \pagenumbering{arabic}
 \pagestyle{newchap}
 \input{chapters/1_Introduction}
+\input{chapters/2_Background}
+\input{chapters/3_Methodology}
 \input{chapters/8_Discussion}
 \input{chapters/9_Conclusion}
 
