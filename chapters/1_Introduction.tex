@@ -26,12 +26,17 @@ In this thesis, we explore three orthogonal ways of efficiently learning on a pr
 \section{Problem}
 
 % should this be in the problen statement?
-the client company gathers data from various affiliate networks (that in turn give their data from various retailers) and displays the data on their online store.
-the incoming data is extremely noisy and inconsistent: what kind of data is stored in what kind of feature column varies across affiliate networks, across retailers within an affiliate network, and the data within a retailer can have lots of missing values, noisy text, missing images, etc.
-there is currently a rule-based system for assigning products to categories: all products matching a condition (e.g. title contains the word "trousers") will be assigned to that category, i.e. categories are not mutually exclusive.
-this way of categorising products works relatively well on some categories, but such a rule-based system has several drawbacks: these rules are cumbersome to define, their evaluation is manual, they failed to match a large fraction of products that in principle should be in a given category, it is hard to trace back the rule that caused a false positive, and such rules are limited to textual data.
+The client company gathers data from various affiliate networks (that in turn give their data from various retailers) and displays the data on their online store.
+There are millions of products belonging to roughly 800 categories, and categories follow the usual nested tree structure.
+The incoming data is extremely noisy and inconsistent: what kind of data is stored in what kind of feature column varies across affiliate networks, across retailers within an affiliate network, and the data within a retailer can have lots of missing values, noisy text, missing images, etc.
+There is currently a rule-based system for assigning products to categories: all products matching a condition (e.g. title contains the word "trousers") will be assigned to that category, i.e. categories are not mutually exclusive.
+This way of categorising products works relatively well on some categories, but such a rule-based system has several drawbacks: these rules are cumbersome to define, their evaluation is manual, they failed to match a large fraction of products that in principle should be in a given category, it is hard to trace back the rule that caused a false positive, and such rules are limited to textual data.
 
-
+The client needs a system capable of categorising these products efficiently, without requiring large amounts of labels initially or when creating a new category.
+The system should be able to learn from the old labels assigned by the rule-based system, yet enable explicit (re)labelling of products.
+Interpretability of the model is desired, but predictive power is a higher priority.
+It is desirable to learn features that are useful for a downstream model, but a lower label complexity is more important.
+The system should be robust to  noisy inputs, and data preprocessing should not considered the idiosyncrasies of each affiliate network.
 
 \section{Research Questions}
 \section{Purpose}
