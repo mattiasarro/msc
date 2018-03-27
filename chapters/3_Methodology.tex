@@ -1,4 +1,48 @@
-\chapter{Methodology}
+\chapter{Method}
+
+
+Several hypotheses were tested in this work.
+Section \ref{architecture} describes the technical set up required for running all these experiments and deploying the model to production before delving into the specific experiments and their evaluation methods in sections [ref].
+
+\hfill \break \noindent
+The experiments were conducted in four distinct stages:
+
+ \begin{itemize}
+   \item Training a baseline model on the rule-based labels to get a sense of the difficulty of this problem. Since there is no fundamental difference in the way this model was  trained and evaluated compared to the other classifiers, this is described in section \ref{exp_models} with the others. After this step, in ground truth dataset was obtained.
+   \item Training the independent classifiers to determine best performers (\ref{exp_models}).
+   \item Training an ensemble of the independent classifiers (\ref{exp_ensembling}).
+   \item Training up to 10 iterations of active learning on the strong predictor (\ref{exp_al}).
+ \end{itemize}
+
+\section{System Architecture}
+\label{architecture}
+
+ The following technologies were used to build the system which had to interact with  existing services  at the client company:
+
+\begin{itemize}
+  \item ElasticSearch - 
+  \item
+  \item
+  \item
+  \item
+  \item
+  \item
+  \item
+  \item
+  \item
+\end{itemize}
+
+\section{Experiments}
+\subsection{Independent Models}
+\label{exp_models}
+
+\subsection{Ensembling}
+\label{exp_ensembling}
+
+\subsection{Active Learning}
+\label{exp_al}
+
+
 
 \section{Evaluation}
 \label{evaluation}
