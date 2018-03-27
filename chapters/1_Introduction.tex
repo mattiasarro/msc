@@ -3,22 +3,25 @@
 % \chapterprecishere{''Begin at the beginning'', the King said gravely,'' and go on till you come to the end: then stop.'' \par\raggedleft --- \textup{Lewis Carroll}, Alice in Wonderland}
 
 % ML is successful especially DL
-Machine learning (ML) has become hugely successful over the past few years\footnote{at least in securing start-up funding}, with a lot of this newfound interest, hype, and hysteria directed at  neural networks and deep learning. This focus is not unfounded - deep learning approaches continue to break benchmarks in  core machine learning research areas such as computer vision [cite], speech recognition [cite], and  some kinds of natural language processing  such as machine translation [cite].
-Reinforcement learning has also been revolutionised by deep learning, which is used in various robotics and control tasks, achieving superhuman performance in complex games and driving vehicles in real-world situations.
+Machine learning (ML) has become hugely successful over the past few years, with a lot of this newfound interest, hype, and hysteria directed at  neural networks and deep learning. This focus is not unfounded - deep learning approaches continue to break benchmarks in  core machine learning research areas such as computer vision [cite], speech recognition [cite], and an increasing number of natural language processing tasks [cite NMT].
+Deep learning has also revolutionised reinforcement learning, achieving superhuman performance in complex games and driving vehicles in real-world situations.
 There are even limited results in  beating human at highly uncertain games with various actors such as [Texas Holdem] poker [cite].
+Understandably, academics and industry are are scrambling to apply panacea to their field.
 
 % why DL is useful and flexible
-While their superficial resemblance to  natural brains might be the reason for sensationalist articles, artificial neural networks are simply layers of non-linear transformations capable of learning complex mappings from multidimensional inputs to (usually multidimensional or structured) outputs.
+While their superficial resemblance to  natural brains might be  a good topic for a sensationalist article, artificial neural networks are simply layers of non-linear transformations capable of learning complex mappings from multidimensional inputs to (usually multidimensional or structured) outputs.
 The building blocks of neural networks are relatively simple and the algorithms for training them are universal; this makes neural networks applicable to a variety of domains, and opens up fascinating opportunities of multimodal and transfer learning.
 Being able to arbitrarily increase model complexity by increasing its depth or width allows the same neural network approximate more complex functions.
 Increased model complexity increases training time and requires more labeled training data, yet deep models are somewhat unique in that their performance continues to increase when the dataset size increases, whereas the benefits of more data taper off for many other kinds of models.
 This does not automatically mean neural networks can only be used with large datasets - after all a single layer neural network can be equivalent to a logistic regression model - but that model complexity should increase with the amount of data available.
 
 %  balancing between predictive performance, label complexity, transfer learning capabilities
+It is not immediately obvious  which kind of model should one use for a given task and dataset.
+A data scientist can consider the following factors:  how many labelled and unlabelled data points do we have,  how much do we value predictive performance, interpretability, and whether we want to do some transfer learning or joint training with the models.
 Labelling is often expensive, so in many real world use cases a lower label complexity (number of labels needed to obtain the desired accuracy) is preferred over slightly better performance.
 Deep learning seems to have a disadvantage in this aspect, but as we see in section [ref] in cases where unlabelled data is also abundant, semi-supervised and generative models can overcome low label complexity while increasing computation time.
 In cases where the ability of neural networks to learn features that can be used in downstream models (e.g. features learned for classification could later be used as part of a recommended system) this increased computation and engineering complexity might be justifiable.
-It is not trivial to pick a model that strikes a good balance between good predictive performance, low label complexity, and the ability to do transfer and multimodal learning.
+
 
 % we explore individual models, ensembling, active learning
 In this thesis, we explore three orthogonal ways of efficiently learning on a proprietary dataset for product classification, where initial labels are abundant but noisy. We first evaluate different kinds of models (shallow, deep, tree-structured, convolutional, recurrent) that are trained on different modalities / input dimensions (image, text, categorical, numerical) of the same data. After determining the performance of these baseline models, the strongest models are trained as an ensemble that outperforms each individual baseline model. Finally we fine-tune the ensemble via an active learning strategy described in section [ref], where a combination of uncertainty and disagreement sampling determines a batch of products to be labeled for the next training iteration. This overcomes the noisiness and incompleteness of the initial labels without requiring much manual labeling.
@@ -32,17 +35,26 @@ The incoming data is extremely noisy and inconsistent: what kind of data is stor
 There is currently a rule-based system for assigning products to categories: all products matching a condition (e.g. title contains the word "trousers") will be assigned to that category, i.e. categories are not mutually exclusive.
 This way of categorising products works relatively well on some categories, but such a rule-based system has several drawbacks: these rules are cumbersome to define, their evaluation is manual, they failed to match a large fraction of products that in principle should be in a given category, it is hard to trace back the rule that caused a false positive, and such rules are limited to textual data.
 
-The client needs a system capable of categorising these products efficiently, without requiring large amounts of labels initially or when creating a new category.
-The system should be able to learn from the old labels assigned by the rule-based system, yet enable explicit (re)labelling of products.
-Interpretability of the model is desired, but predictive power is a higher priority.
-It is desirable to learn features that are useful for a downstream model, but a lower label complexity is more important.
-The system should be robust to  noisy inputs, and data preprocessing should not considered the idiosyncrasies of each affiliate network.
+The client needs a classification system of binary independent outputs to replace the old way of categorising products.
+The system should be able to learn from the output of the old system, and if possible produce models that can be used in downstream tasks such as recommend systems and product similarity models (transfer learning).
+The highest priority is low label complexity, beating requirements for high accuracy and transfer learning capabilities.
+The system should be robust to  noisy inputs, and data preprocessing should not consider the idiosyncrasies of each affiliate network.
+
+\section{Purpose}
+
+ the purpose of this work is to
+
+\section{Goal}
 
 \section{Research Questions}
-\section{Purpose}
-\section{Goal}
+
+\begin{itemize}
+  \item How do the models  outlined in section [ref] compared to one another in terms of predictive performance (defined in section \ref{evaluation}), converging time, and  label complexity?
+\end{itemize}
+
 \section{Methodology}
 \section{Evaluation}
+\label{evaluation}
 \section{Work Environment}
 \section{Deployment Environment}
 \section{Ethics and Sustainability}
