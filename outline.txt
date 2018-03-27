@@ -12,10 +12,11 @@ report
     Introduction
         general
             machine learning has become very successful, applied in many contexts
-            supervised learning is the most successful example
             deep learning is also seeing a lot of attention
                 because it can deal with very rich input / output types
                 but is notoriously data-heavy
+
+            supervised learning is the most successful example
             in real-world settings, the data we gather is noisy and labelling expensive
                 we would like to have systems that
                     are efficient in learning from few labels
@@ -27,7 +28,7 @@ report
                 data scientists have some intuition about this
                     which comes from experience and from reading papers
                     another case study can therefore be valuable
-            active learning datasets are often synthetic
+
             in this thesis we explore
                 different types of models
                     for classifying (or predicting attributes of) affiliate products
@@ -37,6 +38,7 @@ report
 
         Problem
             e-commerce setting, binary prediction
+            active learning datasets are often synthetic
             Data:
                 columns, distributions
                 preprocessing
