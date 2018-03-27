@@ -2,16 +2,23 @@
 
 % \chapterprecishere{''Begin at the beginning'', the King said gravely,'' and go on till you come to the end: then stop.'' \par\raggedleft --- \textup{Lewis Carroll}, Alice in Wonderland}
 
+% ML is successful especially DL
 machine learning (ML) has become successful enough  over the past few years to be a recurring topic in mainstream media and its use almost a requirement for startup funding\footnote{being driven by "crypyo" or blockchain is also acceptable}.
 a lot of this newfound interest, hype, and hysteria is directed at  neural networks and deep learning. this focus is not unfounded - deep learning approaches continue to break benchmarks in  core machine learning research areas such as computer vision [cite], speech recognition [cite], and  some kinds of natural language processing  such as machine translation [cite].
 reinforcement learning has also been revolutionised by deep learning, which is used in various robotics and control tasks, achieving superhuman performance in complex games and driving vehicles in real-world situations.
 there are even limited results in  beating human at highly uncertain games with various actors such as Texas holdem poker [cite].
 
+% why DL is useful and flexible
 while bearing superficial resemblance to  natural brains, artificial neural networks are simply layers of non-linear transformations  capable of learning complex mappings from multidimensional inputs to (usually multidimensional or even structured) outputs.
 the building blocks of neural networks are relatively simple and the algorithms for training them are universal; this makes neural networks applicable to a variety of domains and modalities, and opens up fascinating opportunities of multimodal and transfer learning.
 being able to arbitrarily increase model complexity by increasing its depth or width allows the same neural network approximate more complex functions.
 increased model complexity increases training time and requires more labeled training data, yet deep models are somewhat unique in that their performance continues to increase when the dataset size increases, whereas the benefits of more data taper off for many other kinds of models.
 this does not automatically mean neural networks can only be used with large datasets - after all a single layer neural network can be equivalent to a logistic regression model - but that we should avoid using neural network architectures that have vastly more parameters than there are training data points.
+
+labelling is often expensive, so in many real world use cases are lower label complexity (number of labels needed to obtain the desired accuracy) is desired over a marginally better performance.
+deep learning seems to have a disadvantage in this aspect, but as we see in section [ref] in cases where unlabelled data is also abundant, semi-supervised and generated models can overcome pull label complexity at the expense of increased computation time.
+in cases where the ability of neural networks to learn features that can be used in downstream models (e.g. features learned by neural network for classification task could be used as part of a recommended system) this increased computation and engineering complexity might be justifiable
+in the species, we explore three orthogonal ways of decreasing global complexity: choosing a model that is best able to independently predict the outputs,
 
 \section{Background}
 \section{Problem}
