@@ -19,11 +19,38 @@ The experiments were conducted in four distinct stages:
  \section{Data Preprocessing}
  \label{data}
 
-There were around a dozen product features that affiliate network provided.
+There were around a dozen product features that affiliate networks provided.
 Most of these features were either categorical or textual,  with just a single numerical feature (price).
-The initial analysis of the dataset was performed using Dataprep, a Google Cloud Platform (GCP)  product for data wrangling, which at the time of use was in beta stage.
-Dataprep  was used to process a sample of ~800 000 products;  it produced histograms of the values present in each feature column (see appendix \ref{dataprep}), which was used  to determine which input features to discards entirely.
+Initially, the data was analysed using Dataprep, a Google Cloud Platform (GCP)  product for data wrangling, which at the time of use was in beta stage.
+Dataprep  was used to process a sample of ~800 000 products;  it produced histograms of the values present in each feature column (see appendix \ref{dataprep}).
 
+The histograms revealed that a lot of the input features were mostly empty, but also that many of the inputs that would naturally be considered categorical  had much more unique value in them then one might expect.
+For example, each affiliate gives us the textual representation what they consider to be the category of the product,  but  rather than containing a small number of unique tokens, these contained all the full category paths along with the category delimiters, which  varied retailer by retailer (e.g.  it was common to see both ``Shoes > Sneakers'' and ``Shoes // Sneakers'').
+Representing these as categorical variables would have blown up the input space, which would have  resulted in more parameters, each parameter having fewer examples to learn from.
+Therefore, many such ``categorical''  were actually represented as text, which were tokenised and cleaned appropriately, allowing for better generalisation and smaller models.
+
+There was a single numerical field: price.
+This could have been min-max normalised to the range 0 ... 1, however there  was a small number of very high values that would have squash nearly all the other  prices.
+Rather than  carefully considering  how to mitigate this,  the input dimension was dropped, because it is not likely to have much predictive value for product classification.
+It would be trivial to bring this feature back, for example  when building a recommended system, where it would be much more useful.
+
+a trickier question was how many distinct tokens are categorical values to keep per input column.
+keeping all of them would not have been sensible: there were still large numbers of tokens that appeared only once, often because there were some unwanted formatting characters, misspellings, or incorrect punctuation that caused a token to be considered a separate entity.
+no input column was left with more than 8000 tokens,
+
+
+\begin{itemize}
+  \item title
+  \item brand
+  \item category
+  \item rawCategory
+  \item description
+  \item age
+  \item gender
+  \item size
+\end{itemize}
+
+image
 
  config file for how to preprocess data
  selecting top\_k for each column
