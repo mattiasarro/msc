@@ -46,7 +46,14 @@ Updates to the ES index are not done directly, since indexing the updated produc
 All ML training and prediction happens in a batch-oriented way, encapsulated as Airflow pipelines.
 Each pipeline is a directed acyclic graph of tasks, where a task can be a shell command or Python function; a pipeline defines dependencies of task execution, which allows us co-ordinate a series of operations that could be executed locally inside the Docker container running AF, or remotely such as in a GCP service.
 A typical pipeline dumps data locally, uploads it to GCS, schedules a Dataflow job to preprocess data, polls the Dataflow service until the Dataflow job is finished, schedules an ML engine job, polls the MLE service until it has completed, and runs an update process that reads the predictions and evaluation statistics from GCS and sends the updates to the RabbitMQ queue.
-Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked due to network latency as well as computing the appropriate category tree for each product (explained in \ref{cat_tree})
+Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked due to network latency as well as computing the appropriate category tree for each product (explained in \ref{cat_tree}).
+
+There are two types of Dataflow pipelines: preprocessing and similarity pipelines. Omitting various details, dead-ends and workarounds that were needed due to prior system architecture changes\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
+
+\begin{itemize}
+  \item \textbf{Preprocess pipeline} -
+  \item \textbf{Visual similarity pipeline} -
+\end{itemize}
 
 \begin{figure}
   \hspace*{-0.2\textwidth}
@@ -71,6 +78,8 @@ Reading updates and sending these to RabbitMQ is done in a parallelised manner (
 \subsection{Active Learning}
 \label{exp_al}
 
+\subsection{Visual Similarity}
+\label{exp_models}
 
 
 \section{Evaluation}
