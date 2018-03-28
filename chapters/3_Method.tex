@@ -97,26 +97,33 @@ Each pipeline is a directed acyclic graph of tasks, where a task can be a shell 
 A typical pipeline dumps data locally, uploads it to GCS, schedules a Dataflow job to preprocess data, polls the Dataflow service until the Dataflow job is finished, schedules an ML engine job, polls the MLE service until it has completed, and runs an update process that reads the predictions and evaluation statistics from GCS and sends the updates to the RabbitMQ queue.
 Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked due to network latency as well as computing the appropriate category path for each product (explained in \ref{cat_tree}).
 
-There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
-
-\begin{itemize}
-  \item \textbf{Preprocess pipeline.}
-    It loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
-    All fields are cleaned of obvious noise and superfluous whitespace.
-    Histograms are computed for categorical variables.
-    Text fields are tokenised, tokens are counted and used for computing TF-IDF values.
-    This tokenisation is handled by TensorFlow Transform: it keeps the top \textit{k} tokens (or categorical values) for a categorical (or text) column, and maps these to integer indices.
-    Which tokens (or categorical values) map to which indices determines the 1-hot input encoding of the data (or similar, see section \ref{data_rep}), and will be different every time data is pre-processed again.
-    This token-to-index mapping is encoded in a \textit{transform function} that is saved to GCS at the end of the pipeline, and is used by a TensorFlow model to convert raw text inputs to a  sparse inputs.
-  \item \textbf{Visual similarity pipeline} -
-\end{itemize}
-
 \begin{figure}
   \hspace*{-0.2\textwidth}
   \includegraphics[width=1.4\textwidth]{diagrams/architecture}
   \caption{High-level system architecture of the ML pipeline}
   \label{arch_diagram}
 \end{figure}
+
+\subsection{Dataflow Pipelines}
+There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
+
+\subsubsection{Preprocess pipeline}
+
+It loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
+All fields are cleaned of obvious noise and superfluous whitespace.
+Text and categorical fields are tokenised and mapped to integer indices, keeping only the top \textit{k} values and also computing TF-IDF scores for text fields.
+This is handled by TensorFlow Transform, which persists this token-to-index mapping in a \textit{transform function} that is saved to GCS at the end of the pipeline.
+The transform function is used by a TensorFlow model to convert raw text inputs to a  sparse inputs;
+separate pre-processing run will generate a different transform function, with mostly the same tokens mapping to different indices, as the order in which they will be encountered will be different.
+
+The pipeline is also responsible for downloading product images and using a pre-trained 2D CNN to extract a dense feature vector for each product from the penultimate layer of the CNN.
+
+
+
+\subsubsection{Visual similarity pipeline}
+
+
+
 
 \section{Experiments}
 \subsection{Independent Models}
