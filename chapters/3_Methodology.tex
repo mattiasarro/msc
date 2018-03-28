@@ -20,25 +20,33 @@ The experiments were conducted in four distinct stages:
  The following technologies were used to build the system which had to interact with existing services  at the client company:
 
 \begin{itemize}
-  \item ElasticSearch - a NoSQL database with powerful full-text search and querying capabilities.
+  \item Apache Airflow (AF) - a Python framework for defining workflows of long-running tasks and dependencies between these tasks.
+  \item TensorFlow (TF) - ML framework for Python, capable of defining many kinds of models as a computation graph, and executing this graph locally or in a distributed manner.
+  \item ML Engine (MLE) - a GCP service for running TensorFlow models (training, hyperparameter tuning, inference).
+  \item Apache Beam - a data processing engine akin akin to Apache Spark and Apache Flink.
+  \item Dataflow - a GCP service for executing Apache Beam workloads.
+  \item Google Cloud Storage (GCS) - Google Cloud Platform (GCP) object storage similar to Amazon S3.
+  \item ElasticSearch (ES) - a NoSQL database with powerful full-text search and querying capabilities.
   \item RabbitMQ - a message queue, used for transferring data among our microservices (using the Logstash adapter, that can read from and write to (among other things) ElasticSearch and RabbitMQ).
-  \item MySQL - a relational database.
   \item Flask - a simple backend web framework for Python.
   \item Node.js - a JacaScript backend web framework.
   \item React.js - a JavaScript front-end framework for JavaScript.
   \item Redux - a framework for persisting user interface (UI) state and application data in single page applications.
-  \item Google Cloud Storage (GCS) - Google Cloud Platform (GCP) object storage similar to Amazon S3.
-  \item Apache Beam - a data processing engine akin akin to Apache Spark and Apache Flink.
-  \item Dataflow - a GCP service for executing Apache Beam workloads.
-  \item TensorFlow - ML framework for Python, capable of defining many kinds of models as a computation graph, and executing this graph locally or in a distributed manner.
-  \item ML Engine - a GCP service for running TensorFlow models (training, hyperparameter tuning, inference).
-  \item Apache Airflow - a Python framework for defining workflows of long-running tasks and dependencies between these tasks.
+  \item GraphQL - a query language for building flexible APIs
 \end{itemize}
 
-All the product data was read from and written to ElasticSearch.
-was used for storing information about categories, but this was transitioned over to ElasticSearch
-was used for building the initial application for displaying the results of the baseline (predictions, averaged and per-class evaluation metrics). The front end was built with React.
-the web application was later rewritten by another employee of the client company, so  that he could implement the more labour-intensive  passing a language is more familiar with.
+Figure \ref{arch_diagram} shows the how data is passed between the main services, and how services and technologies interact.
+
+All product data is stored in ElasticSearch (ES): the rule-based labels, the predictions of the ML system, and evaluation metrics from various train runs.
+ES is accessed from the public web application via GraphQL and the ML administration web UI (further referred to just as web UI).
+The web UI was initially built with Flask and React by the author as a quick way to get insight about the model, and then re-written as a more feature-rich version by an employee of the client company with Node.js, GraphQL, React and Redux.
+Data is pulled into the ML pipelines by dumping the results of an ES query to a local file, which is uploaded to GCS.
+Updates to the ES index are not done directly, since indexing the updated products is computationally expensive; instead, updates are put on a RabbitMQ queue, which is consumed by Logstash, which updates products in ES at a rate that will not overburden the servers.
+
+All ML training and prediction happens in a batch-oriented way, encapsulated as Airflow pipelines.
+Each pipeline is a directed acyclic graph of tasks, where a task can be a shell command or Python function; a pipeline defines dependencies of task execution, which allows us co-ordinate a series of operations that could be executed locally inside the Docker container running AF, or remotely such as in a GCP service.
+A typical pipeline dumps data locally, uploads it to GCS, schedules a Dataflow job to preprocess data, polls the Dataflow service until the Dataflow job is finished, schedules an ML engine job, polls the MLE service until it has completed, and runs an update process that reads the predictions and evaluation statistics from GCS and sends the updates to the RabbitMQ queue.
+Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked due to network latency as well as computing the appropriate category tree for each product (explained in \ref{cat_tree})
 
 \begin{figure}
   \hspace*{-0.2\textwidth}
@@ -46,6 +54,11 @@ the web application was later rewritten by another employee of the client compan
   \caption{High-level system architecture of the ML pipeline}
   \label{arch_diagram}
 \end{figure}
+
+\section{Data}
+
+\subsection{Category Structure}
+\label{cat_tree}
 
 
 \section{Experiments}
