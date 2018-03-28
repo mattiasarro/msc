@@ -2,7 +2,7 @@
 
 
 Several hypotheses were tested in this work.
-Section \ref{data} gives an overview of how input data was pre-processd.
+Section \ref{data_pp} gives an overview of how input data was pre-processd.
 Section \ref{architecture} describes the technical set up required for running all these experiments and deploying the model to production before delving into the specific experiments and their evaluation methods in sections [ref].
 
 \hfill \break \noindent
@@ -17,7 +17,7 @@ The experiments were conducted in four distinct stages:
 
 
  \section{Data Preprocessing}
- \label{data}
+ \label{data_pp}
 
 There were around a dozen product features that affiliate networks provided.
 Most of these features were either categorical or textual,  with just a single numerical feature (price).
@@ -34,31 +34,34 @@ This could have been min-max normalised to the range 0 ... 1, however there  was
 Rather than  carefully considering  how to mitigate this,  the input dimension was dropped, because it is not likely to have much predictive value for product classification.
 It would be trivial to bring this feature back, for example  when building a recommended system, where it would be much more useful.
 
-a trickier question was how many distinct tokens are categorical values to keep per input column.
-keeping all of them would not have been sensible: there were still large numbers of tokens that appeared only once, often because there were some unwanted formatting characters, misspellings, or incorrect punctuation that caused a token to be considered a separate entity.
-no input column was left with more than 8000 tokens,
+A trickier question was how many distinct tokens or categorical values to keep per input column.
+Keeping all of them would not have been sensible: there were still large numbers of tokens that appeared only once, often because there were some unwanted formatting characters, misspellings, or incorrect punctuation that caused a token to be considered a separate entity.
+There was a single configuration file that dictated which models used which features as input, whether those inputs were represented as textual, categorical, or dense values;  it also determined  the maximum number of unique values/tokens,  and the dimensionality of the embedding.
+This configuration file was read by Dataflow during pre-processing  and by TensorFlow during  inference and training, which made experimentation with  different types of models and input representations considerably easier.
 
+Below is a list of input features with information about how they were represented; it also lists the dimensionality of embeddings  for the models which  encoded categorical variables as embedding.
 
-\begin{itemize}
-  \item title
-  \item brand
-  \item category
-  \item rawCategory
-  \item description
-  \item age
-  \item gender
-  \item size
+\begin{itemize}[noitemsep]
+  \item title - text - max 8000 unique tokens
+  \item brand - categorical - max 5000 unique values - 10 embedding dimensions
+  \item category - categorical - max 950 unique values - 6 embedding dimensions
+  \item rawCategory - text - max 1000 unique tokens
+  \item description - text - max 8000 unique tokens
+  \item gender - categorical - take all unique tokens
+  \item size - categorical - max 100 unique tokens
+  \item image - dense vector of 2048 features extracted with a 2D CNN
 \end{itemize}
 
-image
+\subsection{Category Structure}
+\label{cat_tree}
 
- config file for how to preprocess data
- selecting top\_k for each column
- input representation: 1-hot, k-hot, tfidf, embedding
+At the time of writing, there were roughly 1000 categories defined in the client database.
+Categories were structured in a way that is typical of  e-commerce:  categories can have  child categories, which in turn can have child categories, etc.
+In our case, the typical depth of the tree structure was five, i.e. a leaf category often had four parents;  naturally, the tree structure was not balanced, so many branches ended at depth three or four.
 
- \subsection{Category Structure}
- \label{cat_tree}
-
+This structure has to be taken into account when labelling and  predicting categories for unseen products.
+When a product is labelled to belong to a  lower level category,  it should also be labelled to belong to all of its ancestor categories. This does not work the other way around, though:  if a product is labelled not to be a Trainer (lower level category),  this does not imply it is not a Shoe (ancestor category).
+Similarly, when the model predicts that a product belongs to and  lower level category, it is considered that it also predicted the product to belong to all of its  ancestor categories;  again, negative predictions at lower levels do not  overwrite positive predictions at high levels.
 
 \section{System Architecture}
 \label{architecture}
@@ -85,26 +88,25 @@ image
 Figure \ref{arch_diagram} shows the how data is passed between the main services, and how services and technologies interact.
 
 All product data is stored in ElasticSearch (ES): the rule-based labels, the predictions of the ML system, and evaluation metrics from various train runs.
-ES is accessed from the public web application via GraphQL and the ML administration web UI (further referred to just as web UI).
-The web UI was initially built with Flask and React by the author as a quick way to get insight about the model, and then re-written as a more feature-rich version by an employee of the client company with Node.js, GraphQL, React and Redux.
+ES is accessed from the public web application via GraphQL and the ML administration web UI (further referred to just as web UI\footnote{The web UI was initially built with Flask and React by the author as a quick way to get insight about the model, and then re-written as a more feature-rich version by an employee of the client company with Node.js, GraphQL, React and Redux.}).
 Data is pulled into the ML pipelines by dumping the results of an ES query to a local file, which is uploaded to GCS.
-Updates to the ES index are not done directly, since indexing the updated products is computationally expensive; instead, updates are put on a RabbitMQ queue, which is consumed by Logstash, which updates products in ES at a rate that will not overburden the servers.
+Updates to the ES index are not done directly, since indexing the updated products is computationally expensive; instead, updates are put on a RabbitMQ queue, which is consumed by Logstash, which in turn updates products in ES at a rate that will not overburden the servers.
 
 All ML training and prediction happens in a batch-oriented way, encapsulated as Airflow pipelines.
-Each pipeline is a directed acyclic graph of tasks, where a task can be a shell command or Python function; a pipeline defines dependencies of task execution, which allows us co-ordinate a series of operations that could be executed locally inside the Docker container running AF, or remotely such as in a GCP service.
+Each pipeline is a directed acyclic graph of tasks, where a task can be a shell command or Python function; a pipeline defines dependencies of task execution, which allows us co-ordinate a series of operations that could be executed locally (inside the Docker container running AF) or remotely (such as in a GCP service).
 A typical pipeline dumps data locally, uploads it to GCS, schedules a Dataflow job to preprocess data, polls the Dataflow service until the Dataflow job is finished, schedules an ML engine job, polls the MLE service until it has completed, and runs an update process that reads the predictions and evaluation statistics from GCS and sends the updates to the RabbitMQ queue.
-Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked due to network latency as well as computing the appropriate category tree for each product (explained in \ref{cat_tree}).
+Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked due to network latency as well as computing the appropriate category path for each product (explained in \ref{cat_tree}).
 
-There are two types of Dataflow pipelines: preprocessing and similarity pipelines. Omitting various details, dead-ends and workarounds that were needed due to prior system architecture changes\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
+There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
 
 \begin{itemize}
   \item \textbf{Preprocess pipeline.}
-    It loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data}).
+    It loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
     All fields are cleaned of obvious noise and superfluous whitespace.
-    Numerical fields are normalised, histograms are computed for categorical variables.
+    Histograms are computed for categorical variables.
     Text fields are tokenised, tokens are counted and used for computing TF-IDF values.
     This tokenisation is handled by TensorFlow Transform: it keeps the top \textit{k} tokens (or categorical values) for a categorical (or text) column, and maps these to integer indices.
-    Which tokens (or categorical values) map to which indices determines the 1-hot input encoding of the data (or similar, see section \ref{data}), and will be different every time data is pre-processed again.
+    Which tokens (or categorical values) map to which indices determines the 1-hot input encoding of the data (or similar, see section \ref{data_rep}), and will be different every time data is pre-processed again.
     This token-to-index mapping is encoded in a \textit{transform function} that is saved to GCS at the end of the pipeline, and is used by a TensorFlow model to convert raw text inputs to a  sparse inputs.
   \item \textbf{Visual similarity pipeline} -
 \end{itemize}
