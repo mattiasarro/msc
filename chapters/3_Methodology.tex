@@ -51,7 +51,11 @@ Reading updates and sending these to RabbitMQ is done in a parallelised manner (
 There are two types of Dataflow pipelines: preprocessing and similarity pipelines. Omitting various details, dead-ends and workarounds that were needed due to prior system architecture changes\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
 
 \begin{itemize}
-  \item \textbf{Preprocess pipeline} -
+  \item \textbf{Preprocess pipeline.}
+    It loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data}).
+    All fields are cleaned of obvious noise and superfluous whitespace.
+    Numerical fields are normalised, histograms are computed for categorical variables.
+    Text fields are tokenised, tokens are counted and used for computing TF-IDF values.
   \item \textbf{Visual similarity pipeline} -
 \end{itemize}
 
@@ -63,6 +67,10 @@ There are two types of Dataflow pipelines: preprocessing and similarity pipeline
 \end{figure}
 
 \section{Data}
+\label{data}
+
+config file for how to preprocess data
+selecting top\_k for each column
 
 \subsection{Category Structure}
 \label{cat_tree}
