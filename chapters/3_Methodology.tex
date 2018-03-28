@@ -35,12 +35,18 @@ The experiments were conducted in four distinct stages:
   \item Apache Airflow - a Python framework for defining workflows of long-running tasks and dependencies between these tasks.
 \end{itemize}
 
-
-
 All the product data was read from and written to ElasticSearch.
 was used for storing information about categories, but this was transitioned over to ElasticSearch
 was used for building the initial application for displaying the results of the baseline (predictions, averaged and per-class evaluation metrics). The front end was built with React.
 the web application was later rewritten by another employee of the client company, so  that he could implement the more labour-intensive  passing a language is more familiar with.
+
+\begin{figure}
+  \hspace*{-0.2\textwidth}
+  \includegraphics[width=1.4\textwidth]{diagrams/architecture}
+  \caption{High-level system architecture of the ML pipeline}
+  \label{arch_diagram}
+\end{figure}
+
 
 \section{Experiments}
 \subsection{Independent Models}
