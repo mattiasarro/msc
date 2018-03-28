@@ -75,6 +75,11 @@ report
             no time for CNN vis
         Outline
     Background
+        input representation
+            histograms
+            tfidf
+            embeddings
+        Similarity Measures
         Possible models:
             linear for all cat vars
             deep for all cat vars

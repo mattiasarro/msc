@@ -107,9 +107,9 @@ Reading updates and sending these to RabbitMQ is done in a parallelised manner (
 \subsection{Dataflow Pipelines}
 There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
 
-\subsubsection{Preprocess pipeline}
+\subsubsection{Preprocessing}
 
-It loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
+This pipeline loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
 All fields are cleaned of obvious noise and superfluous whitespace.
 Text and categorical fields are tokenised and mapped to integer indices, keeping only the top \textit{k} values and also computing TF-IDF scores for text fields.
 This is handled by TensorFlow Transform, which persists this token-to-index mapping in a \textit{transform function} that is saved to GCS at the end of the pipeline.
@@ -118,14 +118,25 @@ separate pre-processing run will generate a different transform function, with m
 
 The pipeline is also responsible for downloading product images and using a pre-trained 2D CNN to extract a dense feature vector for each product from the penultimate layer of the CNN.
 
+The clean data and image embeddings  are inserted into a new BigQuery table after each run\footnote{BigQuery is inefficient in updating existing records and limits the number of update per day}.
+Note that the data is not inserted in its tokeniser form.
+Storing tokeniser data would reduce the space it takes marginally, but keeping raw data makes the system easier to debug, and enables the option to do inference on raw data that is not tokenised (e.g. in a streaming banner, when we might not have access to the transform function).
 
+\subsubsection{Visual Similarity}
 
-\subsubsection{Visual similarity pipeline}
+% maybe bigquery is not the best choice
 
-
-
+This Dataflow pipeline uses the data in BigQuery as input.
+As explained in section \ref{exp_sim}, it needs to find the \textit{k=100} nearest neighbours of each product based on the cosine similarity of their image embeddings.
+The product-product  similarities are computed within products that belong to same second level category,  therefore the pipeline only needs to extract  the categories previously predicted and image embedding from BigQuery.
+The resulting predictions (top 100 product UUIDs per product, ordered by  similarity)  are saved to GCS.
 
 \section{Experiments}
+
+\subsection{Visual Similarity}
+\label{exp_sim}
+
+
 \subsection{Independent Models}
 \label{exp_models}
 
@@ -134,9 +145,6 @@ The pipeline is also responsible for downloading product images and using a pre-
 
 \subsection{Active Learning}
 \label{exp_al}
-
-\subsection{Visual Similarity}
-\label{exp_models}
 
 
 \section{Evaluation}
