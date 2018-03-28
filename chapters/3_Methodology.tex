@@ -27,11 +27,15 @@ The experiments were conducted in four distinct stages:
   \item Node.js - a JacaScript backend web framework.
   \item React.js - a JavaScript front-end framework for JavaScript.
   \item Redux - a framework for persisting user interface (UI) state and application data in single page applications.
+  \item Google Cloud Storage (GCS) - Google Cloud Platform (GCP) object storage similar to Amazon S3.
   \item Apache Beam - a data processing engine akin akin to Apache Spark and Apache Flink.
-  \item Dataflow - a Google Cloud Platform (GCP) service for executing Apache Beam workloads.
+  \item Dataflow - a GCP service for executing Apache Beam workloads.
   \item TensorFlow - ML framework for Python, capable of defining many kinds of models as a computation graph, and executing this graph locally or in a distributed manner.
-  \item GCP ML Engine - 
+  \item ML Engine - a GCP service for running TensorFlow models (training, hyperparameter tuning, inference).
+  \item Apache Airflow - a Python framework for defining workflows of long-running tasks and dependencies between these tasks.
 \end{itemize}
+
+
 
 All the product data was read from and written to ElasticSearch.
 was used for storing information about categories, but this was transitioned over to ElasticSearch
