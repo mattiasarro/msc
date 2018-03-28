@@ -16,6 +16,10 @@
 \setlist[itemize]{itemsep=5pt,topsep=0pt}
 \setlist[enumerate]{itemsep=5pt,topsep=0pt}
 
+% remove "Chapter X" and a separate line
+\usepackage{titlesec}
+\titleformat{\chapter}{\normalfont\huge\bfseries}{\thechapter.}{20pt}{\Huge}
+
 \usepackage{graphicx}
 \usepackage{lmodern}
 \usepackage[latin1]{inputenc}
@@ -94,6 +98,5 @@
 
 \appendix
 \addappheadtotoc
-\chapter{RDF}\label{appA}
 \input{appendices/A}
 \end{document}

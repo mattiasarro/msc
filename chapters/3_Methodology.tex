@@ -2,22 +2,28 @@
 
 
 Several hypotheses were tested in this work.
-Section \label{data} gives an overview of the input data.
+Section \ref{data} gives an overview of how input data was pre-processd.
 Section \ref{architecture} describes the technical set up required for running all these experiments and deploying the model to production before delving into the specific experiments and their evaluation methods in sections [ref].
 
 \hfill \break \noindent
 The experiments were conducted in four distinct stages:
 
  \begin{itemize}
-   \item Training a baseline model on the rule-based labels to get a sense of the difficulty of this problem. Since there is no fundamental difference in the way this model was  trained and evaluated compared to the other classifiers, this is described in section \ref{exp_models} with the others. After this step, in ground truth dataset was obtained.
+   \item Training a baseline model on the rule-based labels to get a sense of the difficulty of this problem. Since there is no fundamental difference in the way this model was  trained and evaluated compared to the other classifiers, this is described in section \ref{exp_models} with the others. After this step, employees of the client company labeled products that would become the ground truth dataset. The visual comparison feature was also subjectively evaluated at this stage.
    \item Training the independent classifiers to determine best performers (\ref{exp_models}).
    \item Training an ensemble of the independent classifiers (\ref{exp_ensembling}).
    \item Training up to 10 iterations of active learning on the strong predictor (\ref{exp_al}).
  \end{itemize}
 
 
- \section{Data}
+ \section{Data Preprocessing}
  \label{data}
+
+There were around a dozen product features that affiliate network provided.
+Most of these features were either categorical or textual,  with just a single numerical feature (price).
+The initial analysis of the dataset was performed using Dataprep, a Google Cloud Platform (GCP)  product for data wrangling, which at the time of use was in beta stage.
+Dataprep  was used to process a sample of ~800 000 products;  it produced histograms of the values present in each feature column (see appendix \ref{dataprep}), which was used  to determine which input features to discards entirely.
+
 
  config file for how to preprocess data
  selecting top\_k for each column
