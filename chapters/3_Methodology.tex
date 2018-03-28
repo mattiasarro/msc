@@ -2,6 +2,7 @@
 
 
 Several hypotheses were tested in this work.
+Section \label{data} gives an overview of the input data.
 Section \ref{architecture} describes the technical set up required for running all these experiments and deploying the model to production before delving into the specific experiments and their evaluation methods in sections [ref].
 
 \hfill \break \noindent
@@ -14,6 +15,18 @@ The experiments were conducted in four distinct stages:
    \item Training up to 10 iterations of active learning on the strong predictor (\ref{exp_al}).
  \end{itemize}
 
+
+ \section{Data}
+ \label{data}
+
+ config file for how to preprocess data
+ selecting top\_k for each column
+ input representation: 1-hot, k-hot, tfidf, embedding
+
+ \subsection{Category Structure}
+ \label{cat_tree}
+
+
 \section{System Architecture}
 \label{architecture}
 
@@ -25,6 +38,7 @@ The experiments were conducted in four distinct stages:
   \item ML Engine (MLE) - a GCP service for running TensorFlow models (training, hyperparameter tuning, inference).
   \item Apache Beam - a data processing engine akin akin to Apache Spark and Apache Flink.
   \item Dataflow - a GCP service for executing Apache Beam workloads.
+  \item Tensorflow Transform - a Python library with a small set of operations for data preprocessing that can run inside a TensorFlow graph as well as an Apache Beam pipeline.
   \item Google Cloud Storage (GCS) - Google Cloud Platform (GCP) object storage similar to Amazon S3.
   \item ElasticSearch (ES) - a NoSQL database with powerful full-text search and querying capabilities.
   \item RabbitMQ - a message queue, used for transferring data among our microservices (using the Logstash adapter, that can read from and write to (among other things) ElasticSearch and RabbitMQ).
@@ -56,6 +70,9 @@ There are two types of Dataflow pipelines: preprocessing and similarity pipeline
     All fields are cleaned of obvious noise and superfluous whitespace.
     Numerical fields are normalised, histograms are computed for categorical variables.
     Text fields are tokenised, tokens are counted and used for computing TF-IDF values.
+    This tokenisation is handled by TensorFlow Transform: it keeps the top \textit{k} tokens (or categorical values) for a categorical (or text) column, and maps these to integer indices.
+    Which tokens (or categorical values) map to which indices determines the 1-hot input encoding of the data (or similar, see section \ref{data}), and will be different every time data is pre-processed again.
+    This token-to-index mapping is encoded in a \textit{transform function} that is saved to GCS at the end of the pipeline, and is used by a TensorFlow model to convert raw text inputs to a  sparse inputs.
   \item \textbf{Visual similarity pipeline} -
 \end{itemize}
 
@@ -65,16 +82,6 @@ There are two types of Dataflow pipelines: preprocessing and similarity pipeline
   \caption{High-level system architecture of the ML pipeline}
   \label{arch_diagram}
 \end{figure}
-
-\section{Data}
-\label{data}
-
-config file for how to preprocess data
-selecting top\_k for each column
-
-\subsection{Category Structure}
-\label{cat_tree}
-
 
 \section{Experiments}
 \subsection{Independent Models}
