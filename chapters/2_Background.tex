@@ -6,10 +6,24 @@
 
 \subsection{Categorical Input}
 
-The simplest option for representing categorical input is 1-hot encoding, where input has as many dimensions as there are distinct categorical values; a single dimension is set to 1, with all other dimensions set to 0.
+The simplest option for representing categorical input is 1-hot encoding, where input has as many dimensions as there are distinct categorical values (vocabulary size); a single dimension is set to 1, with all other dimensions set to 0.
 This is a straightforward representation: for a simple model such as logistic regression, we can clearly interpret the model parameters and see how the presence or absence of a given category increases or decreases the likelihood of a given output.
+However, in cases where vocabulary sizes get  large, and the number of outputs (the number of units in the next layer in a deep network,  or the number of output units  in a shallow one) increases, this kind of encoding can really blow up the number of parameters of the model.
+ this has many negative consequences: more memory, more required train data - curse of dimensionality
+
+An alternative is to use  random embeddings:  dense, low-dimensional representations of a high-dimensional vectors.
+It has been shown in compressed sensing literature that if a high-dimensional signal in effect lies on a low-dimensional manifold, then the original signal can be reconstructed from a small number of linear measurements [cite]. 
+
+An intuitive example is given in \cite{} about natural images: a 1-million-pixel image could have roughly 20,000 active edges\footnote{technically: wavelet coefficients with a significant power, which roughly corresponds to a superimposition of edges}, i.e. it lies in a roughly 20,000-dimensional manifold from which the original image can be constructed with little loss in quality.
+The 1-million-dimensional image could be projected into a M-dimensional space ``by taking M measurements of the image, where each measurement consists of a weighted sum of all the pixel intensities, and allowing the weights themselves to be chosen randomly (for example, drawn independently from a Gaussian distribution)''.
+The projection these random because the weights for the sum of pixel intensities are chosen randomly.
+Why the projections need to be random is motivated by another intuitive example:  when light is shined on a 3-dimensional wireframe, its shadow is a 2-dimensional projection of it.
+The projection could lose some important information about the regional object if the direction of the light source is chosen poorly,  however random directions are likely to result in projections where every link of the wire will have a corresponding nonzero length of shadow.
 
 \subsection{Text Input}
+
+BonG - bag of n-grams
+
 \subsection{Image Input}
 
 
