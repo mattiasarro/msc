@@ -261,6 +261,9 @@ active learning sampling strategies
     expected error reduction [8]:
     variance reduction [2]
     min-max
+    uncertainty
+        linear: 1-abs(0.5-x) - 0.5, x between 0 and 1
+        xentropy: -x*log(x), x between 0 and 1
 
     how we chose the strategy
         trained a naive wide & deep model
