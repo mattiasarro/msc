@@ -57,10 +57,10 @@ The following sections describes a selection of models that could be used for ou
 This is by no means an exhaustive list, nor is it a selection that is expected to have the highest predictive performance individually.
 These models will later become part of an ensemble, where diversity matters much more than the performance of any individual model.
 Engineering  considerations and time constraints also influence the selection of models: we did not want to spend time implementing models from scratch, or to use many frameworks for training models.
-TensorFlow  is a widely used machine learning library with a good selection of open source models, and in particular a selection of pre-trained models for computer vision and NLP.
+TensorFlow  is a widely used machine learning library with a good selection of open source models, in particular a selection of pre-trained models for computer vision and NLP, and has arguably the most mature deployment ecosystem.
 Therefore models that did not have an open source TensorFlow implementation were automatically excluded.
 
-Section \ref{general_models}
+Section \ref{general_models} describes models that can take categorical and text inputs, section \ref{text_models} looks at some neural models that take only text inputs, and section \ref{image_models} describes 2D CNNs that can classify or extract features from images.
 
 \subsection{General Models}
 \label{general_models}
