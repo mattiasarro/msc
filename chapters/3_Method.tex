@@ -63,6 +63,12 @@ This structure has to be taken into account when labelling and  predicting categ
 When a product is labelled to belong to a  lower level category,  it should also be labelled to belong to all of its ancestor categories. This does not work the other way around, though:  if a product is labelled not to be a Trainer (lower level category),  this does not imply it is not a Shoe (ancestor category).
 Similarly, when the model predicts that a product belongs to and  lower level category, it is considered that it also predicted the product to belong to all of its  ancestor categories;  again, negative predictions at lower levels do not  overwrite positive predictions at high levels.
 
+Note that the decision to consider each of the outputs as an independent binary variable in favour of mutually exclusive categories may later change.
+There are benefits to allowing products to belong to many categories: in some cases categories are inherently ambiguous, and allowing overlapping categories would enable us to use the same model to learn other attributes of products which might be more subjective.
+For example, we might be able to train a model to distinguish certain styles within a category, which are not at all well-defined and clearly bounded.
+Predicting binary independent outputs means that when a product is given a label (that it belongs to a category X),  this label does not immediately  exclude it from other categories;  with mutually exclusive categories labelling a product  would immediately determine whether or not it belongs to any of the categories.
+
+
 \section{System Architecture}
 \label{architecture}
 

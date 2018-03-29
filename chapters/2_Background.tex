@@ -34,23 +34,28 @@ Another common representation is bag of n-grams (\textbf{BonG}), which  is a his
 The above representations are sparse: there are vector representations grow linearly with the vocabulary size.
 Text can also be  represented as a sequence of \textbf{word embeddings}.
 Words and betting can either be random vectors or representations  learned with word cooccurrence algorithms such as word2vec \cite{} and GloVe \cite{};  these representations can remain fixed throughout the learning procedure, or updated as part of the stochastic gradient descent (SGD) when applicable.
-A simple yet surprisingly powerful way to represent text needs to average the word embedding contained in it \cite{}.
+A simple yet surprisingly powerful way to represent text is to average the word embedding contained in it \cite{}.
+The  average could also be weighted by the TF-IDF score of each word\footnote{the author is unaware whether this has been tried before, but it seems a promising approach}.
 
 More complex methods use recurrent neural networks (RNNs) to combine a sequence of word embeddings  into a \textbf{fixed length vector},  which are described in more detail in section \ref{rnn}.
-These kinds of models are good at  disambiguating the potentially many meanings a word might have,  and exactly what gets persisted in the final  vector representation of text depends on how the model is trained.
-Two RNNs  trained on different tasks (such as sentiment analysis and named entity recognition)  would need to store different information in its hidden state to successfully  perform their relevant tasks,  hence the encoding for the same sentence would be different for either model.
+These kinds of models are good at  disambiguating the potentially many meanings a word might have.
+Exactly what gets persisted in the final  vector representation of text depends on how the model is trained - two RNNs  trained on different tasks (such as sentiment analysis and named entity recognition)  would need to store different information in its hidden state to successfully  perform their relevant tasks,  hence the encoding for the same sentence would be different for either model.
+Still, an RNN  that is trained on one task could provide useful features for another.
+Encoding text as fixed length vectors using RNNs has been interpreted as compressed sensing \cite{compressed_sensing_rnn}, with such vectors being ``provably at least as powerful on classification tasks, up to small error, as a linear classifier over BonG vectors''.
 
 \subsection{Image Input}
 
-
-\section{Approaches for Visual Similarity}
-\label{bg_sim}
-
+Images can be represented as dense 3-dimensional tensor.
+A 28x28 RGB image could be represented as a tensor with shape [28, 28, 3],  with the final dimension corresponding to the green, red, and blue intensity values at a given x/y coordinate.
+These intensities  are usually in the range 0 ... 255, but are normalised before input to machine learning model.
+Similarly to RNNs  encoding a sequence of words to a vector, 2D convolutional neural networks (2D CNNs)  can be used to extract dense feature vectors from raw images (image embedding),  further discussed in section \ref{2dcnn}.
 
 \section{Models Considered}
 \label{models_considered}
 
 \subsection{General Models}
+
+
 \subsection{Text Models}
 \subsubsection{Recurrent Neural Networks}
 \label{rnn}
@@ -58,6 +63,13 @@ Two RNNs  trained on different tasks (such as sentiment analysis and named entit
 \subsubsection{1D Convolutional Neural Networks}
 
 \subsection{Image Models}
+\label{2dcnn}
+
+Transfer learning has shown to be particularly useful in computer vision.
+Successful computer vision models require a notoriously large training dataset, which would be hard to come by for every distinct computer vision task.
+Instead, models are often initialised to the values of a model that has been trained on a large dataset such as Imagenet \cite{}, excluding only the last layer(s) of the model that has learned features that are specific to the original problem.
+Representations learned at the lower layers are remarkably  universal and useful for other tasks.
+Therefore pre-trained 2D CNNs can be used as feature extractors for various other tasks,  or the models could be fine-tuned to learn representations that are even more useful to the new task.
 
 \section{Unsupervised and Semisupervised Learning Approaches}
 \label{unsup}
@@ -69,3 +81,7 @@ Two RNNs  trained on different tasks (such as sentiment analysis and named entit
 
 \section{Active Learning Strategies}
 \label{bg_al}
+
+
+\section{Approaches for Visual Similarity}
+\label{bg_sim}
