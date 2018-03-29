@@ -25,7 +25,21 @@ This because it is possible to reconstruct any d-dimensional k-sparse signal usi
 
 \subsection{Text Input}
 
-BonG - bag of n-grams
+The simplest way to represent  text is bag words (\textbf{BoW}),  which  is simply the histogram of word occurrences  in the text.
+BoW  representations give equal weight to each of the words in the text, and the model has to learn the relative importance of each of these.
+A commonly used representation in information retrieval (IR) is \textbf{TF-IDF},  which stands for ``term frequency -  inverse document frequency''.
+TF-IDF  multiplies the term frequency (number of times the word occurred in the text) with its inverse document frequency ( the inverse of how often a occurs in all documents).
+This has the effect of giving lower scores for common words, and higher scores for words which appear often in a document but not too frequently in the whole corpus.
+Another common representation is bag of n-grams (\textbf{BonG}), which  is a histogram of character n-grams.
+
+The above representations are sparse: there are vector representations grow linearly with the vocabulary size.
+Text can also be  represented as a sequence of \textbf{word embeddings}.
+Words and betting can either be random vectors or representations  learned with word cooccurrence algorithms such as word2vec \cite{} and GloVe \cite{};  these representations can remain fixed throughout the learning procedure, or updated as part of the stochastic gradient descent (SGD) when applicable.
+A simple yet surprisingly powerful way to represent text needs to average the word embedding contained in it \cite{}.
+
+More complex methods use recurrent neural networks (RNNs) to combine a sequence of word embeddings  into a \textbf{fixed length vector},  which are described in more detail in section \ref{rnn}.
+These kinds of models are good at  disambiguating the potentially many meanings a word might have,  and exactly what gets persisted in the final  vector representation of text depends on how the model is trained.
+Two RNNs  trained on different tasks (such as sentiment analysis and named entity recognition)  would need to store different information in its hidden state to successfully  perform their relevant tasks,  hence the encoding for the same sentence would be different for either model.
 
 \subsection{Image Input}
 
@@ -37,6 +51,14 @@ BonG - bag of n-grams
 \section{Models Considered}
 \label{models_considered}
 
+\subsection{General Models}
+\subsection{Text Models}
+\subsubsection{Recurrent Neural Networks}
+\label{rnn}
+
+\subsubsection{1D Convolutional Neural Networks}
+
+\subsection{Image Models}
 
 \section{Unsupervised and Semisupervised Learning Approaches}
 \label{unsup}
