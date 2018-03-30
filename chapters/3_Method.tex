@@ -69,6 +69,7 @@ For example, we might be able to train a model to distinguish certain styles wit
 Predicting binary independent outputs means that when a product is given a label (that it belongs to a category X),  this label does not immediately  exclude it from other categories;  with mutually exclusive categories labelling a product  would immediately determine whether or not it belongs to any of the categories.
 
 \subsection{Class and Label Imbalance}
+\label{label_imbalance}
 
 The labels provided by the rule-based system are only positive:  some products are labelled to belong to a given category, but many products that ought to belong to a category are not labelled  accordingly -  but their label still appears to be negative.
 This (which we call the label imbalance problem) only exacerbates the class imbalance problem (that most products do not belong to most categories).
@@ -77,6 +78,29 @@ As a result the model trained on rule-based labels will certainly underestimate 
 Still, most positive labels provided by the rule-based system are correct, which means the model should assign higher likelihoods to products that should actually belong to the given class.
 Our active learning strategy outlined in section \ref{exp_al} ensures that products around the decision boundary would receive a label - which during the initial rounds of active labelling would be overwhelmingly positive examples\footnote{this is confirmed by our experiments, described in section [ref]}.
 The first rounds of active labelling should therefore counterbalance the underestimating nature of the pre-trained model; as the model starts to make more ``optimistic'' predictions, the products near the decision boundary should become a more balanced mix of positive and negative examples.
+
+Class imbalance may or may not be an issue after label imbalance has been accounted for.
+The worst case scenario is that our model continues to underestimate the likelihood of products belonging to classes, particularly if these are rare classes.
+False negatives are not much of our problem in our setting.
+There are millions of products that affiliate networks provide, and in any case we can show the average user a tiny fraction of those products, so it is okay if some are left out from some categories and their chance to be seen decreases.
+Conversely, false positives will appear unprofessional and reduce user satisfaction.
+
+% If label imbalance remains an issue, one might try to weight the loss function (eq \ref{original_loss}).
+% The binary cross entropy loss function we use has two parts per class: the loss incurred for a false positive (FP) and false negative (FN) prediction.
+% A weighted version (eq \ref{weighted_loss}) the loss function would wait the false-positive part of the loss function with the fraction of products that belong to that class, and the false negative part of the loss function with the fraction of products that do not belong to that class.
+% We do not know how many products actually belong to a given class, and we would need to get this estimate through random sampling.
+%
+% \begin{align}
+%   \label{original_loss} NLL(\theta) &= \sum\limits_{i=1}^N\left[FP + FN )\right] \\
+%   \label{weighted_loss} NLLW(\theta) &= \sum\limits_{i=1}^N\left[P(y=1) FP + P(y=0) FN )\right] \\
+%   FP &= y_i\log P(y=1|x, \theta) \\
+%   FN &= (1-y_i)\log(P(y=0|x, \theta)
+% \end{align}
+%
+% This weighting scheme is motivated by how imbalanced classes in multi-class classification can be handled.
+% One option would be to oversample data points from the underrepresented class, but this would incur overhead in computation, and an equivalent method is to  weight the training example based on the class probability, so data points from underrepresented classes get a higher weight.
+% As we have several independent output classes, the weighting would have to be done at the loss function level rather than per example.
+% Note that the author could not find examples of the weighting scheme in literature, and is therefore not sure whether it is appropriate.
 
 \section{System Architecture}
 \label{architecture}
