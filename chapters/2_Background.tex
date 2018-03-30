@@ -61,13 +61,41 @@ TensorFlow  is a widely used machine learning library with a good selection of o
 Therefore models that did not have an open source TensorFlow implementation were automatically excluded.
 
 Section \ref{general_models} describes models that can take categorical and text inputs, section \ref{text_models} looks at some neural models that take only text inputs, and section \ref{image_models} describes 2D CNNs that can classify or extract features from images.
+In all cases the models are described in terms of how they could be used for solving the problem of multi-label classification.
 
 \subsection{General Models}
 \label{general_models}
 
+
+
 \subsubsection{Logistic Regression}
+
+Logistic regression is a linear, discriminative classifier that is often the baseline model of choice, since it is a very interpretable model that is efficient to train.
+There are methods that take time linear in the number of non-zeros in the dataset, which is the smallest amount possible, and it can be made to handle non-linear decision boundaries by using kernels \cite{murphy}.
+
+
+
+binary classification:
+p(y|x,w) = Ber(y|sigm(wTx))
+
+ multiclass logistic regression, multinomial logistic regression,  maximum entropy classifier:
+
+ maximum likelihood estimation log likelihood loss function for logistic regression is the binary cross entropy, which is described in section \ref{loss}
+
+
 \subsubsection{Artificial Neural Network}
 \subsubsection{Tree-Based Models}
+
+\subsubsection{Loss Functions and Optimizers}
+\label{loss}
+
+ [Gradient-based models] such as logistic regression and neural networks are optimised with some variant of gradient descent.
+  the loss function in both cases is binary cross entropy
+
+ note that we are using the sum of log likelihoods, since products of non-log  likelihoods  would result in very small numbers that cannot be efficiently and accurately represented in digital computers.
+ this is especially true if there are many probabilities multiplied together, which is often the case in both linear and deep models seen in academia and industry.
+
+
 
 \subsection{Text Models}
 \label{text_models}
