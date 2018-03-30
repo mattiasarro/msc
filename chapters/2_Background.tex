@@ -112,7 +112,7 @@ The Adam \cite{adam} optimiser works very well with default hyperparameters, and
 \subsection{Text Models}
 \label{text_models}
 
-\subsubsection{Recurrent and Recursive Neural Networks}
+\subsubsection{Recurrent Neural Networks}
 \label{rnn}
 
 Recurrent neural networks (RNNs) are a family of models for processing sequential data.
@@ -124,9 +124,12 @@ Vanilla RNNs maintain a hidden state vector $h$ which contains some information 
 \end{equation}
 
 Vanilla RNNs suffer from the vanishing and exploding gradient problem in long sequences and are notoriously difficult to train.
-Probably the most widely used variant, the long short-term memory networks (LSTM) overcome this limitation by augmenting the network with a memory cell $c$; there is a learned gating mechanism that controls what part of (and the extent to which) the cell is forgotten, what gets persisted in the cell state, and what gets output at a given time step.
-An intuitive overview of the gating mechanisms is given by \footnote{http://colah.github.io/posts/2015-08-Understanding-LSTMs/} and \footnote{http://harinisuresh.com/2016/10/09/lstms/} describes well how this helps mitigate vanishing gradients.
+Probably the most widely used variant, the long short-term memory networks (LSTM) \cite{lstm} overcome this limitation by augmenting the network with a memory cell $c$; there is a learned gating mechanism that controls what part of (and the extent to which) the cell is forgotten, what gets persisted in the cell state, and what gets output at a given time step.
+An intuitive overview of the gating mechanisms is given by \cite{colah} and \cite{vanishing} describes well how this helps mitigate vanishing gradients.
+A simpler gating mechanism is offered by gated recurrent units (GRU) \cite{gru}, which has fewer parameters and works well on simpler tasks.
 
+We are interested in using RNNs as text encoders, though they are often used for sequence to sequence modelling, or for predicting an output at each time step.
+In the simplest case, the concatenation of the cell state $c$ and the hidden state $h$ at the last time step could be used as a representation of the sequence.
 
 \subsubsection{1D Convolutional Neural Networks}
 
