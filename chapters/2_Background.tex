@@ -70,30 +70,35 @@ In all cases the models are described in terms of how they could be used for sol
 
 \subsubsection{Logistic Regression}
 
-Logistic regression is a linear, discriminative classifier that is often the baseline model of choice, since it is a very interpretable model that is efficient to train.
+Logistic regression is a linear, discriminative classifier that is often the baseline model of choice, since it is both interpretable and efficient to train.
 There are methods that take time linear in the number of non-zeros in the dataset, which is the smallest amount possible, and it can be made to handle non-linear decision boundaries by using kernels \cite{murphy}.
+Our case is the binomial logistic regression, with a separate logistic regression model for each output class.
+This is shown formally in eq  \ref{logistic}, where where \textit{x} and \textit{w} correspond to the input and weight vectors, respectively.
+We follow the notational trick where the first element of \textit{x} is always 1, and the first element of \textit{w} corresponds to the bias term.
+The loss function of this model as well as how it is optimised is described in section \ref{loss}.
 
+\begin{equation}
+\label{logistic}
+p(y|x,w)=\mathrm{Ber}(y|\mathrm{sigm}(w^Tx))
+\end{equation}
 
-
-binary classification:
-p(y|x,w) = Ber(y|sigm(wTx))
-
- multiclass logistic regression, multinomial logistic regression,  maximum entropy classifier:
-
- maximum likelihood estimation log likelihood loss function for logistic regression is the binary cross entropy, which is described in section \ref{loss}
 
 
 \subsubsection{Artificial Neural Network}
 \subsubsection{Tree-Based Models}
 
-\subsubsection{Loss Functions and Optimizers}
+\subsubsection{Loss Function and Optimizers}
 \label{loss}
 
- [Gradient-based models] such as logistic regression and neural networks are optimised with some variant of gradient descent.
-  the loss function in both cases is binary cross entropy
+Logistic regression and neural networks are optimised with some variant of gradient descent.
+For our task the loss function binary cross-entropy, with the loss value averaged across all classes, given in eq. \ref{xentropy}, where \theta corresponds to the model parameters such as the weights and biases of the model.
+We are minimising the negative log likelihood (NLL) rather than maximising the product of likelihoods.
+Multiplying large numbers of probabilities could result in numerical underflow and rounding errors, therefore it is pragmatic to work with sums of log probabilities instead.
 
- note that we are using the sum of log likelihoods, since products of non-log  likelihoods  would result in very small numbers that cannot be efficiently and accurately represented in digital computers.
- this is especially true if there are many probabilities multiplied together, which is often the case in both linear and deep models seen in academia and industry.
+\begin{align}
+  \label{xentropy}
+  NLL(\theta) &= \sum\limits_{i=1}^N\left[y_i\log P(y=1|x, \theta) + (1-y_i)\log(P(y=0|x, \theta) )\right] \\
+\end{align}
 
 
 
