@@ -82,24 +82,31 @@ The loss function of this model as well as how it is optimised is described in s
 p(y|x,w)=\mathrm{Ber}(y|\mathrm{sigm}(w^Tx))
 \end{equation}
 
+\subsubsection{Feedforward Neural Network}
 
-
-\subsubsection{Artificial Neural Network}
-\subsubsection{Tree-Based Models}
+Feedforward neural networks (also called deep feedforward networks, multi-layer perceptrons) have been described as function approximator, whose goal is to approximate some functions $f^*$ \cite{dlb}.
+We expect some familiarity with neural networks from the reader; for an excellent overview of the various use cases and models of deep learning, refer to.
+In our case, the input is some representation of categorical and text input: sparse BoW or TF-IDF of text, 1-hot encoded or random embedding vectors of categorical variables, or embedding is extracted from text or images using pre-trained recurrent or convolution on neural networks.
+The hidden layers of our network are homogenous: they use the same activation function (ReLu, sigmoid, or tanh) and have the same number of units;  activation functions and the number of units in hidden layers are determined through hyperparameter tuning.
+The output layer uses sigmoid activation function  and has the same number of units as there are classes.
 
 \subsubsection{Loss Function and Optimizers}
 \label{loss}
 
 Logistic regression and neural networks are optimised with some variant of gradient descent.
-For our task the loss function binary cross-entropy, with the loss value averaged across all classes, given in eq. \ref{xentropy}, where \theta corresponds to the model parameters such as the weights and biases of the model.
-We are minimising the negative log likelihood (NLL) rather than maximising the product of likelihoods.
-Multiplying large numbers of probabilities could result in numerical underflow and rounding errors, therefore it is pragmatic to work with sums of log probabilities instead.
+For our task the loss function binary cross-entropy between the training data and the model distribution, with the loss value averaged across all classes.
+This is given in eq. \ref{xentropy}, where $\theta$ corresponds to the model parameters such as the weights and biases of the model, $C$ corresponds to the number of classes, and $P(c=1|x, \theta)$ gives the predicted probability that the item belongs to class $c$ given the feature vector $x$.
 
 \begin{align}
   \label{xentropy}
-  NLL(\theta) &= \sum\limits_{i=1}^N\left[y_i\log P(y=1|x, \theta) + (1-y_i)\log(P(y=0|x, \theta) )\right] \\
+  NLL(\theta) &= \sum\limits_{c=1}^C \sum\limits_{i=1}^N\left[c_i\log P(c=1|x, \theta) + (1-c_i)\log(P(c=0|x, \theta) )\right]
 \end{align}
 
+We are minimising the negative log likelihood (NLL) rather than maximising the product of likelihoods.
+Multiplying large numbers of probabilities could result in numerical underflow and rounding errors, therefore it is pragmatic to work with sums of log probabilities instead.
+The Adam \cite{adam} optimiser works very well with default hyperparameters, and is therefore used for all stochastic gradient descent updates.
+
+\subsubsection{Tree-Structured Models}
 
 
 \subsection{Text Models}
