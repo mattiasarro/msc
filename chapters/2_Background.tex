@@ -90,6 +90,10 @@ In our case, the input is some representation of categorical and text input: spa
 The hidden layers of our network are homogenous: they use the same activation function (ReLu, sigmoid, or tanh) and have the same number of units;  activation functions and the number of units in hidden layers are determined through hyperparameter tuning.
 The output layer uses sigmoid activation function  and has the same number of units as there are classes.
 
+\subsubsection{Wide \& Deep}
+
+
+
 \subsubsection{Loss Function and Optimizers}
 \label{loss}
 
@@ -105,9 +109,6 @@ This is given in eq. \ref{xentropy}, where $\theta$ corresponds to the model par
 We are minimising the negative log likelihood (NLL) rather than maximising the product of likelihoods.
 Multiplying large numbers of probabilities could result in numerical underflow and rounding errors, therefore it is pragmatic to work with sums of log probabilities instead.
 The Adam \cite{adam} optimiser works very well with default hyperparameters, and is therefore used for all stochastic gradient descent updates.
-
-\subsubsection{Tree-Structured Models}
-
 
 \subsection{Text Models}
 \label{text_models}
@@ -183,8 +184,10 @@ Bootstrap sampling, where data points are sampled from training data with replac
 Bumping can be used to train several models (of the same family) on bootstrap samples to move around in the model space, and will pick the model that best fits the training data.
 This helps it explore a wider selection of models, but given that the original training data often also included as one of the bootstrap samples, this method  can still pick the model original model if it happens to have the best accuracy.
 
-l2 regularization
-dropout
+There are some versatile methods that can help regularise a neural network (deep or shallow), or to speed up convergence by improving  gradient updates.
+L2  regularisation should always be used to decrease moral complexity and impose prior on the model parameters, which  implies that very high and very low values are unlikely.
+Dropout can mitigate overfitting by preventing neurons from co-adapting, encouraging each to learn representations that are useful independently \cite{dropout}; this has been interpreted as training and exponential (in the number of parameters) number of models and averaging their predictions.
+
 gradient clipping
 layer norm
 
@@ -198,12 +201,14 @@ Bootstrap aggregation (a.k.a bagging)   draws several bootstrap samples  from th
 Boosting is another common meta-algorithm that iteratively trains an ensemble of weak models, such that the data points that incurred a higher error on the previous ensemble are weighted more heavily, and each new weak model is added to the ensemble with a weight proportional to the weak learners accuracy.
 A common boosting algorithm is AdaBoost \cite{adaboost}.
 
+We are interested in ways of combining models that are separately trained and combined into a single predictor.
+Simple solutions are voting or (weighted) averaging, where the weights can be found with k-fold cross-validation.
+A more appealing approach is stacked generalisation, where a meta-learner is trained on the outputs of the individual models.
+This meta-learner could be a relatively simple model, such as logistic regression or a decision tree, and the results of the meta-learner could be therefore quite interpretable.
 
-q:
-committee methods take a simple and weighted average of the predictions from each model, essentially giving equal probability to each model
- the bIC  gives weight to each model depending on how well it fits and how many parameters it uses
-  this is of  bayesian model.  the frequency version learns   a   weighting that that minimises the error on the population, which can be approximated on the  training set.  but sometimes this does not work well for example if the linear regression would put all of the weight of the largest model because it has the best protection accuracy.  the problem is that we have put all the models on an equal footing.
-   stacked generalisations is a way of avoiding this, where the weights are  optimised   with K  fold cross validation,  better results can be obtained by restricting the weights to be nonnegative and to some is one
+One orthogonal approach to combining models is joint training of model components.
+All models described here are trained using stochastic gradient descent, so in principle it would be possible to learn the parameters of all components (1D CNN, 2D CNN, RNN, DNN, logistic regression)
+
 \section{Active Learning}
 \label{bg_al}
 
