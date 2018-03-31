@@ -174,11 +174,36 @@ Therefore pre-trained 2D CNNs can be used as feature extractors for various othe
 \section{Unsupervised and Semisupervised Learning}
 \label{unsup}
 
+\section{General Practices in Machine Learning}
+
+We briefly list some techniques and approaches that could be used for many kinds of machine learning problems.
+Some of these will be used in our experiments, yet some may not be pragmatic due to long train times and time constraints.
+
+Bootstrap sampling, where data points are sampled from training data with replacement, can be used to repeatedly train the same model, and to observe the variance of its predictions.
+Bumping can be used to train several models (of the same family) on bootstrap samples to move around in the model space, and will pick the model that best fits the training data.
+This helps it explore a wider selection of models, but given that the original training data often also included as one of the bootstrap samples, this method  can still pick the model original model if it happens to have the best accuracy.
+
+l2 regularization
+dropout
+gradient clipping
+layer norm
 
 \section{Combining Models}
 \label{bg_ensembling}
 
+This section  introduces common ensembling methods.
+Some of these (bagging, boosting)  are expected to consist of weak learners or models from the same model family, while others (committee methods, BIC, stacked generalisation) or more appropriate for ensembles of strong models.
 
+Bootstrap aggregation (a.k.a bagging)   draws several bootstrap samples  from the training data,  trains are separate model per bootstrap sample,  and averages the predictions of these individual models.  This reduces the variance of predictions without increasing its bias and generally leads to  more accurate predictors \cite{bagging}.
+Boosting is another common meta-algorithm that iteratively trains an ensemble of weak models, such that the data points that incurred a higher error on the previous ensemble are weighted more heavily, and each new weak model is added to the ensemble with a weight proportional to the weak learners accuracy.
+A common boosting algorithm is AdaBoost \cite{adaboost}.
+
+
+q:
+committee methods take a simple and weighted average of the predictions from each model, essentially giving equal probability to each model
+ the bIC  gives weight to each model depending on how well it fits and how many parameters it uses
+  this is of  bayesian model.  the frequency version learns   a   weighting that that minimises the error on the population, which can be approximated on the  training set.  but sometimes this does not work well for example if the linear regression would put all of the weight of the largest model because it has the best protection accuracy.  the problem is that we have put all the models on an equal footing.
+   stacked generalisations is a way of avoiding this, where the weights are  optimised   with K  fold cross validation,  better results can be obtained by restricting the weights to be nonnegative and to some is one
 \section{Active Learning}
 \label{bg_al}
 
