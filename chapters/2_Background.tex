@@ -117,7 +117,7 @@ The Adam \cite{adam} optimiser works very well with default hyperparameters, and
 A simple convolutional architecture for text classification is described in \cite{1dcnn}.
 Pre-trained $k$-dimensional word vectors are concatenated to represent a sentence, and a filter is $w \in R^{hk}$ is applied to a window of $h$ words at each possible window of words in a sentence; this gives a single variable-length feature vector representing the sentence.
 Several such filters are learned (each with potentially a different width $h$), and max-over-time pooling is applied to these feature maps; this gives a vector of the highest activations from each filter, which is then passed to a fully-connected softmax layer for final classification (in the case of multi-class classification).
-For multi-label classification, the final layer would be fully-connected layer of sigmoid activations.
+For multi-label classification, the final layer would be a fully-connected layer of sigmoid activations.
 
 This simple architecture should be able to predict output classes reasonably.
 Each filter can indicate the presence of a a sequence of $h$ words; max-pooling discards information about where exactly in the text it appeared, and ensures the output is of a fixed length.
@@ -151,6 +151,19 @@ In the simplest case, the concatenation of the cell state $c$ and the hidden sta
 
 \subsection{Image Models}
 \label{image_models}
+
+2D CNNs are important historically - excellent results in computer vision revived interest and funding in deep learning - but also applicable to a wide range of problems.
+Computer vision CNNs tend to be complex models with millions of parameters and dozens (or even hundreds) of layers.
+It is very compute-intensive and time-consuming to search for new architectures, and the analysis of these is beyond the scope of this work.
+Our goal is to use a CNN that has a reasonable performance without incurring unreasonable overhead.
+
+The general architecture of a 2D CNN is as follows.
+Patches of feature extractors are convolved over the x and y axis of the image; these are often small, e.g. 3x3x$c$ patches that span all the $c$ channels of the image ($c=3$ for RGB images), and convolution could be strided.
+Former models used larger patch sizes, but stacking several smaller patches could achieve similar receptive fields while allowing for a larger number of non-linearities for the same number of parameters.
+One or more layers of convolutions would be followed by a (often max) pooling layer.
+Computer vision architectures tend to re-use the same sub-structure repeatedly: either the same kinds of convolutions followed by pooling, or the ``network in a network'' structure popularised by GoogLeNet \cite{googlenet}.
+After a number of such repeated structures, there are normally a few fully-connected layers followed by a softmax layer.
+In our case, the final layer would be a fully-connected layer of sigmoid activations.
 
 Transfer learning has shown to be particularly useful in computer vision.
 Successful computer vision models require a notoriously large training dataset, which would be hard to come by for every distinct computer vision task.
