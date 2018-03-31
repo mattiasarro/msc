@@ -112,6 +112,16 @@ The Adam \cite{adam} optimiser works very well with default hyperparameters, and
 \subsection{Text Models}
 \label{text_models}
 
+\subsubsection{1D Convolutional Neural Networks}
+
+A simple convolutional architecture for text classification is described in \cite{1dcnn}.
+Pre-trained $k$-dimensional word vectors are concatenated to represent a sentence, and a filter is $w \in R^{hk}$ is applied to a window of $h$ words at each possible window of words in a sentence; this gives a single variable-length feature vector representing the sentence.
+Several such filters are learned (each with potentially a different width $h$), and max-over-time pooling is applied to these feature maps; this gives a vector of the highest activations from each filter, which is then passed to a fully-connected softmax layer for final classification (in the case of multi-class classification).
+For multi-label classification, the final layer would be fully-connected layer of sigmoid activations.
+
+This simple architecture should be able to predict output classes reasonably.
+Each filter can indicate the presence of a a sequence of $h$ words; max-pooling discards information about where exactly in the text it appeared, and ensures the output is of a fixed length.
+
 \subsubsection{Recurrent Neural Networks}
 \label{rnn}
 
@@ -130,8 +140,6 @@ A simpler gating mechanism is offered by gated recurrent units (GRU) \cite{gru},
 
 We are interested in using RNNs as text encoders, though they are often used for sequence to sequence modelling, or for predicting an output at each time step.
 In the simplest case, the concatenation of the cell state $c$ and the hidden state $h$ at the last time step could be used as a representation of the sequence.
-
-\subsubsection{1D Convolutional Neural Networks}
 
 \subsection{Image Models}
 \label{image_models}
