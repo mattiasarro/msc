@@ -121,6 +121,14 @@ For multi-label classification, the final layer would be fully-connected layer o
 
 This simple architecture should be able to predict output classes reasonably.
 Each filter can indicate the presence of a a sequence of $h$ words; max-pooling discards information about where exactly in the text it appeared, and ensures the output is of a fixed length.
+The same filter $w$ is used across all possible word windows in the sentence, which can be seen as a form of parameter sharing (and as an infinitely strong prior over the parameters of the model \cite{dlb}), and enables processing variable-length sequences.
+The relatively small number of shared parameters requires less training data than an equivalent fully-connected architecture.
+Using pre-trained word embeddings further simplifies the task, as these already carry some information about the meaning or syntactic role of words.
+
+More sophisticated architectures can be built using 1D CNNs, although not used in our experiments.
+Most notably, several layers of convolutions (each optionally followed by pooling) can be stacked, where the following layer works on the feature maps output by the previous layer.
+The model described above uses a stride and dilation of 1, but multi-layer architectures where the higher layers have use exponentially increasing dilation are able to expand the receptive field of the model, and as a result aggregate ``contextual information from multiple scales'' \cite{dilated}.
+Dilated convolutions were beneficial for semantic segmentation of images with 2D CNNs, but this increased receptive field has been useful for sequence-to-sequence models in NLP \cite{dilated_decoder}.
 
 \subsubsection{Recurrent Neural Networks}
 \label{rnn}
