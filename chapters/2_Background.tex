@@ -172,6 +172,23 @@ Instead, models are often initialised to the values of a model that has been tra
 Representations learned at the lower layers are remarkably  universal and useful for other tasks.
 Therefore pre-trained 2D CNNs can be used as feature extractors for various other tasks,  or the models could be fine-tuned to learn representations that are even more useful to the new task.
 
+\section{Downstream Models}
+
+\section{Item Similarity}
+\label{bg_sim}
+
+\section{Recommender Systems}
+\label{rec}
+
+Several methods have been proposed that use dense embeddings learned by deep models that are used as part of a recommender system.
+These are briefly described here to motivate our focus on models that obtain dense embeddings of products.
+
+Models that deal exclusively with deep embeddings \cite{mvdl} require huge amounts of user-product feedback pairs, therefore the more interesting solutions are ones which work together with classical methods such as matrix factorisation (MF).
+MF finds - purely from the implicit or explicit feedback users five to items - vectors of latent factors that represent each user's preferences and each item's ``qualities''; the inner product between a user's and item's latent factors gives a score of compatibility between the two.
+Deep models can augment the item latent factors by injecting the embeddings learned for another task
+The main difference in these methods is how the deep embeddings are merged into MF, and how the deep embeddings are obtained in the first place.
+In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature learning of item data, while \cite{dl_mf} uses simply visual embeddings extracted from a 2D CNN pre-trained on ImageNet.
+
 \section{Unsupervised and Semisupervised Learning}
 \label{unsup}
 
@@ -212,9 +229,13 @@ This would be an engineering challenge due to the different ways these model req
 In our case this would be clearly an overkill, but it would be an interesting research problem to examine whether joint training has advantages over ensembling in cases where we have different views of the data (in terms of considering different input dimensions or processing the inputs differently).
 As mentioned in the Wide \& Deep paper \cite{wide_deep}, the wide component of the model has to just handle cases where the deep component falls short, and can therefore be simpler than it would need to be in an ensemble; analogously, jointly training different kinds of models neural networks would allow each component to be simpler.
 
+One of the motivations for picking mostly deep neural networks as our ensemble components was their transfer learning capability: they all produce a dense feature vector (embedding) from which separate logistic regressions predict the class.
+While it is useful to have separate embeddings for images, text and categorical variables, we would also like to have a compound embedding of each product.
+A simple concatenation of all individual embeddings could be a useful (albeit a quite high-dimensional) representation to be used in downstream models.
+Alternatively, we could use this concatenation as an input to a neural network, whose goal is to (1) reduce its dimensionality by removing redundant information and (2) predict the output classes from this compressed embedding.
+The latter case could act as a kind of a (replacement for) the meta-learner, with the difference that it takes the penultimate (as opposed to the final) layer of each individual model as input.
+
+% TODO figure of meta-learner and embedding lear
+
 \section{Active Learning}
 \label{bg_al}
-
-
-\section{Approaches for Visual Similarity}
-\label{bg_sim}
