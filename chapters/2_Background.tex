@@ -192,13 +192,13 @@ In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature 
 \section{Unsupervised and Semisupervised Learning}
 \label{unsup}
 
-This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve sample complexity. Generic semi-supervised methods such as self-training not considered, as one of our goals is to learn good representations, but also because these methods can reinforce poor predictions or do not make full use of all available unlabelled data.
+This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve sample complexity. Generic semi-supervised methods such as self-training are not considered, as one of our goals is to learn good representations, but also because these methods can reinforce poor predictions or do not make full use of all available unlabelled data.
 
 \subsection{Autoencoders \& Variational Autoencoders}
 
-Deep autoencoders can be used to learn low-dimensional representations of inputs.
+Deep autoencoders (AEs) can be used to learn low-dimensional representations of inputs.
 Many variants exist,  but  the general pattern is to have an ``hourglass-structured'' neural network where the first half of the model shrinks the input, and the second half of the network reconstructs the original input.
-Activations in the middle layer correspond to a dense embedding of the input;  the shrinking layers need to  throw away some of the detail in the input, yet persists enough for the expanding layers to be able to reconstruct the original input with some fidelity.
+Activations in the middle layer correspond to a dense embedding of the sample;  the shrinking layers need to  throw away some of the detail in the input, yet persists enough for the expanding layers to be able to reconstruct the original input with some fidelity.
 The embedding contains information that is mostly unique to the data point, while the parameters of the encoding and decoding layers ensure that the reconstructed input is realistic.
 It is common to add noise (Gaussian, dropout) to the input or the intermediate layers to increase resilience to noisy inputs and to prevent the autoencoder simply memorising each data point.
 
@@ -208,14 +208,17 @@ Variational autoencoders (VAEs) impose a prior distribution on the values of the
 The model is optimised to minimise the reconstruction loss and KL divergence between the model's distribution $z$ and the prior on it, which can be computed just from $\mu$ and $\sigma$ if the prior is a isotropic standard normal.
 Enforcing the prior also means that the embeddings $z$ will occupy a smooth, contiguous space, which allows us to draw samples from the prior $\epsilon \sim \mathcal{N}(0, 1)\,$ and use that as the input to the decoder - this gives us a generative model, which would not be possible with ordinary autoencoders.
 
-In practice this means that  there is an additional step to determining the embedding $z$ of the input.
-There are two separate neural network layers from the bottleneck layer of the autoencoder:  one for determining $\mu$ (the vector of means of the multivariate Gaussian), and one for determining $\sigma$ (the vector of standard deviations of the multivariate gaussian).
+The VAEs described here are probabilistic models parameterised by neural networks for approximating the true posterior $p(z|x)$, since the exact posterior is intractable.
+In practice, VAEs add an extra loss term (KL divergence) to AEs, and additional step to determining the embedding $z$.
+There are two separate neural network layers from the bottleneck layer of the AE:  one for determining $\mu$ (the vector of means of the multivariate Gaussian), and one for determining $\sigma$ (the vector of standard deviations of the multivariate gaussian).
 Given $\mu$ and $\sigma$, we can sample the final item embedding $z \sim \mathcal{N}(\mu,\,\sigma^{2})\,$.
 Note that sampling of $z$ is a discrete decision that would normally stop gradient from propagating past this step, but we can use the reparametrisation trick introduced by \cite{vae} that turns the discrete decision into a deterministic function of $z = \mu + \sigma\epsilon$, where $\epsilon \sim \mathcal{N}(0, 1)\,$ is a random auxiliary noise parameter.
 
+
 \subsection{Conditional Variational Autoencoders}
 
-
+It is easier for linear models to learn from embeddings extracted with AEs, and embeddings from VAEs make the classes even easier to separate.
+These are unsupervised methods that do not take advantage of labels in the training data.
 
 \subsection{Conditional Generative Adversarial Networks}
 
