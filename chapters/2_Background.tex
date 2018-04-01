@@ -207,6 +207,7 @@ We would like embedding for similar inputs to also be similar, which is not alwa
 Variational autoencoders (VAEs) impose a prior distribution on the values of the embedding, often a multivariate Gaussian distribution with a diagonal covariance matrix, and the model is regularised during training to respect this prior.
 The model is optimised to minimise the reconstruction loss and KL divergence between the model's distribution $z$ and the prior on it, which can be computed just from $\mu$ and $\sigma$ if the prior is a isotropic standard normal.
 Enforcing the prior also means that the embeddings $z$ will occupy a smooth, contiguous space, which allows us to draw samples from the prior $\epsilon \sim \mathcal{N}(0, 1)\,$ and use that as the input to the decoder - this gives us a generative model, which would not be possible with ordinary autoencoders.
+The output of the VAE is also probabilistic: e.g. for images, the output for a pixel would be a Gaussian distribution, which is sampled the same way as the Gaussians for $z$.
 
 The VAEs described here are probabilistic models parameterised by neural networks for approximating the true posterior $p(z|x)$, since the exact posterior is intractable.
 In practice, VAEs add an extra loss term (KL divergence) to AEs, and additional step to determining the embedding $z$.
@@ -225,6 +226,13 @@ For labelled examples, the $x$ and $y$ are given as input to the model, which em
 The value of $y$ is unknown for unlabelled data points; therefore the model is run $|y|$ times, encoding and decoding the data point conditioned on each possible class $i$; loss from these runs is averaged, weighted by the discriminator's estimate of the sample belonging to class $i$.
 This approach is acceptable for small numbers of classes, but is impractical for many multi-class problems.
 A solution uses the reparametrisation trick mentioned above: rather than running the procedure once per class, we take a Gumbel-softmax \cite{gumbel} to get a discrete estimate of $y$ that is still differentiable.
+
+Such class-conditional VAEs can be used in any situation where unlabelled data is abundant but labels are scarce.
+The discriminator's loss is optimised as part of the VAE's loss function, which means adding more unlabelled data can improve the accuracy of the discriminator.
+The approach was developed and tested on the MNIST dataset, which consists of 28x28 grayscale images - a very simple dataset by today's standards.
+Some reports have emerged \cite{vae_bad} that fail to reproduce this success on more complex datasets such as CIFAR-10
+
+One related approach is offered by \cite{towards}
 
 \subsection{Conditional Generative Adversarial Networks}
 
