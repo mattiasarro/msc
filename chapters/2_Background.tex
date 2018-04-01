@@ -172,12 +172,12 @@ Instead, models are often initialised to the values of a model that has been tra
 Representations learned at the lower layers are remarkably  universal and useful for other tasks.
 Therefore pre-trained 2D CNNs can be used as feature extractors for various other tasks,  or the models could be fine-tuned to learn representations that are even more useful to the new task.
 
-\section{Downstream Models}
+\subsection{Downstream Models}
 
-\section{Item Similarity}
+\subsubsection{Item Similarity}
 \label{bg_sim}
 
-\section{Recommender Systems}
+\subsubsection{Recommender Systems}
 \label{rec}
 
 Several methods have been proposed that use dense embeddings learned by deep models that are used as part of a recommender system.
@@ -192,9 +192,11 @@ In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature 
 \section{Unsupervised and Semisupervised Learning}
 \label{unsup}
 
-This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve sample complexity. Generic semi-supervised methods such as self-training and co-training are not considered, as one of our goals is to learn good representations.
+This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve sample complexity. Generic semi-supervised methods such as self-training not considered, as one of our goals is to learn good representations, but also because these methods can reinforce poor predictions or do not make full use of all available unlabelled data.
 
-Deep \textbf{autoencoders} can be used to learn low-dimensional representations of inputs.
+\subsection{Autoencoders \& Variational Autoencoders}
+
+Deep autoencoders can be used to learn low-dimensional representations of inputs.
 Many variants exist,  but  the general pattern is to have an ``hourglass-structured'' neural network where the first half of the model shrinks the input, and the second half of the network reconstructs the original input.
 Activations in the middle layer correspond to a dense embedding of the input;  the shrinking layers need to  throw away some of the detail in the input, yet persists enough for the expanding layers to be able to reconstruct the original input with some fidelity.
 The embedding contains information that is mostly unique to the data point, while the parameters of the encoding and decoding layers ensure that the reconstructed input is realistic.
@@ -202,14 +204,20 @@ It is common to add noise (Gaussian, dropout) to the input or the intermediate l
 
 If the bottleneck layer is unconstrained, it will use a wide range of values to represent different inputs.
 We would like embedding for similar inputs to also be similar, which is not always the case for ordinary autoencoders.
-Variational autoencoders (\textbf{VAEs}) impose a prior distribution on the values of the embedding, often a multivariate Gaussian distribution with a diagonal covariance matrix, and the model is regularised during training to respect this prior.
+Variational autoencoders (VAEs) impose a prior distribution on the values of the embedding, often a multivariate Gaussian distribution with a diagonal covariance matrix, and the model is regularised during training to respect this prior.
+The model is optimised to minimise the reconstruction loss and KL divergence between the model's distribution $z$ and the prior on it, which can be computed just from $\mu$ and $\sigma$ if the prior is a isotropic standard normal.
+Enforcing the prior also means that the embeddings $z$ will occupy a smooth, contiguous space, which allows us to draw samples from the prior $\epsilon \sim \mathcal{N}(0, 1)\,$ and use that as the input to the decoder - this gives us a generative model, which would not be possible with ordinary autoencoders.
+
 In practice this means that  there is an additional step to determining the embedding $z$ of the input.
 There are two separate neural network layers from the bottleneck layer of the autoencoder:  one for determining $\mu$ (the vector of means of the multivariate Gaussian), and one for determining $\sigma$ (the vector of standard deviations of the multivariate gaussian).
 Given $\mu$ and $\sigma$, we can sample the final item embedding $z \sim \mathcal{N}(\mu,\,\sigma^{2})\,$.
 Note that sampling of $z$ is a discrete decision that would normally stop gradient from propagating past this step, but we can use the reparametrisation trick introduced by \cite{vae} that turns the discrete decision into a deterministic function of $z = \mu + \sigma\epsilon$, where $\epsilon \sim \mathcal{N}(0, 1)\,$ is a random auxiliary noise parameter.
-The model is optimised to minimise the reconstruction loss and KL divergence between the model's distribution $z$ and the prior on it, which can be computed just from $\mu$ and $\sigma$ if the prior is a isotropic standard normal.
-Enforcing the prior also means that the embeddings $z$ will occupy a smooth, contiguous space, which allows us to draw samples from the prior $\epsilon \sim \mathcal{N}(0, 1)\,$ and use that as the input to the decoder - this gives us a generative model, which would not be possible with ordinary autoencoders.
 
+\subsection{Conditional Variational Autoencoders}
+
+
+
+\subsection{Conditional Generative Adversarial Networks}
 
 
 \section{General Practices in Machine Learning}
