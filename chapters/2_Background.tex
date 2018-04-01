@@ -219,6 +219,10 @@ Note that sampling of $z$ is a discrete decision that would normally stop gradie
 
 It is easier for linear models to learn from embeddings extracted with AEs, and embeddings from VAEs make the classes even easier to separate.
 These are unsupervised methods that do not take advantage of labels in the training data.
+In the semisupervised approach introduced by \cite{semi_vae} there are two inference networks: a discriminative classifier that outputs a categorical distribution from the input $x$, and a class-conditional encoder that takes as input both $x$ and the 1-hot encoded categorical label $y$\footnote{class-conditional encoder means that the encoder is aware of the class of the data point, i.e. the output $z$ is conditioned on the class $y$ in addition to the original input $x$}.
+The model is trained on both labelled and unlabelled data.
+For labelled examples, the $x$ and $y$ are given as input to the model, which embeds it in $z$ as described earlier, and reconstructs the original $x$.
+The value of $y$ is unknown for unlabelled data points; therefore the model is run $|y|$ times, encoding and decoding the data point conditioned on each of the classes.
 
 \subsection{Conditional Generative Adversarial Networks}
 
