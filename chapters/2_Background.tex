@@ -224,7 +224,7 @@ The model is trained on both labelled and unlabelled data.
 For labelled examples, the $x$ and $y$ are given as input to the model, which embeds it in $z$ as described earlier, and reconstructs the original $x$.
 The value of $y$ is unknown for unlabelled data points; therefore the model is run $|y|$ times, encoding and decoding the data point conditioned on each possible class $i$; loss from these runs is averaged, weighted by the discriminator's estimate of the sample belonging to class $i$.
 This approach is acceptable for small numbers of classes, but is impractical for many multi-class problems.
-A solution uses the reparametrisation trick mentioned above: rather than running the procedure once per class, we take a Gumbel-softmax \cite{gumbel}
+A solution uses the reparametrisation trick mentioned above: rather than running the procedure once per class, we take a Gumbel-softmax \cite{gumbel} to get a discrete estimate of $y$ that is still differentiable.
 
 \subsection{Conditional Generative Adversarial Networks}
 
