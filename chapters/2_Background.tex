@@ -192,6 +192,21 @@ In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature 
 \section{Unsupervised and Semisupervised Learning}
 \label{unsup}
 
+This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve sample complexity. Generic semi-supervised methods such as self-training and co-training are not considered, as one of our goals is to learn good representations.
+
+Deep \textbf{autoencoders} can be used to learn low-dimensional representations of inputs.
+Many variants exist,  but  the general pattern is to have an ``hourglass-structured'' neural network where the first half of the model shrinks the input, and the second half of the network reconstructs the original input.
+Activations in the middle layer correspond to a dense embedding of the input;  the shrinking layers need to  throw away some of the detail in the input, yet persists enough for the expanding layers to be able to reconstruct the original input with some fidelity.
+The embedding contains information that is mostly unique to the data point, while the parameters of the encoding and decoding layers ensure that the reconstructed input is realistic.
+
+It is common to add noise (Gaussian, dropout) to the input or the intermediate layers to increase resilience to noisy inputs and to prevent the autoencoder simply memorising each data point.
+If the bottleneck layer is unconstrained, it will use a wide range of values to represent of different inputs.
+However, we would like embedding for similar inputs to also be similar. Variational autoencoders (\textbf{VAEs}) impose a prior distribution on the values of the embedding, often a multivariate Gaussian distribution with a diagonal covariance matrix, and the model is regularised during training to respect this prior.
+In practice this means that  there is an additional step to determining the embedding $z$ of the input.
+There are two separate neural network layers from the bottleneck layer of the autoencoder:  one for determining $\mu$ (the vector of means of the multivariate Gaussian), and one for determining $\sigma$ (the vector of standard deviations of the multivariate gaussian).
+Given $\mu$ and $\sigma$, we can sample the final item embedding $z \sim \mathcal{N}(\mu,\,\sigma^{2})\,$.
+Note that sampling of $z$ is a discrete decision that would normally stop gradient from propagating past this step, but we can use the reparametrisation trick introduced by \cite{vae} that turns the discrete decision into a deterministic function of $z = \mu + \sigma\epsilon$, where $\epsilon \sim \mathcal{N}(0, 1)\,$ is a random auxiliary noise parameter.
+
 \section{General Practices in Machine Learning}
 
 We briefly list some techniques and approaches that could be used for many kinds of machine learning problems.
