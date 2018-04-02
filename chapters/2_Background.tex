@@ -230,9 +230,11 @@ A solution uses the reparametrisation trick mentioned above: rather than running
 Such class-conditional VAEs can be used in any situation where unlabelled data is abundant but labels are scarce.
 The discriminator's loss is optimised as part of the VAE's loss function, which means adding more unlabelled data can improve the accuracy of the discriminator.
 The approach was developed and tested on the MNIST dataset, which consists of 28x28 grayscale images - a very simple dataset by today's standards.
-Some reports have emerged \cite{vae_bad} that fail to reproduce this success on more complex datasets such as CIFAR-10
+Some reports have emerged that fail to reproduce this success on more complex datasets such as CIFAR-10, being outperformed even by PCA \cite{vae_bad}.
 
-One related approach is offered by \cite{towards}
+One related approach is offered by \cite{towards}, where a class-conditional VAE is used to generate synthetic data for a discriminator network.
+They use it for conditional text generation, but also report higher accuracy in semisupervised setting than the approach described just above.
+The author has implemented this model and open sourced it\footnote{https://github.com/mattiasarro/seq2seq-cvae-tensorflow}.
 
 \subsection{Conditional Generative Adversarial Networks}
 
