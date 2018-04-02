@@ -192,7 +192,13 @@ In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature 
 \section{Unsupervised and Semisupervised Learning}
 \label{unsup}
 
-This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve sample complexity. Generic semi-supervised methods such as self-training are not considered, as one of our goals is to learn good representations, but also because these methods can reinforce poor predictions or do not make full use of all available unlabelled data.
+This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve sample complexity.
+Generic semi-supervised methods such as self-training are not considered, as one of our goals is to learn good representations, but also because these methods can reinforce poor predictions or do not make full use of all available unlabelled data.
+
+Some generic methods can still improve the representations learned by our models when applied to models that learn deep embeddings in order to make predictions.
+Entropy minimisation \cite{entropy_min} can be incorporated into models trained with SGD to encourage confident predictions of each class; this encourages the deep model to learn predictions that are strong predictors of some class and avoid producing features that produce mixed predictions.
+More complex but very performant approach is Mean Teacher\cite{mean_teacher}. A student that gets a harder task (such as predicting from a noisy/adversarial example), and a teacher that gets an easier task (i.e. the teacher model is an ensemble, which is more accurate).
+The student is trained to learn the prediction of the teacher
 
 \subsection{Autoencoders \& Variational Autoencoders}
 
@@ -243,9 +249,14 @@ Generative adversarial networks (GANs) are an interesting approach capable of sy
 GANs have been most successful for image synthesis, but are in fact applicable to any kind of input data including text \cite{} and even mixed data types such as user profiles \cite{}.
 In the GAN setting, there are two networks: a generator that tries to produce realistic synthetic samples, and a discriminator whose goal is to distinguish between synthetic and actual samples.
 % The networks are trained as a min-max optimisation problem where the generator is optimised to ``fool'' the discriminator by producing samples that appear to come from the true distribution, and the discriminator is optimised to  determine which samples are synthetic.
-Given that the training is stable enough, both the generator's and the discriminator's performance improves with time, resulting in more realistic synthetic samples.
+Given that the training is stable enough, both the generator's and the discriminator's performance improves with time, resulting in more realistic synthetic samples, as opposed to the relative blurry images produced by VAEs.
 The discriminator needs to learn good representations of the input to  accurately distinguish which samples come from the true distribution, and which samples are synthetic; as with many CNNs for computer vision, these representations can be useful for other tasks as well.
 It has been shown that  linear models  from the embeddings learned by the discriminator outperform other unsupervised feature learning techniques such as k-means \cite{dcgan}.
+At the time of writing, variants of Wasserian GANs (WGANs) achieve the best performance by improving training stability and preventing the generator from generating samples from a limited number of modes; this is achieved by minimising the Wasserian distance between the generator's and real data distributions, as opposed to minimising the JS divergence as was common before.
+A performant variant of WGAN is CT-GAN, which adds a regularisation term to enforce a Lipschitz continuity condition over the manifold of the real data \cite{ctgan}.
+
+There are more complex solutions such as
+
 
 \section{General Practices in Machine Learning}
 
