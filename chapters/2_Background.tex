@@ -177,6 +177,8 @@ Therefore pre-trained 2D CNNs can be used as feature extractors for various othe
 \subsubsection{Item Similarity}
 \label{bg_sim}
 
+One of the most easily available item similarity measures for e-commerce companies is BM?\footnote{it is built into ElasticSearch, a popular NoSQL database with integration to Sphinx?, a full-text search engine}
+
 \subsubsection{Recommender Systems}
 \label{rec}
 
@@ -313,3 +315,5 @@ The three general scenarios: membership query synthesis, stream-based selective 
 In the first scenario, the algorithm synthesises a datapoint and asks a label for it.
 In stream-based selective sampling, and instance is sampled and  the model decides (while having access to the data point's features) whether to acquire a label or not.
 In pool-based sampling, the model chooses which data point to label from the pool of all unlabelled samples.
+Our use case is a version of pool-based sampling, where the algorithm picks out a batch of products to be labelled.
+ up
