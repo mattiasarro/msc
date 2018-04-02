@@ -181,8 +181,18 @@ Similarity measures based on tokenised text are easily accessible to e-commerce 
 This gives decent results in many cases, but it does not take advantage of a product image.
 
 Embeddings extracted with a deep network can be viewed as a distributed representation of the original data, which carries semantic meaning \cite{distributed_reps}.
-In the contrived examples of distributed representations, each dimension would represent the degree to which a property (e.g. of shape or colour) is present of an object, however the dimensions are not necessarily so nicely disentangled in the representations learned by deep networks\footnote{The author has not seen strong evidence in literature to support either case, but at least in \cite{towards} extra steps had to be taken to \textit{prevent} certain latent variables from encoding properties of the data that were meant to be captured by other latent variables. This implies that by default, each latent variable contains a little bit if information about each aspect of the input}.
+In the contrived examples of distributed representations, each dimension would represent the degree to which a property (e.g. of shape or colour) is present of an object, however the dimensions are not necessarily so nicely disentangled in the representations learned by deep networks\footnote{The author has not seen strong evidence in literature to support either case, but at least in \cite{towards} extra steps had to be taken to \textit{prevent} certain latent variables from encoding properties of the data that were meant to be captured by other latent variables. This implies that by default, each latent variable contains a little bit if information about each aspect of the input, and that the whole pattern of the embedding matters for conveying semantic information}.
 Still, it is clear that such dense representations help linear models do accurate predictions, and semantically similar data points will have similar embedding vectors.
+
+Therefore we can compare any two embedding vectors (extracted with the same neural network) using standard vector space similarity measures, such as cosine similarity (1 - normalised dot product between the vectors).
+Such embeddings can be extracted from product images with 2D CNNs pre-trained on another task, 1D CNNs or RNNs on product title and descriptions, or from the joint embeddings described in section \ref{bg_ensembling}.
+With large numbers of products, calculating pairwise similarity scores becomes intractable, therefore approximate nearest neighbour methods could be used \cite{nmslib}.
+
+Another interesting method of computing similarity scores between documents utilises the full-text search capability of tools such as Lucene, which would be valuable to firms already using such technologies.
+The embedding vectors of products could be tokenised, by converting each dimension of each embedding vector into tokens that represent the feature with some precision \cite{vec_fulltext}.
+For example, we could consider two levels of precision and divide the normalised feature into 10 intervals of size 0.1 and 100 intervals of size 0.01; each product would get two tokens per embedding dimension\footnote{It would be a good idea to also have some wider overlapping intervals as well, e.g. 0 ... 0.5}.
+For example, if the first embedding dimension is 0.46, the inserted tokens would be d1\_0.4 and d1\_0.46.
+Full-text search engines would assign higher scores to co-occurrences in the more precise tokens and lower scores to co-occurrences in more coarse token.
 
 \subsubsection{Recommender Systems}
 \label{rec}
@@ -321,4 +331,3 @@ In the first scenario, the algorithm synthesises a datapoint and asks a label fo
 In stream-based selective sampling, and instance is sampled and  the model decides (while having access to the data point's features) whether to acquire a label or not.
 In pool-based sampling, the model chooses which data point to label from the pool of all unlabelled samples.
 Our use case is a version of pool-based sampling, where the algorithm picks out a batch of products to be labelled.
- up
