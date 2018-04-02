@@ -197,8 +197,9 @@ Generic semi-supervised methods such as self-training are not considered, as one
 
 Some generic methods can still improve the representations learned by our models when applied to models that learn deep embeddings in order to make predictions.
 Entropy minimisation \cite{entropy_min} can be incorporated into models trained with SGD to encourage confident predictions of each class; this encourages the deep model to learn predictions that are strong predictors of some class and avoid producing features that produce mixed predictions.
-More complex but very performant approach is Mean Teacher\cite{mean_teacher}. A student that gets a harder task (such as predicting from a noisy/adversarial example), and a teacher that gets an easier task (i.e. the teacher model is an ensemble, which is more accurate).
-The student is trained to learn the prediction of the teacher
+More complex but very performant approach is Mean Teacher \cite{mean_teacher}. A student that gets a harder task (such as predicting from a noisy/adversarial example), and a teacher that gets an easier task (i.e. the teacher model is an ensemble, which is more accurate).
+The student is trained on the prediction of the teacher; the teacher's parameters are an exponential moving average of the student's, updated after each minibatch.
+The teacher's predictions are higher-quality than the student's (and can be applied on unlabelled data), while the student tries to continuously learn to learn a predictor that is robust to noisy and adversarial examples.
 
 \subsection{Autoencoders \& Variational Autoencoders}
 
@@ -255,9 +256,6 @@ It has been shown that  linear models  from the embeddings learned by the discri
 At the time of writing, variants of Wasserian GANs (WGANs) achieve the best performance by improving training stability and preventing the generator from generating samples from a limited number of modes; this is achieved by minimising the Wasserian distance between the generator's and real data distributions, as opposed to minimising the JS divergence as was common before.
 A performant variant of WGAN is CT-GAN, which adds a regularisation term to enforce a Lipschitz continuity condition over the manifold of the real data \cite{ctgan}.
 
-There are more complex solutions such as
-
-
 \section{General Practices in Machine Learning}
 
 We briefly list some techniques and approaches that could be used for many kinds of machine learning problems.
@@ -302,6 +300,7 @@ A simple concatenation of all individual embeddings could be a useful (albeit a 
 Alternatively, we could use this concatenation as an input to a neural network, whose goal is to (1) reduce its dimensionality by removing redundant information and (2) predict the output classes from this compressed embedding.
 The latter case could act as a kind of a (replacement for) the meta-learner, with the difference that it takes the penultimate (as opposed to the final) layer of each individual model as input.
 
+% https://arxiv.org/abs/0911.0460
 % TODO figure of meta-learner and embedding lear
 
 \section{Active Learning}
