@@ -325,20 +325,32 @@ The latter case could act as a kind of a (replacement for) the meta-learner, wit
 
 This section describes the main approaches to active learning;  details analysis is beyond the scope of this report.
 
+
 The goal of active learning is to reduce the number of labels needed  to effectively train a machine learning model by  being selective about which data points to label.
 The three general scenarios: membership query synthesis, stream-based selective sampling, and pool-based sampling \cite{al_survey}.
 In the first scenario, the algorithm synthesises a datapoint and asks a label for it.
 In stream-based selective sampling, and instance is sampled and  the model decides (while having access to the data point's features) whether to acquire a label or not.
 In pool-based sampling, the model chooses which data point to label from the pool of all unlabelled samples.
 Our use case is a version of pool-based sampling, where the algorithm picks out a batch of products to be labelled.
+The rest if the section describes different approaches to picking the data points that are expected to help the model learn.
 
-There are several approaches to picking the data points that are expected to help the model learn.
-Uncertainty sampling is the most popular choice: if the model is uncertain about a prediction, obtaining a label for that data point would help it differentiate between different prediction targets.
+\textbf{Uncertainty sampling} is the most popular choice: if the model is uncertain about a prediction, obtaining a label for that data point would help it differentiate between different targets.
 The most common way to quantify uncertainty is by entropy of the model's predictions:
 
 \begin{equation}
- x^*_H = \argmax_x \sum_{i} P_\theta(y_i|x) \log P_\theta(y_i|x),
+ x^*_H = \argmax_x - \sum_{i} P_\theta(y_i|x) \log P_\theta(y_i|x),
 \end{equation}
 
 where $x^*_H$ corresponds to the most informative instance according the entropy ($H$) measure, and $y_i$ corresponds to each class.
 This measure can be used for both multi-label and multi-class problems, and is therefore preferred.
+
+\textbf{Query by committee} uses a number of models trained on the labelled data which all make a prediction on the unlabelled data.
+Data points with highest disagreement are expected to be most informative, as by definition a larger number of models would have to be wrong in their predictions.
+The models in the committee do not have to be of different type like is our case, but could be e.g. a set of linear classifiers where each committee member just has different parameter values, yet each member would have to be consistent with the current set of labels (not contradict it with its predictions).
+Disagreement between committee members can be quantified with vote entropy \cite{vote_entropy}:
+
+\begin{equation}
+ x^*_{VE} = \argmax_x - \sum_{i} \frac{V(y_i)}{C}  \log \frac{V(y_i)}{C},
+\end{equation}
+
+where $V(y_i)$ is the number of votes given to class $i$ and $C$ is committee size.
