@@ -232,11 +232,13 @@ The discriminator's loss is optimised as part of the VAE's loss function, which 
 The approach was developed and tested on the MNIST dataset, which consists of 28x28 grayscale images - a very simple dataset by today's standards.
 Some reports have emerged that fail to reproduce this success on more complex datasets such as CIFAR-10, being outperformed even by PCA \cite{vae_bad}.
 
-One related approach is offered by \cite{towards}, where a class-conditional VAE is used to generate synthetic data for a discriminator network.
-They use it for conditional text generation, but also report higher accuracy in semisupervised setting than the approach described just above.
-The author has implemented this model and open sourced it\footnote{https://github.com/mattiasarro/seq2seq-cvae-tensorflow}.
+One related approach is offered by \cite{towards}, where a class-conditional VAE is used to generate synthetic data for a discriminator network, which has reportedly a higher accuracy in semisupervised setting than the approach described just above.
+They use it for conditional text generation, but this approach of using the class-conditional VAE to synthesise training data to train a discriminator is applicable to any input modality.
+In fact the general approach to ``dreaming up'' new training samples in the \textit{sleep phase} and training the classifier in the \textit{wake phase} was introduced already in \cite{wake_sleep}.
+The current author has implemented this model and open sourced it\footnote{https://github.com/mattiasarro/seq2seq-cvae-tensorflow}.
 
 \subsection{Conditional Generative Adversarial Networks}
+
 
 
 \section{General Practices in Machine Learning}
