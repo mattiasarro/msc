@@ -239,9 +239,13 @@ The current author has implemented this model and open sourced it\footnote{https
 
 \subsection{Generative Adversarial Networks}
 
-Generative adversarial networks (GANs) are an interesting and trendy research field capable of synthesising realistic data, but also useful for learning good representations of data.
+Generative adversarial networks (GANs) are an interesting approach capable of synthesising realistic data, but also useful for learning good representations of data.
 GANs have been most successful for image synthesis, but are in fact applicable to any kind of input data including text \cite{} and even mixed data types such as user profiles \cite{}.
-
+In the GAN setting, there are two networks: a generator that tries to produce realistic synthetic samples, and a discriminator whose goal is to distinguish between synthetic and actual samples.
+% The networks are trained as a min-max optimisation problem where the generator is optimised to ``fool'' the discriminator by producing samples that appear to come from the true distribution, and the discriminator is optimised to  determine which samples are synthetic.
+Given that the training is stable enough, both the generator's and the discriminator's performance improves with time, resulting in more realistic synthetic samples.
+The discriminator needs to learn good representations of the input to  accurately distinguish which samples come from the true distribution, and which samples are synthetic; as with many CNNs for computer vision, these representations can be useful for other tasks as well.
+It has been shown that  linear models  from the embeddings learned by the discriminator outperform other unsupervised feature learning techniques such as k-means \cite{dcgan}.
 
 \section{General Practices in Machine Learning}
 
