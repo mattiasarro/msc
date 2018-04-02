@@ -237,8 +237,10 @@ They use it for conditional text generation, but this approach of using the clas
 In fact the general approach to ``dreaming up'' new training samples in the \textit{sleep phase} and training the classifier in the \textit{wake phase} was introduced already in \cite{wake_sleep}.
 The current author has implemented this model and open sourced it\footnote{https://github.com/mattiasarro/seq2seq-cvae-tensorflow}.
 
-\subsection{Conditional Generative Adversarial Networks}
+\subsection{Generative Adversarial Networks}
 
+Generative adversarial networks (GANs) are an interesting and trendy research field capable of synthesising realistic data, but also useful for learning good representations of data.
+GANs have been most successful for image synthesis, but are in fact applicable to any kind of input data including text \cite{} and even mixed data types such as user profiles \cite{}.
 
 
 \section{General Practices in Machine Learning}
@@ -256,6 +258,7 @@ Dropout can mitigate overfitting by preventing neurons from co-adapting, encoura
 
 gradient clipping
 layer norm
+Batch normalisation is known to stabilise training and hence speed up convergence  by normalising each input to have unit variance and zero mean \cite{batch_norm}.
 
 \section{Combining Models}
 \label{bg_ensembling}
