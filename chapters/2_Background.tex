@@ -305,3 +305,11 @@ The latter case could act as a kind of a (replacement for) the meta-learner, wit
 
 \section{Active Learning}
 \label{bg_al}
+
+This section describes the main approaches to active learning;  details analysis is beyond the scope of this report.
+
+The goal of active learning is to reduce the number of labels needed  to effectively train a machine learning model by  being selective about which data points to label.
+The three general scenarios: membership query synthesis, stream-based selective sampling, and pool-based sampling \cite{al_survey}.
+In the first scenario, the algorithm synthesises a datapoint and asks a label for it.
+In stream-based selective sampling, and instance is sampled and  the model decides (while having access to the data point's features) whether to acquire a label or not.
+In pool-based sampling, the model chooses which data point to label from the pool of all unlabelled samples.
