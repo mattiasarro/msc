@@ -342,7 +342,7 @@ The most common way to quantify uncertainty is by entropy of the model's predict
 \end{equation}
 
 where $x^*_H$ corresponds to the most informative instance according the entropy ($H$) measure, and $y_i$ corresponds to each class.
-This measure can be used for both multi-label and multi-class problems, and is therefore preferred.
+% This measure can be used for both multi-label and multi-class problems, and is therefore preferred.
 
 \textbf{Query by committee} uses a number of models trained on the labelled data which all make a prediction on the unlabelled data.
 Data points with highest disagreement are expected to be most informative, as by definition a larger number of models would have to be wrong in their predictions.
@@ -361,3 +361,16 @@ Alternatively, KL divergence between each committee member's predictions and the
  P_\zeta(y_i | x) &= \frac{1}{C} \sum_{c=1}^C P_{\theta^{(C)}}(y_i|x)\\
  \infdiv{P_{\theta^{(C)}}}{P_\zeta} &= \sum_i  P_{\theta^{(C)}}(y_i|x) \log \frac{ P_{\theta^{(C)}}(y_i|x) }{ P_{\zeta}(y_i|x) }
 \end{align}
+
+\textbf{Expected model change} calculates how much a model would change if we knew its label.
+In gradient-based learning algorithms it is possible to compute the L2 norm of the gradient vector for each combination of labelings of the unlabelled product \cite{model_change}, which is a direct measure of how much the model would change.
+
+\textbf{Expected error reduction} considers how much the test set error is likely to decrease with the acquisition of a given label.
+This is done by re-training the model once per each combination of the label values and observing how either the risk or expected log loss of the unlabelled data points decreases.
+This is not a suitable use case for deep networks, which are trained over several epochs of the data; there is no efficient way to incrementally train the model, and when re-training with a single additional label, the change in the model is probably higher from the stochasticity in the training procedure rather than the additional label.
+In any case, this method is very expensive computationally.
+
+\textbf{Variance reduction} tries to pick data points which are expected to decrease the variance in predictions.
+To do that, the Fisher information of the model parameters should be maximised.
+Unfortunately this involves inverting a $K \times K$ covariance matrix, where $K$ is the number of parameters in the model.
+This is impractical for deep networks with millions of parameters.
