@@ -357,6 +357,7 @@ where $V(y_i)$ is the number of votes given to class $i$ and $C$ is committee si
 Alternatively, KL divergence between each committee member's predictions and the consensus $P_\zeta$ (average prediction of committee members) could be used:
 
 \begin{align}
- x^*_{KL} &= \argmax_x - \frac{1}{C} \sum_{i} \infdiv{P_{\theta^{(C)}}}{P_\zeta},\\
- P_\zeta(y_i | x) &= \frac{1}{C} \sum_{c=1}^C P_\theta^{(C)}(y_i|x)
+ x^*_{KL} &= \argmax_x \frac{1}{C} \sum_{i} \infdiv{P_{\theta^{(C)}}}{P_\zeta}\\
+ P_\zeta(y_i | x) &= \frac{1}{C} \sum_{c=1}^C P_{\theta^{(C)}}(y_i|x)\\
+ \infdiv{P_{\theta^{(C)}}}{P_\zeta} &= \sum_i  P_{\theta^{(C)}}(y_i|x) \log \frac{ P_{\theta^{(C)}}(y_i|x) }{ P_{\zeta}(y_i|x) }
 \end{align}
