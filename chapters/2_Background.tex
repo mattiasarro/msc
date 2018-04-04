@@ -377,3 +377,11 @@ This is impractical for deep networks with millions of parameters.
 
 \textbf{Information density} measures consider data points that are not just uncertain but also representative of the underlying distribution.
 This avoids the problem with many other approaches that ask labels for samples that are controversial, but could otherwise be outliers and not the most useful for good generalisation.
+In this framework, a base informativeness measure $\phi_A(x)$ such as uncertainty or disagreement is weighted by the average distance of the data point $x$ to other data points in the distribution \cite{inf_dens}:
+
+
+\begin{equation}
+ x^*_{ID} = \argmax_x \phi_A(x) \times \Bigg( \frac{1}{U} \sum_{u=1}^U sim(x, x^{(u)}) \Bigg)^\beta,
+\end{equation}
+
+where $sim$ is some similarity function and $\beta$ controls the importance of the density term.
