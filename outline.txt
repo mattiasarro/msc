@@ -1,139 +1,10 @@
-plan
-    decide on AL sampling and weighting scheme
-    decide on fine-tune system architecture
-    coding todo
-        save hparams as JSON
-        preprocess: don't precompute img features
-        AF: pipeline without update
-        web: was the product positively labeled by old system?
-        if it's in a child, it's in the parent
+coding todo
+    save hparams as JSON
+    preprocess: don't precompute img features
+    AF: pipeline without update
+    web: was the product positively labeled by old system?
+    if it's in a child, it's in the parent
 
-report
-    Introduction
-        general
-            machine learning has become very successful, applied in many contexts
-            deep learning is also seeing a lot of attention
-                because it can deal with very rich input / output types
-                but is notoriously data-heavy
-
-            supervised learning is the most successful example
-            in real-world settings, the data we gather is noisy and labelling expensive
-                we would like to have systems that
-                    are efficient in learning from few labels
-                    are able to learn from noisy inputs
-            ML is largely an empirical science
-                given a new dataset, it is hard to tell
-                    what kind of model would work best
-                    how many labels might one need
-                data scientists have some intuition about this
-                    which comes from experience and from reading papers
-                    another case study can therefore be valuable
-
-            in this thesis we explore
-                different types of models
-                    for classifying (or predicting attributes of) affiliate products
-                    on various types of input (visual, textual, categorical, numerical).
-                combining models with the best performance into an ensemble
-                and using an active learning strategy to label products efficiently
-
-        Problem
-            e-commerce setting, binary prediction
-            active learning datasets are often synthetic
-            Data:
-                columns, distributions
-                preprocessing
-        Purpose & Goal
-            The purpose of this thesis is to
-                give insight into relative strengths of different models
-                show how much ensembling improves performance on the baseline models
-                how active learning can reduce label complexity in real-world scenarios
-                what kind of sampling strategy works best for active learning
-            The goal is to
-                train a baseline model (Wide&Deep) on rule-based labels
-                gather a small sample of ground-truth labels from users
-                train several different models on affiliate data that is labeled by a rule-based system
-                    evaluate these models on rule-based test set and ground-truth data
-                train an ensemble of the best-performing components + eval
-                train for up to 10 iterations with active learning
-
-        Research Questions
-            Which of the models are best baseline predictors?
-            Does ensembling increase performance considerably?
-            Does fine-tuning CNN increase performance considerably?
-            Does which active learning sampling strategy decreases label complexity more?
-                disagreement
-                uncertainty
-        Risks
-            class imbalance (mitigate by aiming to get similar nr of pos/neg samples)
-        Ethics and Sustainability
-            ethics: when making critical decisions, should be interpretable
-            sust: selling products is inherently non-sustainable, unless recycling is ramped up
-        Contributions
-        Delimitations
-            excluded models mentioned in section x
-            can't eval well on random sample, as these would usually be negative
-            no time for CNN vis
-        Outline
-    Background
-        input representation
-            histograms
-            tfidf
-            embeddings
-        Similarity Measures
-        Possible models:
-            linear for all cat vars
-            deep for all cat vars
-            CNN/LSTM for text vars separately
-            xgboost for all vars
-            precomputed img embs
-            pretrained CNN finetuned
-        Semisupervised Learning
-            cvae
-            dcgan
-        Selected models
-            prefer dnn and xgboost because no need to impute missing values
-            DNNs generalize well. can use the embeddings
-            use simpler models:
-                An Analysis of Neural Language Modeling at Multiple Scales (QRRNs)
-                     This paper follows prior work showing that many of our existing AI components are more powerful than researchers suspected, and follows research that has shown that fairly old systems like GANs or DCGANs can adeptly model data distributions more effectively than sophisticated successor systems.
-                Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks https://arxiv.org/abs/1511.06434
-        Ensembling Strategies
-
-        Active Learning
-
-meta learner as cvae? nah, no rich input data
-
-
-    Method
-        Methodology
-        Experiments
-            train naively deep & wide, hyperparam tuning [old labels]
-                visual similarity
-            obtain first random sample of ground truth labels
-            train ensemble components separately [old labels]
-            train a meta-learner [old labels]
-            active learning
-                10x 10 000 labeling sessions
-                50% labels randomly selected, 50% actively selected (uncertainty + disagreement)
-                train the same model on randomly vs actively selected data
-                at each step t > 2, evaluate both models on random sample
-        Evaluation
-
-    Implementation & Deployment
-        Code Organization
-        Deployment Architecture
-        Model Hyperparameters
-
-    Discussion
-    Conclusions
-
-problems
-    high label complexity
-    long train times
-    unbalanced data
-    ensembling vs joint training
-    interpretability of the ensemble
-    combining deterministic system with manual labels + active learning
 experiments
     train on rule-based labels
         correcting for label imbalance6
@@ -230,41 +101,7 @@ experiments
                 random sample labels give TP/FP of both models
                 from each model's prediction on the previous iteration
 
-theory
-    data-efficient learning
-        ensembling
-            bagging
-            boosting
-        active learning
-            retraining-based
-            retraining-free
-            sampling strategies
-                compensating for sampling bias
-            for deep learning
-                not as common, maybe because it requires an explicit list of hypotheses
-                    intractable for DL but cohn 1994 is one approach
-    interpretability of models
-        weights of ensemble parts / meta-learner coefficients
-        CNN visualizations
-        RNN hidden state analysis
-
-
 active learning sampling strategies
-    query by committee: label items with biggest disagreement between committee members
-        could use our ensemble components as committee
-        For measuring the level of disagreement, two main approaches have been proposed.
-            The first is vote entropy (Dagan and Engelson, 1995):
-            Another disagreement measure that has been proposed is average Kullback-Leibler (KL) divergence (McCallum and Nigam 1998):
-    uncertainty sampling (review paper)
-        maximum  entropy  of  the  estimated  label  [5]
-        minimum distance from the decision boundary [6,7]
-    expected error reduction [8]:
-    variance reduction [2]
-    min-max
-    uncertainty
-        linear: 1-abs(0.5-x) - 0.5, x between 0 and 1
-        xentropy: -x*log(x), x between 0 and 1
-
     how we chose the strategy
         trained a naive wide & deep model
             key errors reasons (see below)
@@ -317,26 +154,3 @@ architecture
                     eval on test set, insert metrics to ES
                     eval on valid set, insert metrics to ES
                 determine next to-be labels
-
-quotes
-    ...
-        It is important that the selection probabilities are always greater than
-        zero. is guarantees that the algorithm will eventually converge to the
-        optimal hypothesis and does not show the missed cluster problem. e
-        missed cluster problem (Dasgupta and Hsu, 2008) explains how simple
-        active learners can end up in a local optimum and can produce a classiĕer
-        that is very far from the optimal classiĕer.
-    cohn 1994
-        Since an entire neural network configuration represents a single concept, a complete version
-        space cannot be directly represented by any single neural network. In fact, Haussler
-        (1987) pointed out that the size of the S and G sets could grow exponentially in the size
-        of the training set. Representing these sets completely would require keeping track of and
-        manipulating an exponential number of network configurations.
-    Active Learning Using Uncertainty Information
-        Query-by-committee put forward multiple mod-els  as  the  committees  and  selected  the  samples  which  receivehighest  level  of  disagreement  from  the  committees  [4].
-        2 types of AL:
-            retraining-based (retrain model after labelling each data point)
-            retraining-free (uncertainty sampling, query by committee)
-    Improving Generalization with Active Learning* (Cohn 1994)
-        learn a general and specific NN
-        use the disagreement between them as a measure of likelihood of selecting a data point
