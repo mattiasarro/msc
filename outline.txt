@@ -154,3 +154,30 @@ architecture
                     eval on test set, insert metrics to ES
                     eval on valid set, insert metrics to ES
                 determine next to-be labels
+
+steps
+    pretrain on old labels
+        eval on test set of old labels
+        calculate density-weighted
+            uncertainty
+            disagreement
+    first round
+        label n products
+            (n could be bigger than it later is)
+            50% random
+            25% uncertainty
+            25% disagreement
+        label 1000 products
+            ground truth
+        retrain
+            random model
+            uncertainty model
+            disagreement model
+            all model
+        evaluate all models on ground truth
+    loop
+        retrain
+            uncertainty model
+            disagreement model
+            all model
+        eval all models on ground truth
