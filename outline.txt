@@ -157,7 +157,9 @@ architecture
 
 steps
     pretrain on old labels
-        eval on test set of old labels
+        eval on test set of old labels (sigmoid xentropy)
+        make old labels exclusive by argmax
+        re-eval on test set of old labels (softmax xentropy)
         calculate density-weighted
             uncertainty
             disagreement
@@ -181,3 +183,11 @@ steps
             disagreement model
             all model
         eval all models on ground truth
+
+retraining
+    interleave training on new label and old label
+        new_labels = Dataset.filter(has ml_label_category)
+        old_labels = Dataset.filter(has not ml_label_category)
+        # https://stackoverflow.com/questions/47343228/interleaving-tf-data-datasets
+        dataset = tf.data.Dataset.zip((new_labels, old_labels)).flat_map(
+            lambda x0, x1: tf.data.Dataset.from_tensors(x0).concatenate(tf.data.Dataset.from_tensors(x1)))
