@@ -1,9 +1,10 @@
-coding todo
+todo
+    run WD model locally
     save hparams as JSON
-    preprocess: don't precompute img features
     AF: pipeline without update
+    -- T
     web: was the product positively labeled by old system?
-    if it's in a child, it's in the parent
+
 
 experiments
     train on rule-based labels
