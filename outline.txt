@@ -1,5 +1,4 @@
 todo
-    run WD model locally
     save hparams as JSON
     AF: pipeline without update
     -- T
