@@ -11,20 +11,24 @@ There are even limited results in  beating human at highly uncertain games with 
 
 % why DL is useful and flexible
 Artificial neural networks consist of layers of transformations that map multidimensional inputs to (usually multidimensional or structured) outputs.
-% The building blocks of neural networks are relatively simple and the algorithms for training them are universal; this makes neural networks applicable to a variety of domains, and opens up fascinating opportunities of multimodal and transfer learning.
-% Being able to arbitrarily increase model complexity by increasing its depth or width allows the same neural network approximate more complex functions.
 A single-layer neural network is a linear transformation of the inputs; each additional layer with a non-linear activation function enables the network to partition the output space and hence approximate more complex functions.
 Complex models are prone to overfitting and require more training data and heavier regularisation, yet deep models are somewhat unique in that their performance continues to increase with the size of the dataset, whereas the benefits of more data taper off for many other kinds of models.
 
 Neural networks are very flexible: one can start out with a shallow model and increase model complexity (width and depth) to see the effects on performance and generalisation.
-There are benefits to building shallow models in the same framework as neural networks even when e.g. logistic regression is the most appropriate approach: easy experimentation with different model architectures, and potential for multi-task and transfer learning.
+Logistic regression might well be the most appropriate approach for a classification problem, but this is often not obvious up front, so it is beneficial to build models in a framework that also supports deep models.
+In addition to easy experimentation with model architectures, it is easy to do transfer learning with deep models on popular platforms: for example, image or text models pretrained on large datasets can be utilised to increase product classification performance, and representations learned for classification could in turn be used by a downstream product recommender system.
+Datasets with abundant unlabeled data can benefit from unsupervised and semisupervised learning using deep generative models.
+
+There are competing demands in any machine learning project: predictive performance, label complexity, interpretability, computational requirements and engineering challenges.
+In this work we are concerned with product classification and similarity, but another project might have vastly different priorities and expectations of the above aspects.
+
 
 %  balancing between predictive performance, label complexity, transfer learning capabilities
-It is not immediately obvious  which kind of model should one use for a given task and dataset.
-A data scientist can consider the following factors:  how many labelled and unlabelled data points do we have,  how much do we value predictive performance, interpretability, and whether we want to do some transfer learning or joint training with the models.
-Labelling is often expensive, so in many real world use cases a lower label complexity (number of labels needed to obtain the desired accuracy) is preferred over slightly better performance.
-Deep learning seems to have a disadvantage in this aspect, but as we see in section [ref] in cases where unlabelled data is also abundant, semi-supervised and generative models can overcome low label complexity while increasing computation time.
-In cases where the ability of neural networks to learn features that can be used in downstream models (e.g. features learned for classification could later be used as part of a recommended system) this increased computation and engineering complexity might be justifiable.
+% It is not immediately obvious  which kind of model should one use for a given task and dataset.
+% A data scientist can consider the following factors:  how many labelled and unlabelled data points do we have,  how much do we value predictive performance, interpretability, and whether we want to do some transfer learning or joint training with the models.
+% Labelling is often expensive, so in many real world use cases a lower label complexity (number of labels needed to obtain the desired accuracy) is preferred over slightly better performance.
+% Deep learning seems to have a disadvantage in this aspect, but as we see in section [ref] in cases where unlabelled data is also abundant, semi-supervised and generative models can overcome low label complexity while increasing computation time.
+% In cases where the ability of neural networks to learn features that can be used in downstream models (e.g. features learned for classification could later be used as part of a recommended system) this increased computation and engineering complexity might be justifiable.
 
 
 % we explore individual models, ensembling, active learning
