@@ -10,11 +10,14 @@ Deep learning has also revolutionised reinforcement learning, achieving superhum
 There are even limited results in  beating human at highly uncertain games with various actors such as [Texas Holdem] poker [cite].
 
 % why DL is useful and flexible
-Artificial neural networks are layers of non-linear transformations capable of learning complex mappings from multidimensional inputs to (usually multidimensional or structured) outputs.
-The building blocks of neural networks are relatively simple and the algorithms for training them are universal; this makes neural networks applicable to a variety of domains, and opens up fascinating opportunities of multimodal and transfer learning.
-Being able to arbitrarily increase model complexity by increasing its depth or width allows the same neural network approximate more complex functions.
-Increased model complexity increases training time and requires more labeled training data, yet deep models are somewhat unique in that their performance continues to increase when the dataset size increases, whereas the benefits of more data taper off for many other kinds of models.
-This does not automatically mean neural networks can only be used with large datasets - after all a single layer neural network can be equivalent to a logistic regression model - but that model complexity should increase with the amount of data available.
+Artificial neural networks consist of layers of transformations that map multidimensional inputs to (usually multidimensional or structured) outputs.
+% The building blocks of neural networks are relatively simple and the algorithms for training them are universal; this makes neural networks applicable to a variety of domains, and opens up fascinating opportunities of multimodal and transfer learning.
+% Being able to arbitrarily increase model complexity by increasing its depth or width allows the same neural network approximate more complex functions.
+A single-layer neural network is a linear transformation of the inputs; each additional layer with a non-linear activation function enables the network to partition the output space and hence approximate more complex functions.
+Complex models are prone to overfitting and require more training data and heavier regularisation, yet deep models are somewhat unique in that their performance continues to increase with the size of the dataset, whereas the benefits of more data taper off for many other kinds of models.
+
+Neural networks are very flexible: one can start out with a shallow model and increase model complexity (width and depth) to see the effects on performance and generalisation.
+There are benefits to building shallow models in the same framework as neural networks even when e.g. logistic regression is the most appropriate approach: easy experimentation with different model architectures, and potential for multi-task and transfer learning.
 
 %  balancing between predictive performance, label complexity, transfer learning capabilities
 It is not immediately obvious  which kind of model should one use for a given task and dataset.
