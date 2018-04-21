@@ -12,17 +12,12 @@ This focus is not unfounded - approaches based on deep networks continue to brea
 % why DL is useful and flexible
 Artificial neural networks consist of layers of transformations that map multidimensional inputs to (usually multidimensional or structured) outputs.
 A single-layer neural network is a linear transformation of the inputs; each additional layer with a non-linear activation function enables the network to partition the output space and hence approximate more complex functions.
-Complex models are prone to overfitting and require more training data and heavier regularisation, yet deep models are somewhat unique in that their performance continues to increase with the size of the dataset, whereas the benefits of more data taper off for many other kinds of models.
+Complex models are prone to overfitting and require more training data and heavier regularisation, yet deep models are somewhat unique in that their performance continues to increase with the size of the dataset, while the benefits of more data taper off for other models.
 
-Neural networks are very flexible: one can start out with a shallow model and increase model complexity (width and depth) to see the effects on performance and generalisation.
+The naive conclusion is to use deep learning only when labeled data is abundant, but the depth of a model is not a binary ``deep vs shallow'' decision - one can start out with a shallow model and increase model complexity (width and depth) to see the effects on performance and generalisation.
 Logistic regression might well be the most appropriate approach for a classification problem, but this is often not obvious up front, so it is beneficial to build models in a framework that also supports deep models.
 In addition to easy experimentation with model architectures, it is easy to do transfer learning with deep models on popular platforms: for example, image or text models pretrained on large datasets can be utilised to increase product classification performance, and representations learned for classification could in turn be used by a downstream product recommender system.
 Datasets with abundant unlabeled data can benefit from unsupervised and semisupervised learning using deep generative models.
-
-There are competing demands in any machine learning project: predictive performance, label complexity, interpretability, computational requirements and engineering challenges.
-In this work we are concerned with product classification and similarity, but another project might have vastly different priorities and expectations of the above aspects.
-In e-commerce classification, low label complexity is important and some inaccuracy is acceptable; interpretability and computational resources are not much of a concern.
-For product similarity, the capability to do transfer learning is critical, which compensates for the increased demands on engineering.
 
 %  balancing between predictive performance, label complexity, transfer learning capabilities
 % It is not immediately obvious  which kind of model should one use for a given task and dataset.
@@ -31,9 +26,14 @@ For product similarity, the capability to do transfer learning is critical, whic
 % Deep learning seems to have a disadvantage in this aspect, but as we see in section [ref] in cases where unlabelled data is also abundant, semi-supervised and generative models can overcome low label complexity while increasing computation time.
 % In cases where the ability of neural networks to learn features that can be used in downstream models (e.g. features learned for classification could later be used as part of a recommended system) this increased computation and engineering complexity might be justifiable.
 
-In this thesis, we explore many orthogonal ways to do label-efficient machine learning.
-While the task is to classify products on a proprietary dataset, these approaches are applicable in many scenarios.
-The focus is on neural network models due to their aforementioned flexibility and amenability to transfer learning.
+% In this work we are concerned with product classification and similarity, but another project might have vastly different priorities and expectations of the above aspects.
+% In e-commerce classification, low label complexity is important and some inaccuracy is acceptable; interpretability and computational resources are not much of a concern.
+% For product similarity, the capability to do transfer learning is critical, which compensates for the increased demands on engineering.
+
+
+Each project has different requirements on predictive performance, label complexity, interpretability, computational resources and engineering challenges.
+Neural networks are a good fit for this project due to their amenability to transfer learning and flexibility in handling multi-modal inputs and multi-task objectives.
+As neural networks are notoriously data-hungry, the question immediately becomes - how to do it without providing many labels.
 
 % we explore individual models, ensembling, active learning
 % In this thesis, we explore three orthogonal ways of efficiently learning on a proprietary dataset for product classification, where initial labels are abundant but noisy. We first evaluate different kinds of models (shallow, deep, tree-structured, convolutional, recurrent) that are trained on different modalities / input dimensions (image, text, categorical, numerical) of the same data. After determining the performance of these baseline models, the strongest models are trained as an ensemble that outperforms each individual baseline model. Finally we fine-tune the ensemble via an active learning strategy described in section [ref], where a combination of uncertainty and disagreement sampling determines a batch of products to be labeled for the next training iteration. This overcomes the noisiness and incompleteness of the initial labels without requiring much manual labeling.
@@ -41,15 +41,16 @@ The focus is on neural network models due to their aforementioned flexibility an
 \section{Problem}
 
 % should this be in the problen statement?
-The client company gathers data from various affiliate networks (that in turn give their data from various retailers) and displays the data on their online store.
-There are millions of products belonging to roughly 800 categories, and categories follow the usual nested tree structure.
-The incoming data is extremely noisy and inconsistent: what kind of data is stored in what kind of feature column varies across affiliate networks, across retailers within an affiliate network, and the data within a retailer can have lots of missing values, noisy text, missing images, etc.
+The client company gathers data from various affiliate networks (that in turn get their data from various retailers) and displays it on their website.
+There are millions of products belonging to roughly 1300 categories, and categories follow the usual nested tree structure.
+The incoming data is noisy and inconsistent: what kind of data is stored in which column varies across affiliate networks, across retailers within an affiliate network, and the data within a retailer can have lots of missing values, noisy text, missing images, etc.
 There is currently a rule-based system for assigning products to categories: all products matching a condition (e.g. title contains the word ``trousers'') will be assigned to that category, i.e. categories are not mutually exclusive.
-This way of categorising products works relatively well on some categories, but such a rule-based system has several drawbacks: these rules are cumbersome to define, their evaluation is manual, they failed to match a large fraction of products that in principle should be in a given category, it is hard to trace back the rule that caused a false positive, and such rules are limited to textual data.
+This way of categorising products works relatively well on some categories, but such a rule-based system has several drawbacks: these rules are cumbersome to define, their evaluation is manual, they fail to match a large fraction of products that in principle should be in a given category, it is hard to trace back the rule that caused a false positive, and such rules are limited to textual data.
 
-The client needs a classification system of binary independent outputs to replace the old way of categorising products.
-The system should be able to learn from the output of the old system, and if possible produce models that can be used in downstream tasks such as recommend systems and product similarity models (transfer learning).
-The highest priority is low label complexity, beating requirements for high accuracy and transfer learning capabilities.
+The client needs a classification system to replace the old way of categorising products.
+The predicted outputs can either be a set of independent binary classifications, or the category structure has to be re-organised to ensure classes are mutually exclusive.
+The system should be able to learn from the output of the old system, and if possible produce models that can be used in downstream tasks such as recommend systems and product similarity models.
+The highest priority is low label complexity, beating requirements for high accuracy and interpretability.
 The system should be robust to  noisy inputs; data preprocessing should not consider the idiosyncrasies of each affiliate network.
 There is an additional feature the client requires: given a product image, the visitor should be shown products that are visually similar.
 
