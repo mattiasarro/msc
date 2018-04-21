@@ -55,7 +55,7 @@ Similarly to RNNs  encoding a sequence of words to a vector, 2D convolutional ne
 
 The following sections describes a selection of models that could be used for our classification task.
 This is by no means an exhaustive list, nor is it a selection that is expected to have the highest predictive performance individually.
-These models will later become part of an ensemble, where diversity matters much more than the performance of any individual model.
+These models will might become part of an ensemble, where diversity matters much more than the performance of any individual model.
 Engineering  considerations and time constraints also influence the selection of models: we did not want to spend time implementing models from scratch, or to use many frameworks for training models.
 TensorFlow  is a widely used machine learning library with a good selection of open source models, in particular a selection of pre-trained models for computer vision and NLP, and has arguably the most mature deployment ecosystem.
 Therefore models that did not have an open source TensorFlow implementation were automatically excluded.
@@ -72,33 +72,44 @@ In all cases the models are described in terms of how they could be used for sol
 
 Logistic regression is a linear, discriminative classifier that is often the baseline model of choice, since it is both interpretable and efficient to train.
 There are methods that take time linear in the number of non-zeros in the dataset, which is the smallest amount possible, and it can be made to handle non-linear decision boundaries by using kernels \cite{murphy}.
-Our case is the binomial logistic regression, with a separate logistic regression model for each output class.
-This is shown formally in eq  \ref{logistic}, where where \textit{x} and \textit{w} correspond to the input and weight vectors, respectively.
-We follow the notational trick where the first element of \textit{x} is always 1, and the first element of \textit{w} corresponds to the bias term.
+
+We have two cases: for independent categorical outputs we use a separate binomial logistic regression model for each output class, and for mutually exclusive classes we use multinomial logistic regression.
+This is shown formally in eq  \ref{logistic} and \ref{logistic_binom}, where where \textit{X} and \textit{W} correspond to the input and weight matrices, respectively.
+
+We follow the notational trick where the first [column] of \textit{X} is always 1, and the first [column] of \textit{W} corresponds to the bias term.
 The loss function of this model as well as how it is optimised is described in section \ref{loss}.
 
 \begin{equation}
 \label{logistic}
-p(y|x,w)=\mathrm{Ber}(y|\mathrm{sigm}(w^Tx))
+p(y|X,W)=\mathrm{sigmoid}(W^TX) \
+\end{equation}
+
+% todo
+\begin{equation}
+\label{logistic_binom}
+p(y|X,W)=\mathrm{softmax}(W^TX) \
 \end{equation}
 
 \subsubsection{Feedforward Neural Network}
 
-Feedforward neural networks (also called deep feedforward networks, multi-layer perceptrons) have been described as function approximator, whose goal is to approximate some functions $f^*$ \cite{dlb}.
-We expect some familiarity with neural networks from the reader; for an excellent overview of the various use cases and models of deep learning, refer to.
+Feedforward neural networks (also called deep feedforward networks, multi-layer perceptrons) have been described as function approximator, whose goal is to approximate some functions $f^*$.
+We expect some familiarity with neural networks from the reader; for an excellent overview of the various use cases and models of deep learning, refer to \cite{dlb}.
 In our case, the input is some representation of categorical and text input: sparse BoW or TF-IDF of text, 1-hot encoded or random embedding vectors of categorical variables, or embedding is extracted from text or images using pre-trained recurrent or convolution on neural networks.
 The hidden layers of our network are homogenous: they use the same activation function (ReLu, sigmoid, or tanh) and have the same number of units;  activation functions and the number of units in hidden layers are determined through hyperparameter tuning.
 The output layer uses sigmoid activation function  and has the same number of units as there are classes.
+Similarly to logistic regression, we have two cases: sigmoid activation for independent categories and softmax activation for mutually exclusive categories.
 
 \subsubsection{Wide \& Deep}
 
-
+Wide and deep model was originally proposed for recommender systems\cite{wide_deep}, but can just as well be used for classification.
+It is simply a model where a deep network and a logistic regression are trained jointly in the same SGD learning process, rather than trained separately and then ensembled.
+The wide component is good at remembering ``feature interactions through a wide set of cross-product feature transformation'' while the deep model provides good generalisation.
 
 \subsubsection{Loss Function and Optimizers}
 \label{loss}
 
 Logistic regression and neural networks are optimised with some variant of gradient descent.
-For our task the loss function binary cross-entropy between the training data and the model distribution, with the loss value averaged across all classes.
+For our task - both independent and mutually exclusive classes - the loss function binary cross-entropy between the training data and the model distribution, with the loss value averaged across all classes.
 This is given in eq. \ref{xentropy}, where $\theta$ corresponds to the model parameters such as the weights and biases of the model, $C$ corresponds to the number of classes, and $P(c=1|x, \theta)$ gives the predicted probability that the item belongs to class $c$ given the feature vector $x$.
 
 \begin{align}
