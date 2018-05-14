@@ -5,7 +5,7 @@
 % ML is successful especially DL
 Machine learning (ML) has recently become a popular research area, and is increasingly applied in industry.
 A lot of this newfound interest and hype is directed at  neural networks and deep learning.
-This focus is not unfounded - approaches based on deep networks continue to break benchmarks in  core machine learning research areas such as computer vision [cite], speech recognition [cite], many natural language processing tasks [cite NMT], and even control and planning tasks [cite].
+This focus is not unfounded - approaches based on deep networks continue to break benchmarks in  core machine learning research areas such as computer vision \cite{sota_img1, sota_img2, sota_img3}, speech recognition and synthesis \cite{sota_asr, wavenet}, many natural language processing tasks \cite{sota_nlp1, sota_nlp2, sota_nlp3}, game play \cite{alphago, deepstack}, and even enabling novel applications such as style transfer \cite{style_transfer} and content generation \cite{gan}.
 % Deep learning has also revolutionised reinforcement learning, achieving superhuman performance in complex games and driving vehicles in real-world situations.
 % There are even limited results in  beating human at highly uncertain games with various actors such as [Texas Holdem] poker [cite].
 
@@ -14,9 +14,9 @@ Artificial neural networks consist of layers of transformations that map multidi
 A single-layer neural network is a linear transformation of the inputs; each additional layer with a non-linear activation function enables the network to partition the output space and hence approximate more complex functions.
 Complex models are prone to overfitting and require more training data and heavier regularisation, yet deep models are somewhat unique in that their performance continues to increase with the size of the dataset, while the benefits of more data taper off for other models.
 
-The naive conclusion is to use deep learning only when labeled data is abundant, but the depth of a model is not a binary ``deep vs shallow'' decision - one can start out with a shallow model and increase model complexity (width and depth) to see the effects on performance and generalisation.
-Logistic regression might well be the most appropriate approach for a classification problem, but this is often not obvious up front, so it is beneficial to build models in a framework that also supports deep models.
-In addition to easy experimentation with model architectures, it is easy to do transfer learning with deep models on popular platforms: for example, image or text models pretrained on large datasets can be utilised to increase product classification performance, and representations learned for classification could in turn be used by a downstream product recommender system.
+The naive conclusion is to use deep learning only when labeled data is abundant, but the depth of a model is not a binary ``deep vs shallow'' decision - one can start out with a shallow model and increase model complexity to see the effects on performance and generalisation.
+Logistic regression might well be the most appropriate model for a classification problem, but this is often not obvious up front, so it is beneficial to build models in a framework that also supports deep models.
+In addition to easy experimentation with model architectures, it is easy to do transfer learning with deep models on popular platforms: image or text models pretrained on large datasets can be utilised to increase product classification performance, and representations learned for classification could in turn be used by a downstream product recommender system.
 Datasets with abundant unlabeled data can benefit from unsupervised and semisupervised learning using deep generative models.
 
 %  balancing between predictive performance, label complexity, transfer learning capabilities
