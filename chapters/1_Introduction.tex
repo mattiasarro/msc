@@ -69,7 +69,12 @@ The goals of the work, in chronological order, is to:
   \item Build an interface for labelling products and obtain small dataset with ground truth labels (further referred to as the ``ground truth dataset'').
   \item Train a number of different models on the rule-based labels.  Evaluate these models on the rule-based test set as well as the ground truth dataset.
   % \item Train a selection of models that had good performance as an ensemble, preferring model diversity over good performance. Evaluate this model on the rule-based test set as well as the ground truth dataset.
-  \item Implement the active labelling mechanism defined in [ref] and fine-tune the ensemble (that is pre-trained on rule-based labels) in 10 labelling rounds.
+  \item Implement the active labelling mechanism defined in \ref{exp_al} and train a small selection of well-performing models in the following 6 settings:
+    \begin{itemize}
+      \item One training objective: \textbf{exclusive}. A subset of the 1300 independent categories are picked to become exclusive (non-overlapping) categories.
+      \item Two training objectives: \textbf{exclusive and independent}. In addition to exclusive labels (which are expensive to acquire), the model is trained on the original 1300 independent categories (assigned by the rule-based system, referred to as \textbf{rule-based labels}).
+      \item Both training objectives are trained in three settings: exclusive labels are provided by a human to products sampled through \textbf{uncertainty sampling}, \textbf{random sampling}, and their union.
+    \end{itemize}
   \item Document the results as well as the technical architecture and workflow.
 \end{itemize}
 
@@ -83,7 +88,7 @@ The following hypotheses were postulated prior to running most experiments\footn
   \item Deep models for histogram / TF-IDF inputs do not improve substantially on linear models.
   \item Shallow models with embedding inputs generalise better to the ground truth data, and deep models with embedding inputs generalise slightly more.
   % \item XGBoost is the best performing model  for textual and categorical data.
-  \item Pre-trained 2D CNN are consistently good predictors  of clothing products, yet fail to accurately predict categories such as technology. 
+  \item Pre-trained 2D CNN are consistently good predictors  of clothing products, yet fail to accurately predict categories such as technology.
   \item Fine-tuning CNNs  will give little, if any,  performance  improvement due to insufficient training data.
   % \item Training CNNs with DCGANs would obtain better results than fine-tuning CNNs, yet given the strong baseline performance of pre-trained CNNs this is not crucial for a good overall performance.
 
