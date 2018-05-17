@@ -120,7 +120,10 @@ It is still worth reminding the reader that machine learning  models always cont
 One way to quantify the fairness of a binary classifier the p\%  rule, which sets bounds on the ratio between the probability of the outcome given the sensitive attribute \cite{quantfair}.
 One way to overcome a classifier that seems to rely on some ``nuisance parameter'' (such as gender or race - even when the parameter is removed from the training data) is adversarial training \cite{quantfair} to ensure the model's output distribution does not depend on the sensitive parameter.
 
-
+A related concern to fairness is privacy: ensuring that a ML model does not leak its training data to an attacker that might orchestrate a large series of queries on the model.
+Each individual query might not reveal much, but with a large number of queries the attacker can see how the statistics of the output distribution changes; paired with an external dataset for cross-referencing or knowledge that a data point was added to the training set (e.g. someone answered a questionnaire), it is possible to recover some of the original data (though not necessarily with high fidelity or probability).
+A countermeasure is differential privacy.
+Algorithms that are differentially private inject noise at the input, model or output level to ensure that the output distribution of the model does not change substantially with the inclusion or exclusion of a data point.
 
 \section{Sustainability}
 
