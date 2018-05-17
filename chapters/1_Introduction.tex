@@ -87,17 +87,16 @@ The following hypotheses were postulated prior to running most experiments\footn
 \begin{enumerate}
   \item Pre-trained 2D CNNs perform reasonably for visual item similarity, but fine-tuning might be needed.
   \item Linear models are relatively good at predicting higher-level categories, worse at predicting lower-level ones.
-  \item Deep models for histogram inputs do not improve substantially on linear models.
+  \item Deep models with histogram inputs do not improve substantially on linear models.
   \item Shallow models with embedding inputs generalise better, and deep models with embedding inputs generalise slightly more.
   % \item XGBoost is the best performing model  for textual and categorical data.
   \item Pre-trained 2D CNN are consistently good predictors  of clothing products, yet fail to accurately predict categories such as technology.
-  \item Fine-tuning CNNs  will give little, if any,  performance  improvement due to insufficient training data.
+  % \item Fine-tuning CNNs  will give little, if any,  performance  improvement due to insufficient training data.
   % \item Training CNNs with DCGANs would obtain better results than fine-tuning CNNs, yet given the strong baseline performance of pre-trained CNNs this is not crucial for a good overall performance.
-
   % \item Ensembling gives better performance than any individual model.
   % \item A meta-learner with a few layers  obtains better results than ensembling by averaging.
 
-  \item Active learning substantially decreases label complexity.  This will be evaluated subjectively, given the  difficulties outlined in section [ref].
+  \item Active learning substantially decreases label complexity, however uncertainty sampling might give poor results on the first round.
 \end{enumerate}
 
 \hfill \break
@@ -108,15 +107,17 @@ How these hypotheses were evaluated is described in section \ref{evaluation}.
 
 \section{Ethical Consideration}
 
-Given how pervasive  machine learning is becoming across areas of society, it is good that discussions are happening about safety, transparency and bias in machine learning systems that have the ability to affect lives.
-The worst case scenario for inaccurate,  opaque or biased product classification  is embarrassment for the client company,  therefore ethical considerations not of much concern for the client company.
-It is still worth reminding the reader, who might use some of the ideas in this work,  that machine learning  models always contain some kind of bias:  from the data users as input (the way it is gathered, what is gathered),  the way the data is processed, and the kinds of models used.
+Given how pervasive  machine learning is becoming, it is crucial that there is discussion about the safety, transparency and bias of machine learning systems.
+There have already been cases of black box algorithms being used to make decisions that severely influence a person's life -  predicting reoffending probability  of convicts to determine  whether they are given parole - with terrible results.
+The model that was touted to be and objective substitute to a subjective judge has simply learnt that biases inherent to the data (the prejudices and racism of  the judges at the time):  it consistently underestimated reoffending rate of white convicts and overestimated the reoffending rate for black convict \cite{propub}.
+Even though the data did not contain explicit information about race, the algorithm  was capable of implicitly detecting race through some other variable that was correlated with race.
 
-Already at this early stage of machine learning adoption there are cases where blackbox algorithms have been used to decide decisions that severely influence persons life -  predicting reoffending probability  of convicts to determine  whether they are given parole or not - with terrible results.
-The model that was touted to be and objective substitute to a subjective judge has simply learnt that biases inherent to the data (the prejudices and racism of  the judges at the time):  it consistently underestimated reoffending rate of white convicts and overestimated the reoffending rate for black convict [cite].
-Even though the data did not contain explicit information about race, the algorithm  was capable of implicitly detecting grace through some other variable that was correlated with race.
 Most data scientists will never build models with such severe consequences, but even more subtle decisions  made autonomously by algorithms  can prolong the  inequalities of our society by consistently favouring certain  characteristics such as race, gender, place of origin, etc.
 Prime examples are algorithms that determine whether one gets a mortgage or not, what the premium on their insurance would be, whose CV gets shortlisted for a position, and so on.
+The worst case scenario for inaccurate,  opaque or biased product classification  is embarrassment for the client company,  therefore ethical considerations not of much concern in our case.
+
+It is still worth reminding the reader, who might use some of the ideas in this work,  that machine learning  models always contain some kind of bias:  from the data users as input (the way it is gathered, what is gathered),  the way the data is processed, and the kinds of models used.
+Adversarial attacks \cite{fairness}
 
 \section{Sustainability}
 
