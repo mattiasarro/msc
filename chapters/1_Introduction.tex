@@ -109,15 +109,18 @@ How these hypotheses were evaluated is described in section \ref{evaluation}.
 
 Given how pervasive  machine learning is becoming, it is crucial that there is discussion about the safety, transparency and bias of machine learning systems.
 There have already been cases of black box algorithms being used to make decisions that severely influence a person's life -  predicting reoffending probability  of convicts to determine  whether they are given parole - with terrible results.
-The model that was touted to be and objective substitute to a subjective judge has simply learnt that biases inherent to the data (the prejudices and racism of  the judges at the time):  it consistently underestimated reoffending rate of white convicts and overestimated the reoffending rate for black convict \cite{propub}.
+The model that was touted to be and objective substitute to a subjective judge has simply learnt that biases inherent to the data (the prejudices and racism of  the judges at the time):  it consistently underestimated reoffending rate of white convicts and overestimated the reoffending rate for black convicts \cite{propub}.
 Even though the data did not contain explicit information about race, the algorithm  was capable of implicitly detecting race through some other variable that was correlated with race.
 
 Most data scientists will never build models with such severe consequences, but even more subtle decisions  made autonomously by algorithms  can prolong the  inequalities of our society by consistently favouring certain  characteristics such as race, gender, place of origin, etc.
 Prime examples are algorithms that determine whether one gets a mortgage or not, what the premium on their insurance would be, whose CV gets shortlisted for a position, and so on.
-The worst case scenario for inaccurate,  opaque or biased product classification  is embarrassment for the client company,  therefore ethical considerations not of much concern in our case.
 
-It is still worth reminding the reader, who might use some of the ideas in this work,  that machine learning  models always contain some kind of bias:  from the data users as input (the way it is gathered, what is gathered),  the way the data is processed, and the kinds of models used.
-Adversarial attacks \cite{fairness}
+The worst case scenario for inaccurate,  opaque or biased product classification  is embarrassment for the client company,  therefore ethical considerations are not of much concern in our case.
+It is still worth reminding the reader that machine learning  models always contain some kind of bias:  from the data it uses as input (the way it is gathered, what is gathered),  the way the data is processed, and the kinds of models used.
+One way to quantify the fairness of a binary classifier the p\%  rule, which sets bounds on the ratio between the probability of the outcome given the sensitive attribute \cite{quantfair}.
+One way to overcome a classifier that seems to rely on some ``nuisance parameter'' (such as gender or race - even when the parameter is removed from the training data) is adversarial training \cite{quantfair} to ensure the model's output distribution does not depend on the sensitive parameter.
+
+
 
 \section{Sustainability}
 
