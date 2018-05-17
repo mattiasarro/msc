@@ -66,10 +66,10 @@ The goals of the work, in chronological order, is to:
   \item Use a pre-trained 2-dimensional convolutional neural network (2D CNN) to extract features for an approximate nearest-neighbour search of visually similar products.
   \item Build an interface for subjectively evaluating the visual similarity algorithm.
   \item Train  baseline model to reproduce the behaviour of the rule-based system.
-  \item Train a number of different models on the rule-based labels.  Evaluate these models on the rule-based test set as well as the ground truth dataset.
+  \item Train and evaluate a number of different models on the rule-based labels.
   \item
-    Define a subset of the 1300 independent categories to become exclusive (non-overlapping) categories.
-    Build an interface for assigning \textbf{exclusive labels} to products either through \textbf{uncertainty sampling} or \textbf{random sampling}.\footnote{The final version of this interface was built by an employee of the client company, though earlier versions for displaying the results of classification / item similarity were implemented by the author.}
+    Define a subset of the 1300 independent categories to be exclusive (non-overlapping).
+    Build an interface for assigning \textbf{exclusive labels} to products either through \textbf{uncertainty} or \textbf{random} sampling.\footnote{The final version of this interface was built by an employee of the client company, though earlier versions for displaying the results of classification / item similarity were implemented by the author.}
   % \item Train a selection of models that had good performance as an ensemble, preferring model diversity over good performance. Evaluate this model on the rule-based test set as well as the ground truth dataset.
   \item Implement the active labelling mechanism defined in \ref{exp_al} and train a small selection of well-performing models in the following 6 settings:
     \begin{itemize}
@@ -87,8 +87,8 @@ The following hypotheses were postulated prior to running most experiments\footn
 \begin{enumerate}
   \item Pre-trained 2D CNNs perform reasonably for visual item similarity, but fine-tuning might be needed.
   \item Linear models are relatively good at predicting higher-level categories, worse at predicting lower-level ones.
-  \item Deep models for histogram / TF-IDF inputs do not improve substantially on linear models.
-  \item Shallow models with embedding inputs generalise better to the ground truth data, and deep models with embedding inputs generalise slightly more.
+  \item Deep models for histogram inputs do not improve substantially on linear models.
+  \item Shallow models with embedding inputs generalise better, and deep models with embedding inputs generalise slightly more.
   % \item XGBoost is the best performing model  for textual and categorical data.
   \item Pre-trained 2D CNN are consistently good predictors  of clothing products, yet fail to accurately predict categories such as technology.
   \item Fine-tuning CNNs  will give little, if any,  performance  improvement due to insufficient training data.
