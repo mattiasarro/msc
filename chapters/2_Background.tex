@@ -298,7 +298,7 @@ A performant variant of WGAN is CT-GAN, which adds a regularisation term to enfo
 \section{Combining Models}
 \label{bg_ensembling}
 
-This section  introduces common ensembling methods.
+This section  introduces common ensembling methods, describes joint learning and multi-objective training.
 Some of these (bagging, boosting)  are expected to consist of weak learners or models from the same model family, while others (committee methods, BIC, stacked generalisation) or more appropriate for ensembles of strong models.
 
 Bootstrap aggregation (a.k.a bagging)   draws several bootstrap samples  from the training data,  trains a separate model per bootstrap sample,  and averages the predictions of these individual models.  This reduces the variance of predictions without increasing its bias and generally leads to  more accurate predictors \cite{bagging}.
@@ -310,7 +310,7 @@ Simple solutions are voting or (weighted) averaging, where the weights can be fo
 A more appealing approach is stacked generalisation, where a meta-learner is trained on the outputs of the individual models.
 This meta-learner could be a relatively simple model, such as logistic regression or a decision tree, and the results of the meta-learner could be therefore quite interpretable.
 
-One orthogonal approach to combining models is joint training of model components.
+One orthogonal approach to combining models is \textbf{joint training} of model components.
 All models described here are trained using stochastic gradient descent, so in principle it would be possible to learn the parameters of all components (1D CNN, 2D CNN, RNN, DNN, logistic regression) as part of a single optimisation loop.
 This would be an engineering challenge due to the different ways these model require their input to be represented and the large size of the model, and optimisation would surely be difficult.
 In our case this would be clearly an overkill, but it would be an interesting research problem to examine whether joint training has advantages over ensembling in cases where we have different views of the data (in terms of considering different input dimensions or processing the inputs differently).
@@ -322,11 +322,18 @@ A simple concatenation of all individual embeddings could be a useful (albeit a 
 Alternatively, we could use this concatenation as an input to a neural network, whose goal is to (1) reduce its dimensionality by removing redundant information and (2) predict the output classes from this compressed embedding.
 The latter case could act as a kind of a (replacement for) the meta-learner, with the difference that it takes the penultimate (as opposed to the final) layer of each individual model as input.
 
+A related idea is \textbf{multi-objective learning}, where a neural network is trained to predict multiple aspects about the training data.
+In our setting we can consider the rule-based multi-label objective and the hand-assigned exclusive labels as separate training objectives; we might add additional training objectives that predict colour (multi-label) or conversion (binary).
+When using feedforward networks for multi-objective learning, the lower layers are usually shared among the objectives, and the top layers are specific to each training objective.
+It has been shown repeatedly that when the training objectives are somewhat related, then adding an additional objective increases the prediction accuracy across the other objectives.
+When implementing multi-objective training, care must be taken not to influence the parameters that are specific to another objective.
+
+
 % https://arxiv.org/abs/0911.0460
 % TODO figure of meta-learner and embedding lear
 
 \section{Active Learning}
-\label{bg_al} 
+\label{bg_al}
 
 This section describes the main approaches to active learning;  details analysis is beyond the scope of this report.
 
@@ -391,10 +398,6 @@ In this framework, a base informativeness measure $\phi_A(x)$ such as uncertaint
 
 where $sim$ is some similarity function and $\beta$ controls the importance of the density term.
 
-\section{Multi-Objective Learning}
-
-
-
 \section{General Practices in Machine Learning}
 
 We briefly list some techniques and approaches that could be used for many kinds of machine learning problems.
@@ -404,7 +407,7 @@ Bootstrap sampling, where data points are sampled from training data with replac
 Bumping can be used to train several models (of the same family) on bootstrap samples to move around in the model space, and will pick the model that best fits the training data.
 This helps it explore a wider selection of models, but given that the original training data often also included as one of the bootstrap samples, this method  can still pick the model original model if it happens to have the best accuracy.
 
-There are some versatile methods that can help regularise a neural network (deep or shallow), or to speed up convergence by improving  gradient updates.
+There are some versatile methods that can help regularise a neural network, or to speed up convergence by improving  gradient updates.
 L2  regularisation should always be used to decrease moral complexity and impose prior on the model parameters, which  implies that very high and very low values are unlikely.
 Dropout can mitigate overfitting by preventing neurons from co-adapting, encouraging each to learn representations that are useful independently \cite{dropout}; this has been interpreted as training and exponential (in the number of parameters) number of models and averaging their predictions.
 

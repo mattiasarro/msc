@@ -2,17 +2,23 @@
 
 
 Several hypotheses were tested in this work.
-Section \ref{data_pp} gives an overview of how input data was pre-processd.
-Section \ref{architecture} describes the technical set up required for running all these experiments and deploying the model to production before delving into the specific experiments and their evaluation methods in sections [ref].
+Section \ref{data_pp} gives an overview of how input data was pre-processed.
+Section \ref{architecture} describes the technical set up required for running all these experiments and deploying the model to production before delving into the specific experiments and their evaluation in section \ref{exp}.
 
 \hfill \break \noindent
 The experiments were conducted in four distinct stages:
 
  \begin{itemize}
-   \item Training a baseline model on the rule-based labels to get a sense of the difficulty of this problem. Since there is no fundamental difference in the way this model was  trained and evaluated compared to the other classifiers, this is described in section \ref{exp_models} with the others. After this step, employees of the client company labeled products that would become the ground truth dataset. The visual comparison feature was also subjectively evaluated at this stage.
-   \item Training the independent classifiers to determine best performers (\ref{exp_models}).
-   \item Training an ensemble of the independent classifiers (\ref{exp_ensembling}).
-   \item Training up to 10 iterations of active learning on the strong predictor (\ref{exp_al}).
+   \item
+    Training a baseline model on the rule-based labels to get a sense of the difficulty of this problem.
+    Exploring the predictions subjectively.
+   \item Building a visual similarity feature and evaluating its results subjectively.
+   % Since there is no fundamental difference in the way this model was  trained and evaluated compared to the other classifiers, this is described in section \ref{exp_models} with the others. After this step, employees of the client company labeled products that would become the ground truth dataset. The visual comparison feature was also subjectively evaluated at this stage.
+   \item
+    Training the independent classifiers to determine best performers (\ref{exp_models}).
+    Due to the good perforance of individual models, ensembling was not attempted due to the engineering overhead it would incur.
+    Experimenting with different multi-objective training approaches.
+   \item Training [TODO] iterations of active learning on the strong predictor (\ref{exp_al}).
  \end{itemize}
 
 
@@ -20,7 +26,7 @@ The experiments were conducted in four distinct stages:
  \label{data_pp}
 
 There were around a dozen product features that affiliate networks provided.
-Most of these features were either categorical or textual,  with just a single numerical feature (price).
+Most of these features were either categorical or textual,  with just a single numerical feature.
 Initially, the data was analysed using Dataprep, a Google Cloud Platform (GCP)  product for data wrangling, which at the time of use was in beta stage.
 Dataprep  was used to process a sample of ~800 000 products;  it produced histograms of the values present in each feature column (see appendix \ref{dataprep}).
 
@@ -32,7 +38,7 @@ Therefore, many such ``categorical''  were actually represented as text, which w
 There was a single numerical field: price.
 This could have been min-max normalised to the range 0 ... 1, however there  was a small number of very high values that would have squash nearly all the other  prices.
 Rather than  carefully considering  how to mitigate this,  the input dimension was dropped, because it is not likely to have much predictive value for product classification.
-It would be trivial to bring this feature back, for example  when building a recommended system, where it would be much more useful.
+It would be trivial to bring this feature back for a training objective for which it would be much more useful.
 
 A trickier question was how many distinct tokens or categorical values to keep per input column.
 Keeping all of them would not have been sensible: there were still large numbers of tokens that appeared only once, often because there were some unwanted formatting characters, misspellings, or incorrect punctuation that caused a token to be considered a separate entity.
@@ -49,13 +55,13 @@ Below is a list of input features with information about how they were represent
   \item description - text - max 8000 unique tokens
   \item gender - categorical - take all unique tokens
   \item size - categorical - max 100 unique tokens
-  \item image - dense vector of 2048 features extracted with a 2D CNN
+  \item image - dense vector of 2048 or 1280 dimensions extracted with a 2D CNN
 \end{itemize}
 
 \subsection{Category Structure}
 \label{cat_tree}
 
-At the time of writing, there were roughly 1000 categories defined in the client database.
+At the time of writing, there were roughly 1300 categories defined in the client database.
 Categories were structured in a way that is typical of  e-commerce:  categories can have  child categories, which in turn can have child categories, etc.
 In our case, the typical depth of the tree structure was five, i.e. a leaf category often had four parents;  naturally, the tree structure was not balanced, so many branches ended at depth three or four.
 
@@ -76,7 +82,7 @@ This (which we call the label imbalance problem) only exacerbates the class imba
 As a result the model trained on rule-based labels will certainly underestimate the likelihood of any product belonging to any category.
 
 Still, most positive labels provided by the rule-based system are correct, which means the model should assign higher likelihoods to products that should actually belong to the given class.
-Our active learning strategy outlined in section \ref{exp_al} ensures that products around the decision boundary would receive a label - which during the initial rounds of active labelling would be overwhelmingly positive examples\footnote{this is confirmed by our experiments, described in section [ref]}.
+Our active learning strategy outlined in section \ref{exp_al} ensures that products around the decision boundary would receive a label - which during the initial rounds of active labelling would be overwhelmingly positive examples.
 The first rounds of active labelling should therefore counterbalance the underestimating nature of the pre-trained model; as the model starts to make more ``optimistic'' predictions, the products near the decision boundary should become a more balanced mix of positive and negative examples.
 
 Class imbalance may or may not be an issue after label imbalance has been accounted for.
@@ -171,6 +177,7 @@ The product-product  similarities are computed within products that belong to sa
 The resulting predictions (top 100 product UUIDs per product, ordered by  similarity)  are saved to GCS.
 
 \section{Experiments}
+\label{exp}
 
 \subsection{Visual Similarity}
 \label{exp_sim}
