@@ -121,9 +121,16 @@ Multiplying large numbers of probabilities could result in numerical underflow a
 The Adam \cite{adam} optimiser works very well with default hyperparameters, and is therefore used for all stochastic gradient descent updates.
 
 Cross-entropy is a standard loss function for multi-class and multi-label classification, however in our cases it may have downsides.
-There is at times ambiguity as to which category a product should belong (e.g. long jacket vs short coat), therefore even hand-assigned labels are somewhat arbitrary.
-The similarity between categories is ignored by this loss function: a coat that is misclassified as an earring has the same loss value as a coat that is classified as a jacket.
+There is at times ambiguity as to which category a product should belong, therefore even hand-assigned labels are somewhat arbitrary.
+The similarity between categories is ignored by this loss function: a short coat that is misclassified as an earring has the same loss value as a coat that is classified as a jacket.
 Additionally, the rule-based labels are incomplete: the lack of a label does not always mean that the product does not belong to the given category, yet the model gets penalised for cases where such label is missing but the model correctly predicted a semantically similar class.
+
+The Wasserstein distance metric (also called earth mover distance) can be used instead, which gives the cost of the optimal transport plan for moving the mass of one probability distribution to another.
+In our case the two distributions are the label distribution of a data point (1-hot / k-hot vector) and the class distribution predicted by the model.
+The optimal transport plan is weighted by a $KxK$ distance matrix, where $K$ is the number of classes and the entries in the matrix correspond to how dissimilar the classes are\footnote{Similarity is known \textit{a priori}, e.g. derived from WordNet hierarchy. It would be interesting to explore similarity matrices created using cosine distance of embedding vectors of categories; embeddings could be extracted with an RNN from the description of the category}.
+Intuitively, transporting probability mass from the category ``Coats'' to ``Earrings'' should be more expensive than from ``Coats'' to ``Jackets''.
+
+% TODO describe why we won't use this loss
 
 \subsection{Text Models}
 \label{text_models}
@@ -178,12 +185,11 @@ Patches of feature extractors are convolved over the x and y axis of the image; 
 Former models used larger patch sizes, but stacking several smaller patches could achieve similar receptive fields while allowing for a larger number of non-linearities for the same number of parameters.
 One or more layers of convolutions would be followed by a (often max) pooling layer.
 Computer vision architectures tend to re-use the same sub-structure repeatedly: either the same kinds of convolutions followed by pooling, or the ``network in a network'' structure popularised by GoogLeNet \cite{googlenet}.
-After a number of such repeated structures, there are normally a few fully-connected layers followed by a softmax layer.
-In our case, the final layer would be a fully-connected layer of sigmoid activations.
+After a number of such repeated structures, there are normally a few fully-connected layers followed by a softmax or sigmoid layer.
 
-Transfer learning has shown to be particularly useful in computer vision.
-Successful computer vision models require a notoriously large training dataset, which would be hard to come by for every distinct computer vision task.
-Instead, models are often initialised to the values of a model that has been trained on a large dataset such as Imagenet \cite{}, excluding only the last layer(s) of the model that has learned features that are specific to the original problem.
+Transfer learning is particularly applicable to computer vision.
+Successful computer vision models require a notoriously large training datasets, which would be hard to come by for every problem.
+Instead, models are often initialised to the values of a model that has been trained on a large dataset such as ImageNet \cite{imagenet}, excluding only the last layer(s) of the model that has learned features that are specific to the original problem.
 Representations learned at the lower layers are remarkably  universal and useful for other tasks.
 Therefore pre-trained 2D CNNs can be used as feature extractors for various other tasks,  or the models could be fine-tuned to learn representations that are even more useful to the new task.
 
@@ -196,7 +202,7 @@ Similarity measures based on tokenised text are easily accessible to e-commerce 
 This gives decent results in many cases, but it does not take advantage of a product image.
 
 Embeddings extracted with a deep network can be viewed as a distributed representation of the original data, which carries semantic meaning \cite{distributed_reps}.
-In the contrived examples of distributed representations, each dimension would represent the degree to which a property (e.g. of shape or colour) is present of an object, however the dimensions are not necessarily so nicely disentangled in the representations learned by deep networks\footnote{The author has not seen strong evidence in literature to support either case, but at least in \cite{towards} extra steps had to be taken to \textit{prevent} certain latent variables from encoding properties of the data that were designed to be captured by other latent variables. This implies that by default, each latent variable contains a little bit if information about each aspect of the input, and that the whole pattern of the embedding matters for conveying semantic information}.
+In the contrived examples of distributed representations, each dimension would represent the degree to which a property (e.g. of shape or colour) is present of an object, however the dimensions are not necessarily so nicely disentangled in the representations learned by deep networks\footnote{The author has not seen strong evidence in literature to support either case, but at least in \cite{towards} extra steps had to be taken to \textit{prevent} certain latent variables from encoding properties of the data that were designed to be captured by other latent variables. This implies that by default, each latent variable contains a little bit of information about each aspect of the input, and that the whole pattern of the embedding matters for conveying semantic information}.
 Still, it is clear that such dense representations help linear models do accurate predictions, and semantically similar data points will have similar embedding vectors.
 
 Therefore we can compare any two embedding vectors (extracted with the same neural network) using standard vector space similarity measures, such as cosine similarity (1 - normalised dot product between the vectors).
@@ -212,11 +218,11 @@ Full-text search engines would assign higher scores to co-occurrences in the mor
 \subsubsection{Recommender Systems}
 \label{rec}
 
-Several methods have been proposed that use dense embeddings learned by deep models that are used as part of a recommender system.
+Several methods have been proposed that use dense embeddings learned by deep models as part of a recommender algorithm.
 These are briefly described here to motivate our focus on models that obtain dense embeddings of products.
 
 Models that deal exclusively with deep embeddings \cite{mvdl} require huge amounts of user-product feedback pairs, therefore the more interesting solutions are ones which work together with classical methods such as matrix factorisation (MF).
-MF finds - purely from the implicit or explicit feedback users five to items - vectors of latent factors that represent each user's preferences and each item's ``qualities''; the inner product between a user's and item's latent factors gives a score of compatibility between the two.
+MF finds - purely from the implicit or explicit feedback users give to items - vectors of latent factors that represent each user's preferences and each item's ``qualities''; the inner product between a user's and item's latent factors gives a score of compatibility between the two.
 Deep models can augment the item latent factors by injecting the embeddings learned for another task
 The main difference in these methods is how the deep embeddings are merged into MF, and how the deep embeddings are obtained in the first place.
 In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature learning of item data, while \cite{dl_mf} uses simply visual embeddings extracted from a 2D CNN pre-trained on ImageNet.
@@ -400,3 +406,5 @@ In this framework, a base informativeness measure $\phi_A(x)$ such as uncertaint
 \end{equation}
 
 where $sim$ is some similarity function and $\beta$ controls the importance of the density term.
+
+\section{Multi-Objective Learning}
