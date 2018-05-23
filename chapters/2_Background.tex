@@ -285,31 +285,15 @@ The current author has implemented this model and open sourced it\footnote{https
 \subsection{Generative Adversarial Networks}
 
 Generative adversarial networks (GANs) are an interesting approach capable of synthesising realistic data, but also useful for learning good representations of data.
-GANs have been most successful for image synthesis, but are in fact applicable to any kind of input data including text \cite{} and even mixed data types such as user profiles \cite{}.
+GANs have been most successful for image synthesis, but are in fact applicable to any kind of input data including text \cite{textgan} and even mixed data types such as e-commerce orders \cite{ecomgan}.
 In the GAN setting, there are two networks: a generator that tries to produce realistic synthetic samples, and a discriminator whose goal is to distinguish between synthetic and actual samples.
 % The networks are trained as a min-max optimisation problem where the generator is optimised to ``fool'' the discriminator by producing samples that appear to come from the true distribution, and the discriminator is optimised to  determine which samples are synthetic.
 Given that the training is stable enough, both the generator's and the discriminator's performance improves with time, resulting in more realistic synthetic samples, as opposed to the relative blurry images produced by VAEs.
 The discriminator needs to learn good representations of the input to  accurately distinguish which samples come from the true distribution, and which samples are synthetic; as with many CNNs for computer vision, these representations can be useful for other tasks as well.
+
 It has been shown that  linear models  from the embeddings learned by the discriminator outperform other unsupervised feature learning techniques such as k-means \cite{dcgan}.
 At the time of writing, variants of Wasserian GANs (WGANs) achieve the best performance by improving training stability and preventing the generator from generating samples from a limited number of modes; this is achieved by minimising the Wasserian distance between the generator's and real data distributions, as opposed to minimising the JS divergence as was common before.
 A performant variant of WGAN is CT-GAN, which adds a regularisation term to enforce a Lipschitz continuity condition over the manifold of the real data \cite{ctgan}.
-
-\section{General Practices in Machine Learning}
-
-We briefly list some techniques and approaches that could be used for many kinds of machine learning problems.
-Some of these will be used in our experiments, yet some may not be pragmatic due to long train times and time constraints.
-
-Bootstrap sampling, where data points are sampled from training data with replacement, can be used to repeatedly train the same model, and to observe the variance of its predictions.
-Bumping can be used to train several models (of the same family) on bootstrap samples to move around in the model space, and will pick the model that best fits the training data.
-This helps it explore a wider selection of models, but given that the original training data often also included as one of the bootstrap samples, this method  can still pick the model original model if it happens to have the best accuracy.
-
-There are some versatile methods that can help regularise a neural network (deep or shallow), or to speed up convergence by improving  gradient updates.
-L2  regularisation should always be used to decrease moral complexity and impose prior on the model parameters, which  implies that very high and very low values are unlikely.
-Dropout can mitigate overfitting by preventing neurons from co-adapting, encouraging each to learn representations that are useful independently \cite{dropout}; this has been interpreted as training and exponential (in the number of parameters) number of models and averaging their predictions.
-
-gradient clipping
-layer norm
-Batch normalisation is known to stabilise training and hence speed up convergence  by normalising each input to have unit variance and zero mean \cite{batch_norm}.
 
 \section{Combining Models}
 \label{bg_ensembling}
@@ -317,7 +301,7 @@ Batch normalisation is known to stabilise training and hence speed up convergenc
 This section  introduces common ensembling methods.
 Some of these (bagging, boosting)  are expected to consist of weak learners or models from the same model family, while others (committee methods, BIC, stacked generalisation) or more appropriate for ensembles of strong models.
 
-Bootstrap aggregation (a.k.a bagging)   draws several bootstrap samples  from the training data,  trains are separate model per bootstrap sample,  and averages the predictions of these individual models.  This reduces the variance of predictions without increasing its bias and generally leads to  more accurate predictors \cite{bagging}.
+Bootstrap aggregation (a.k.a bagging)   draws several bootstrap samples  from the training data,  trains a separate model per bootstrap sample,  and averages the predictions of these individual models.  This reduces the variance of predictions without increasing its bias and generally leads to  more accurate predictors \cite{bagging}.
 Boosting is another common meta-algorithm that iteratively trains an ensemble of weak models, such that the data points that incurred a higher error on the previous ensemble are weighted more heavily, and each new weak model is added to the ensemble with a weight proportional to the weak learners accuracy.
 A common boosting algorithm is AdaBoost \cite{adaboost}.
 
@@ -342,7 +326,7 @@ The latter case could act as a kind of a (replacement for) the meta-learner, wit
 % TODO figure of meta-learner and embedding lear
 
 \section{Active Learning}
-\label{bg_al}
+\label{bg_al} 
 
 This section describes the main approaches to active learning;  details analysis is beyond the scope of this report.
 
@@ -353,7 +337,7 @@ In the first scenario, the algorithm synthesises a datapoint and asks a label fo
 In stream-based selective sampling, and instance is sampled and  the model decides (while having access to the data point's features) whether to acquire a label or not.
 In pool-based sampling, the model chooses which data point to label from the pool of all unlabelled samples.
 Our use case is a version of pool-based sampling, where the algorithm picks out a batch of products to be labelled.
-The rest if the section describes different approaches to picking the data points that are expected to help the model learn.
+The rest of the section describes different approaches to picking the data points that are expected to help the model learn.
 
 \textbf{Uncertainty sampling} is the most popular choice: if the model is uncertain about a prediction, obtaining a label for that data point would help it differentiate between different targets.
 The most common way to quantify uncertainty is by entropy of the model's predictions:
@@ -408,3 +392,22 @@ In this framework, a base informativeness measure $\phi_A(x)$ such as uncertaint
 where $sim$ is some similarity function and $\beta$ controls the importance of the density term.
 
 \section{Multi-Objective Learning}
+
+
+
+\section{General Practices in Machine Learning}
+
+We briefly list some techniques and approaches that could be used for many kinds of machine learning problems.
+Some of these will be used in our experiments, yet some may not be pragmatic due to long train times and time constraints.
+
+Bootstrap sampling, where data points are sampled from training data with replacement, can be used to repeatedly train the same model, and to observe the variance of its predictions.
+Bumping can be used to train several models (of the same family) on bootstrap samples to move around in the model space, and will pick the model that best fits the training data.
+This helps it explore a wider selection of models, but given that the original training data often also included as one of the bootstrap samples, this method  can still pick the model original model if it happens to have the best accuracy.
+
+There are some versatile methods that can help regularise a neural network (deep or shallow), or to speed up convergence by improving  gradient updates.
+L2  regularisation should always be used to decrease moral complexity and impose prior on the model parameters, which  implies that very high and very low values are unlikely.
+Dropout can mitigate overfitting by preventing neurons from co-adapting, encouraging each to learn representations that are useful independently \cite{dropout}; this has been interpreted as training and exponential (in the number of parameters) number of models and averaging their predictions.
+
+gradient clipping
+layer norm
+Batch normalisation is known to stabilise training and hence speed up convergence  by normalising each input to have unit variance and zero mean \cite{batch_norm}.
