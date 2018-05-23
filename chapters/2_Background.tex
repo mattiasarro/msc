@@ -120,6 +120,11 @@ We are minimising the negative log likelihood (NLL) rather than maximising the p
 Multiplying large numbers of probabilities could result in numerical underflow and rounding errors, therefore it is pragmatic to work with sums of log probabilities instead.
 The Adam \cite{adam} optimiser works very well with default hyperparameters, and is therefore used for all stochastic gradient descent updates.
 
+Cross-entropy is a standard loss function for multi-class and multi-label classification, however in our cases it may have downsides.
+There is at times ambiguity as to which category a product should belong (e.g. long jacket vs short coat), therefore even hand-assigned labels are somewhat arbitrary.
+The similarity between categories is ignored by this loss function: a coat that is misclassified as an earring has the same loss value as a coat that is classified as a jacket.
+Additionally, the rule-based labels are incomplete: the lack of a label does not always mean that the product does not belong to the given category, yet the model gets penalised for cases where such label is missing but the model correctly predicted a semantically similar class.
+
 \subsection{Text Models}
 \label{text_models}
 
