@@ -69,7 +69,8 @@ Categories can be considered as independent (multi-label) or mutually exclusive 
 The common way to handle this is to assume categories are mutually exclusive.
 With exclusive categories, assigning a label to a product determines its label across all categories, whereas with independent categories a positive label only determines the label across the category in question (and its ancestors in the category tree) - that is roughly a thousand-fold difference in labelling efficiency.
 The prediction task is also easier for exclusive classes - rather than needing to predict a probability score above a threshold separately for each class, the model would need to just assign the highest probability to the correct class compared to other classes.
-On the other hand, some categories at the client company are inherently ambiguous or even overlapping; the rule-based labels are also independent: a product may be labelled to belong to zero or many categories.
+On the other hand, some categories at the client company are inherently ambiguous or even overlapping.
+The rule-based labels are also independent since a product may be labelled to belong to zero or many categories.
 Independent categories are also somewhat easier to handle: with exclusive categories the rule-based and hand-assigned labels would have to be considered as separate training objectives, because the activations from softmax and sigmoid layers that lead to a positive prediction will be different and we can not share the output layer across these two types of labels.
 
 
