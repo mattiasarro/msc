@@ -156,7 +156,24 @@ Reading updates and sending these to RabbitMQ is done in a parallelised manner (
 
 \subsection{Airflow Pipelines \& Pipeline Runs}
 
+A group of tasks that would need to be run together repeatedly is encapsulated in an Airflow pipeline.
+Figure \ref{af}
 
+\begin{figure}
+\centering
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=1.0\linewidth]{figures/af_train_specific}
+  \captionof{figure}{Airflow DAG: preprocess, train specific model, predict}
+  \label{fig:af1}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[width=.6\linewidth]{figures/af_train}
+  \captionof{figure}{Airflow sub-DAG: train}
+  \label{fig:af2}
+\end{minipage}
+\end{figure}
 
 \subsection{Dataflow Pipelines}
 There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
