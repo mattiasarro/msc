@@ -177,12 +177,23 @@ Attempts to persist these pre-computed embeddings had severe overheads, and curr
 
 \subsubsection{Visual Similarity}
 
-% maybe bigquery is not the best choice
-
-This Dataflow pipeline uses the data in BigQuery as input.
+The Dataflow pipeline implemented for the experiments described in \ref{exp_sim} relied on image embeddings computed by the preprocessing pipeline.
 As explained in section \ref{exp_sim}, it needs to find the \textit{k=100} nearest neighbours of each product based on the cosine similarity of their image embeddings.
-The product-product  similarities are computed within products that belong to same second level category,  therefore the pipeline only needs to extract  the categories previously predicted and image embedding from BigQuery.
-The resulting predictions (top 100 product UUIDs per product, ordered by  similarity)  are saved to GCS.
+The product-product  similarities are the simplest case computed within products that belong to same second level category.
+The pipeline read the files output by the preprocessing stage, and partitioned it into datasets by the category predicted in the previous train run (as the new predictions would not be saved in the file).
+The per-category image embeddings were merged (using \textit{reduce}) into matrices of image embeddings in a given category, and the top 100 approximate nearest neighbours were extracted for each product using nmslib \cite{nmslib}.
+The nearest neighbour UUIDs were persisted to GCS and a downstream AF task picked these up and updated ES with these.
+
+This set-up will be replaced in the future.
+Computing embeddings in Dataflow is slow, and me way want to enable more flexible ways of restricting the subset of products that are considered (e.g. not just 2nd level category, but a 3rd level category or even globally).
+The most flexible approach is one in which nearest neighbours are computed at runtime, i.e. when a product is viewed by a user.
+The biggest challenge in such a system is keeping all the image embeddings in memory, which would require 32 GB of memory for the 4 million products we currently have\footnote{$~4000000 * 2048 * 32$ = number of products * embedding dimensionality * 32 bits per number}, and the number of products is likely to increase in the future.
+
+An option worth considering is deploying this as a TensorFlow model to MLE, which reads the embedding matrix in as a sharded tf.Variable; the shards can be distributed on different machines, which is handled automatically by TF.
+The input to this model would be just the UUID of the product in question, and the UUID of the category to which the nearest neighbour search is limited; the ``prediction'' of the model would be dot product of the product embedding in question, and all the other product embeddings that are in the given category.
+Therefore to get the nearest neighbours of an image embedding, TF would go through all the product embeddings to check for their membership of the given category - but this is fast given all the embeddings are always kept in memory.
+The nearest neighbour search will also be deterministic, which would be prohibitively slow when pre-computing nearest neighbours but should be manageable when done online, as there will be only a handful of requests per second and the dot products are calculated in parallel by multiple workers.
+We can also use autoscaling that would increase the number of workers to handle high loads, which would also put all workers to sleep after 15 minutes of inactivity.
 
 \section{Experiments}
 \label{exp}
