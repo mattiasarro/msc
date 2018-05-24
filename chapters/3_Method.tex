@@ -69,29 +69,32 @@ Categories can be considered as independent (multi-label) or mutually exclusive 
 The common way to handle this is to assume categories are mutually exclusive.
 With exclusive categories, assigning a label to a product determines its label across all categories, whereas with independent categories a positive label only determines the label across the category in question (and its ancestors in the category tree) - that is roughly a thousand-fold difference in labelling efficiency.
 The prediction task is also easier for exclusive classes - rather than needing to predict a probability score above a threshold separately for each class, the model would need to just assign the highest probability to the correct class compared to other classes.
+
 On the other hand, some categories at the client company are inherently ambiguous or even overlapping.
-The rule-based labels are also independent since a product may be labelled to belong to zero or many categories.
+The rule-based labels are also independent, since a product may be labelled to belong to zero or many categories.
 Independent categories are also somewhat easier to handle: with exclusive categories the rule-based and hand-assigned labels would have to be considered as separate training objectives, because the activations from softmax and sigmoid layers that lead to a positive prediction will be different and we can not share the output layer across these two types of labels.
 
+Bearing in mind the considerable efficiency gain in labelling, we mark a subset of the categories (1063) as ``exclusive''.
+Exclusive categories are usually leaves, but at times a higher-level category was marked as exclusive, denoting the more general case\footnote{e.g. if "Books", "Books > Travel Books" and "Books > Cookbooks" are all marked as exclusive, then the semantics of "Books" is actually "Books that are not about travel or cooking". This means some categories are not strictly exclusive, but we had to work around the existing category structure.}.
+Therefore we have two training objectives: a multi-label prediction of independent categories labelled by the rule-based system, and a multi-class prediction of exclusive categories labelled by the employees of the client company - respectively called the \textbf{rule-based} and \textbf{exclusive} training objectives.
+Note that if training on the exclusive objective turns out to have downsides, it is possible to revert to considering each category as independent, and to use all the labels assigned with the assumption that the category is exclusive, while the converse is not true.
 
-\subsection{Class and Label Imbalance}
+% \subsection{Class and Label Imbalance}
 \label{label_imbalance}
 
-% HERE
-
 The labels provided by the rule-based system are only positive:  some products are labelled to belong to a given category, but many products that ought to belong to a category are not labelled  accordingly -  but their label still appears to be negative.
-This (which we call the label imbalance problem) only exacerbates the class imbalance problem (that most products do not belong to most categories).
+This (which we call the \textbf{label imbalance} problem) only exacerbates the \textbf{class imbalance} problem (that most products do not belong to most categories).
 As a result the model trained on rule-based labels will certainly underestimate the likelihood of any product belonging to any category.
 
-Still, most positive labels provided by the rule-based system are correct, which means the model should assign higher likelihoods to products that should actually belong to the given class.
-Our active learning strategy outlined in section \ref{exp_al} ensures that products around the decision boundary would receive a label - which during the initial rounds of active labelling would be overwhelmingly positive examples.
-The first rounds of active labelling should therefore counterbalance the underestimating nature of the pre-trained model; as the model starts to make more ``optimistic'' predictions, the products near the decision boundary should become a more balanced mix of positive and negative examples.
-
-Class imbalance may or may not be an issue after label imbalance has been accounted for.
-The worst case scenario is that our model continues to underestimate the likelihood of products belonging to classes, particularly if these are rare classes.
-False negatives are not much of our problem in our setting.
-There are millions of products that affiliate networks provide, and in any case we can show the average user a tiny fraction of those products, so it is okay if some are left out from some categories and their chance to be seen decreases.
-Conversely, false positives will appear unprofessional and reduce user satisfaction.
+% Still, most positive labels provided by the rule-based system are correct, which means the model should assign higher likelihoods to products that should actually belong to the given class.
+% Our active learning strategy outlined in section \ref{exp_al} ensures that products around the decision boundary would receive a label - which during the initial rounds of active labelling would be overwhelmingly positive examples.
+% The first rounds of active labelling should therefore counterbalance the underestimating nature of the pre-trained model; as the model starts to make more ``optimistic'' predictions, the products near the decision boundary should become a more balanced mix of positive and negative examples.
+%
+% Class imbalance may or may not be an issue after label imbalance has been accounted for.
+% The worst case scenario is that our model continues to underestimate the likelihood of products belonging to classes, particularly if these are rare classes.
+% False negatives are not much of our problem in our setting.
+% There are millions of products that affiliate networks provide, and in any case we can show the average user a tiny fraction of those products, so it is okay if some are left out from some categories and their chance to be seen decreases.
+% Conversely, false positives will appear unprofessional and reduce user satisfaction.
 
 % If label imbalance remains an issue, one might try to weight the loss function (eq \ref{original_loss}).
 % The binary cross entropy loss function we use has two parts per class: the loss incurred for a false positive (FP) and false negative (FN) prediction.
@@ -119,14 +122,14 @@ Conversely, false positives will appear unprofessional and reduce user satisfact
   \item Apache Airflow (AF) - a Python framework for defining workflows of long-running tasks and dependencies between these tasks.
   \item TensorFlow (TF) - ML framework for Python, capable of defining many kinds of models as a computation graph, and executing this graph locally or in a distributed manner.
   \item ML Engine (MLE) - a GCP service for running TensorFlow models (training, hyperparameter tuning, inference).
-  \item Apache Beam - a data processing engine akin akin to Apache Spark and Apache Flink.
+  \item Apache Beam - a data processing engine akin akin to Apache Spark.
   \item Dataflow - a GCP service for executing Apache Beam workloads.
   \item Tensorflow Transform - a Python library with a small set of operations for data preprocessing that can run inside a TensorFlow graph as well as an Apache Beam pipeline.
   \item Google Cloud Storage (GCS) - Google Cloud Platform (GCP) object storage similar to Amazon S3.
   \item ElasticSearch (ES) - a NoSQL database with powerful full-text search and querying capabilities.
   \item RabbitMQ - a message queue, used for transferring data among our microservices (using the Logstash adapter, that can read from and write to (among other things) ElasticSearch and RabbitMQ).
   \item Flask - a simple backend web framework for Python.
-  \item Node.js - a JacaScript backend web framework.
+  \item Node.js - a JavaScript backend web framework.
   \item React.js - a JavaScript front-end framework for JavaScript.
   \item Redux - a framework for persisting user interface (UI) state and application data in single page applications.
   \item GraphQL - a query language for building flexible APIs
@@ -134,7 +137,7 @@ Conversely, false positives will appear unprofessional and reduce user satisfact
 
 Figure \ref{arch_diagram} shows the how data is passed between the main services, and how services and technologies interact.
 
-All product data is stored in ElasticSearch (ES): the rule-based labels, the predictions of the ML system, and evaluation metrics from various train runs.
+All product data is stored in ElasticSearch (ES): the labels, the predictions of the ML system, and evaluation metrics from various train runs.
 ES is accessed from the public web application via GraphQL and the ML administration web UI (further referred to just as web UI\footnote{The web UI was initially built with Flask and React by the author as a quick way to get insight about the model, and then re-written as a more feature-rich version by an employee of the client company with Node.js, GraphQL, React and Redux.}).
 Data is pulled into the ML pipelines by dumping the results of an ES query to a local file, which is uploaded to GCS.
 Updates to the ES index are not done directly, since indexing the updated products is computationally expensive; instead, updates are put on a RabbitMQ queue, which is consumed by Logstash, which in turn updates products in ES at a rate that will not overburden the servers.
