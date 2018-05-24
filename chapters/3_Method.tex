@@ -180,7 +180,7 @@ Most of our pipelines start by creating directories for our files.
 Which files are stored where is configured in a simple file that is accessed by Airflow, Dataflow and TensorFlow (locally or inside MLE); the configuration has placeholders for variables that are determined per run or are specific to a task inside a run.
 For example, the location of .tfrecords files is determined by ``\textit{:prefix}/runs/\textit{:run\_id}/ tfrecords/\textit{:objective}\_\textit{:split}.tfrecords'', where \textit{prefix} corresponds to the path to the data directory (either locally or in GCS), \textit{run\_id} is specific to the current run of the pipeline, \textit{objective} is either \textit{rule\_based} or \textit{exclusive}, and \textit{split} is either \textit{train}, \textit{test} or \textit{valid}.
 This ensures that all parts of the system look for the same file in the same place, and makes building file paths easier.
-All file access in the different parts work equally on a local file system and GCS, which makes it particularly convenientg to switch between local experimentation and remote training; in fact, the \textit{prefix} parameter is by default read from an environment variable, which is different in local, Docker and cloud service environments.
+All file access in the different parts work equally on a local file system and GCS, which makes it particularly convenient to switch between local experimentation and remote training; in fact, the \textit{prefix} parameter is by default read from an environment variable, which is different in local, Docker and cloud service environments.
 
 A training dataset is identified by its \textit{run\_id}.
 The processed .tfrecords, transform function (described below) and metadata is persisted under that run's directory.
@@ -194,12 +194,20 @@ There are two types of Dataflow pipelines: for preprocessing training data and f
 \subsubsection{Preprocessing}
 
 This pipeline loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
-All fields are cleaned of obvious noise and superfluous whitespace.
+Figure \ref{df} shows a screenshot of this pipeline, as visualised by the GCP UI.
+
+In this pipeline, all fields are cleaned of obvious noise and superfluous whitespace.
 Text and categorical fields are tokenised and mapped to integer indices, keeping only the top \textit{k} values and also computing TF-IDF scores for text fields.
 This is handled by TensorFlow Transform, which persists this token-to-index mapping in a \textbf{transform function} that is saved to GCS at the end of the pipeline.
 The transform function is used by a TensorFlow model to convert raw text inputs to a  sparse inputs;
 separate pre-processing run will generate a different transform function, with mostly the same tokens mapping to different indices, as the order in which they will be encountered will be different.
 The tokenised data is stored to GCS as a sharded .tfrecords files (with one set of files per training objective), a binary file format that TF Transform helps produce; alternatively the raw data could be saved (e.g. as JSON or inside BigQuery) and the transform function inside a TF graph could re-tokenise this raw data at runtime.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/df}
+  \caption{A running Dataflow pipeline of data preprocessing}
+  \label{df}
+\end{figure}
 
 The pipeline is also responsible for downloading product images, which are saved to GCS as individual files to avoid hitting the content delivery network that stores product images multiple times.
 Images are a major bottleneck due to network latency.
@@ -215,7 +223,7 @@ The Dataflow pipeline implemented for the experiments described in \ref{exp_sim}
 As explained in section \ref{exp_sim}, it needs to find the \textit{k=100} nearest neighbours of each product based on the cosine similarity of their image embeddings.
 The product-product  similarities are the simplest case computed within products that belong to same second level category.
 The pipeline read the files output by the preprocessing stage, and partitioned it into datasets by the category predicted in the previous train run (as the new predictions would not be saved in the file).
-The per-category image embeddings were merged (using \textit{reduce}) into matrices of image embeddings in a given category, and the top 100 approximate nearest neighbours were extracted for each product using nmslib \cite{nmslib}.
+The per-category image embeddings were merged (using \textit{reduce}) into matrices of image embeddings in a given category, and the top 100 approximate nearest neighbours were extracted for each product using nmslib \cite{nmslib} (as a \textit{map} operation over all the per-category embedding matrices).
 The nearest neighbour UUIDs were persisted to GCS and a downstream AF task picked these up and updated ES with these.
 
 This set-up will be replaced in the future.
@@ -238,15 +246,22 @@ In many cases these APIs provided almost what was needed, but to support our use
 
 The point of entry to the trainer program is the controller.py, which decides based on command line arguments which task to run: train, predict, train and predict, evaluate, export model, etc.
 There is a large number of hyperparameters that can be supplied via command-line arguments, with reasonable defaults.
-To allow using the exact same program in three different settings - locally, inside a Docker container, and inside a MLE job - there is a prefix argument that specifies the directory or GCS bucket where the data is located.
 
 The data was loaded using the tf.data.Dataset API, which provide convenient functions for reading large numbers of files, prefetching, shuffling, batching, and performing arbitrary transformations on the data (such as transforming a set of bytes representing a JPEG image into a 3D tensor of integers).
 This works well for simple use cases but is less flexible when for example doing multi-objective learning.
 We would like to control roughly how many data points from each objective end up in a batch, or for how long a model is pre-trained on one objective before the second objective is introduced.
 Refer to section \ref{multiobj} for a description of two approaches that were tried.
-In general, the trainer program would use tf.data.Dataset functions to build an input function for either training or evaluating, which would be supply data points for the train loop.
+In general, the trainer program would use tf.data.Dataset class to build an \textit{input function} for either training or evaluating, and the input function would be supply data points for the train loop.
 
-\section{Experiments}
+TensorFlow models were built using the tf.estimator.Estimator class by providing a custom \textit{model function}.
+The model function would dynamically build the model based on the \textit{model type} (deep / linear), \textit{input type} (these are described in \ref{exp_models}), \textit{training objectives} and \textit{hyperparameters}.
+An input type determines which input features are used and how they are represented.
+
+Training was handled by the tf.estimator.train\_and\_evaluate function.
+It loads a model from the checkpoint directory if present, and trains the model for a specified number of steps (or until the input function terminates).
+It also periodically saves model checkpoints to GCS, and handles writing TF summary operations that are needed for data visualisations using TensorBoard\footnote{TensorBoard is a web interface for visualising the variables and metrics a TensorFlow train run produces; many of the visualisations in the following sections are taken from Tensorboard.}
+
+\section{Experiments, Evaluation \& Results}
 \label{exp}
 
 \subsection{Visual Similarity}
