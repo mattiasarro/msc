@@ -137,7 +137,7 @@ As a result the model trained on rule-based labels will certainly underestimate 
 
 Figure \ref{arch_diagram} shows the how data is passed between the main services, and how services and technologies interact.
 
-All product data is stored in ElasticSearch (ES): the labels, the predictions of the ML system, and evaluation metrics from various train runs.
+All product data is stored in ElasticSearch (ES): the labels, top predictions of the ML system, and evaluation metrics from various train runs.
 ES is accessed from the public web application via GraphQL and the ML administration web UI (further referred to just as web UI\footnote{The web UI was initially built with Flask and React by the author as a quick way to get insight about the model, and then re-written as a more feature-rich version by an employee of the client company with Node.js, GraphQL, React and Redux.}).
 Data is pulled into the ML pipelines by dumping the results of an ES query to a local file, which is uploaded to GCS.
 Updates to the ES index are not done directly, since indexing the updated products is computationally expensive; instead, updates are put on a RabbitMQ queue, which is consumed by Logstash, which in turn updates products in ES at a rate that will not overburden the servers.
@@ -145,7 +145,7 @@ Updates to the ES index are not done directly, since indexing the updated produc
 All ML training and prediction happens in a batch-oriented way, encapsulated as Airflow pipelines.
 Each pipeline is a directed acyclic graph of tasks, where a task can be a shell command or Python function; a pipeline defines dependencies of task execution, which allows us co-ordinate a series of operations that could be executed locally (inside the Docker container running AF) or remotely (such as in a GCP service).
 A typical pipeline dumps data locally, uploads it to GCS, schedules a Dataflow job to preprocess data, polls the Dataflow service until the Dataflow job is finished, schedules an ML engine job, polls the MLE service until it has completed, and runs an update process that reads the predictions and evaluation statistics from GCS and sends the updates to the RabbitMQ queue.
-Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked due to network latency as well as computing the appropriate category path for each product (explained in \ref{cat_tree}).
+Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked by network latency as well as computing the appropriate category path for each product (explained in \ref{cat_tree}).
 
 \begin{figure}
   \hspace*{-0.2\textwidth}
@@ -162,15 +162,18 @@ There are two types of Dataflow pipelines: for preprocessing training data and f
 This pipeline loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
 All fields are cleaned of obvious noise and superfluous whitespace.
 Text and categorical fields are tokenised and mapped to integer indices, keeping only the top \textit{k} values and also computing TF-IDF scores for text fields.
-This is handled by TensorFlow Transform, which persists this token-to-index mapping in a \textit{transform function} that is saved to GCS at the end of the pipeline.
+This is handled by TensorFlow Transform, which persists this token-to-index mapping in a \textbf{transform function} that is saved to GCS at the end of the pipeline.
 The transform function is used by a TensorFlow model to convert raw text inputs to a  sparse inputs;
 separate pre-processing run will generate a different transform function, with mostly the same tokens mapping to different indices, as the order in which they will be encountered will be different.
+The tokenised data is stored to GCS as a sharded .tfrecords file, a binary file format that TF Transform helps produce; alternatively the raw data could be saved (e.g. as JSON or inside BigQuery) and the transform function inside a TF graph could re-tokenise this raw data at runtime.
 
-The pipeline is also responsible for downloading product images and using a pre-trained 2D CNN to extract a dense feature vector for each product from the penultimate layer of the CNN.
+The pipeline is also responsible for downloading product images, which are saved to GCS as individual files to avoid hitting the content delivery network that stores product images multiple times.
+Images are a major bottleneck due to network latency.
+To avoid a TF / MLE job from making separate requests to fetch each file individually\footnote{Each request has latency overhead, which compounds quickly when doing million of these.}, Dataflow saves the raw image content into the .tfrecords file; this increases Dataflow execution time, but reduces time and cost overall, as Dataflow is cheaper and easier to parallelise than a MLE job.
 
-The clean data and image embeddings  are inserted into a new BigQuery table after each run\footnote{BigQuery is inefficient in updating existing records and limits the number of update per day}.
-Note that the data is not inserted in its tokeniser form.
-Storing tokeniser data would reduce the space it takes marginally, but keeping raw data makes the system easier to debug, and enables the option to do inference on raw data that is not tokenised (e.g. in a streaming banner, when we might not have access to the transform function).
+A former version of the pipeline also computed image embeddings inside the Dataflow job, but this was inefficient.
+We also wanted to have the flexibility to try different models for computing embeddings (e.g. Inception V3, MobileNet, AutoML models) and fine-tuning image models.
+Attempts to persist these pre-computed embeddings had severe overheads, and currently the approach is to re-compute these at every time inside MLE, which can leverage a GPU to do it efficiently.
 
 \subsubsection{Visual Similarity}
 
