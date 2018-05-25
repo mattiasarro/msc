@@ -270,7 +270,7 @@ It also periodically saves model checkpoints to GCS, and handles writing TF summ
 
 Two approaches were tried for computing visual similarity.
 In the first case, an approximate nearest neighbour method \cite{nmslib} was used on the image embeddings (as described in section \ref{vis_sim_pp}) and the top 100 predictions were saved to ElasticSearch.
-in the second approach, the embedding vectors were discretised according to \cite{vec_fulltext} (as described in section \ref{bg_sim}) and inserted to ElasticSearch as strings of space-delimited tokens; standard ElasticSearch fulltext search was used on these token strings to get the nearest neighbour for a given product.
+In the second approach, the embedding vectors were discretised according to \cite{vec_fulltext} (as described in section \ref{bg_sim}) and inserted to ElasticSearch as strings of space-delimited tokens; standard ElasticSearch fulltext search was used on these token strings to get the nearest neighbour for a given product.
 
 \subsubsection{Evaluation \& Results}
 
@@ -283,7 +283,7 @@ Comparing the similarity between the former ElasticSearch title (ES title) match
 Figures \ref{shirt_es} and \ref{shirt_nmslib} show the nearest neighbours according to ES title and ANN, respectively.
 For some clothing categories this worked remarkably well, but with categories that had more varied products within it, there were occasional odd results.
 For example, in the ``Hiking'' category, the nearest neighbours of sleeping bags could be items with seemingly similar shapes, such as a flashlight that a very zoomed-in product photo that had similar contours as an unrolled sleeping bag.
-Another example of this is given in figure
+Another example of this is given in figure \ref{chair_nmslib}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{figures/compare/shirt_es}
