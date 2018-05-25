@@ -218,6 +218,7 @@ We also wanted to have the flexibility to try different models for computing emb
 Attempts to persist these pre-computed embeddings had severe overheads, and currently the approach is to re-compute these at every time inside MLE, which can leverage a GPU to do it efficiently.
 
 \subsubsection{Visual Similarity}
+\label{vis_sim_pp}
 
 The Dataflow pipeline implemented for the experiments described in \ref{exp_sim} relied on image embeddings computed by the preprocessing pipeline.
 As explained in section \ref{exp_sim}, it needs to find the \textit{k=100} nearest neighbours of each product based on the cosine similarity of their image embeddings.
@@ -267,8 +268,49 @@ It also periodically saves model checkpoints to GCS, and handles writing TF summ
 \subsection{Visual Similarity}
 \label{exp_sim}
 
-ann
-tfidf-based
+Two approaches were tried for computing visual similarity.
+In the first case, an approximate nearest neighbour method \cite{nmslib} was used on the image embeddings (as described in section \ref{vis_sim_pp}) and the top 100 predictions were saved to ElasticSearch.
+in the second approach, the embedding vectors were discretised according to \cite{vec_fulltext} (as described in section \ref{bg_sim}) and inserted to ElasticSearch as strings of space-delimited tokens; standard ElasticSearch fulltext search was used on these token strings to get the nearest neighbour for a given product.
+
+\subsubsection{Evaluation \& Results}
+
+The evaluation of similarity scores is difficult, since it is inherently somewhat subjective.
+A common approach is to hand-label triplets of images Q, A, B with four choices: (1) both A and B are similar to query image Q, (2) both A and B are dissimilar to Q, (3) A is more similar to Q than B, and (4) B is more similar to Q than A.
+These labeled triplets can be ranked using with similarity precision (percentage of triplets correctly ranked) and score at top K (see \cite{imgsimfineg}).
+Creating this dataset of triplets would be a very time-consuming process. Therefore evaluation was done entirely subjectively.
+
+Comparing the similarity between the former ElasticSearch title (ES title) matching and the new approximate nearest neighbour (ANN) search was straightforward - one look at the results was enough to confirm that the embedding-based approach outperforms title matching.
+Figures \ref{shirt_es} and \ref{shirt_nmslib} show the nearest neighbours according to ES title and ANN, respectively.
+For some clothing categories this worked remarkably well, but with categories that had more varied products within it, there were occasional odd results.
+For example, in the ``Hiking'' category, the nearest neighbours of sleeping bags could be items with seemingly similar shapes, such as a flashlight that a very zoomed-in product photo that had similar contours as an unrolled sleeping bag.
+Another example of this is given in figure
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/compare/shirt_es}
+  \caption{Nearest neighbours based on ElasticSearch title matching (TF-IDF-like)}
+  \label{shirt_es}
+\end{figure}
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/compare/shirt_nmslib}
+  \caption{Nearest neighbours based on approximate nearest neighbour search of image embeddings}
+  \label{shirt_nmslib}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/compare/chair_es}
+  \caption{Nearest neighbours based on ElasticSearch title matching (TF-IDF-like)}
+  \label{chair_es}
+\end{figure}
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/compare/chair_nmslib}
+  \caption{Nearest neighbours based on approximate nearest neighbour search of image embeddings}
+  \label{chair_nmslib}
+\end{figure}
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/compare/shirt_nmslib}
+  \caption{Nearest neighbours based on fulltext search on discretised/tokenised image embeddings as in \cite{vec_fulltext}. Here scores from the title and image embedding fields was combined.}
+  \label{chair_tokenised}
+\end{figure}
 
 \subsection{Independent Models}
 \label{exp_models}
