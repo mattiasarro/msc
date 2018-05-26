@@ -1,1 +1,15 @@
 \chapter{Discussion}
+
+\section{Visual Similarity}
+
+Could also try image embeddings extracted from the last non-FC layer to extract lower-level fisual features
+
+\section{Baseline Model}
+
+it is questionable whether adding the same data to the deep and wide components is beneficial
+  some justification is given by highway networks \& densenets; our version could be seen as a special case of a highway connection from the input to the output
+
+\section{Independent Models}
+
+Would be interesting to see results from character n-grams, gradient boosted trees, tfidf-weighted inputs
+the same number of tokens was used for embeddings and 1-hot encoding; it could be beneficial to take nearly all tokens for embeddings that aappear more than once, as we're not adding input dimensions
