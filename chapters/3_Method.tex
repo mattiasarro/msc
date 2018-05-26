@@ -286,7 +286,7 @@ For some clothing categories this worked remarkably well, but with categories th
 For example, in the ``Hiking'' category, the nearest neighbours of sleeping bags could be items with seemingly similar shapes, such as a flashlight that a very zoomed-in product photo that had similar contours as an unrolled sleeping bag.
 Another example of this is given in figure \ref{chair_nmslib}, which mostly returns chairs that are indeed visually and even functionally very similar to the chair in question - more so than the ElasticSearch title match seen in \ref{chair_es} - but also returns tables with similar legs; this is understandable, given that nearly half of the surface area of these images is covered by these foldable legs, which are visually quite unique.
 This problem can mostly be mitigated by having more fine-grained product categories and restricting the nearest neighbour search to those more specific categories.
-The nearest neighbour similarity search may pick up qualities of the image that are not related to the product in question, such as background, fashion model, viewpoint; this is un-intended but is acceptable, and it could be argued creates a product listing which is more homogenous and therefore more aesthetically pleasing.
+The nearest neighbour similarity search may pick up qualities of the image that are not related to the product in question, such as background or fashion model; this is un-intended but is acceptable, and it could be argued creates a product listing which is more homogenous and therefore more aesthetically pleasing.
 
 The second approach of discretised and tokenised image embeddings had mixed results.
 The returned nearest neighbours were reasonable, but subjectively felt inferior to the ones computed from the raw image embeddings using ANN.
@@ -294,29 +294,38 @@ At times it felt like some aspect of the appearance dominated, which is understa
 With enough precision (using several discrete intervals per embedding dimension) this may well work, but this would incur a considerable performance overhead (when indexing and querying).
 A hybrid approach was also attempted, where the tokenised version is used to come up with a small set of candidate nearest neighbours, which are used for a precise nearest neighbour calculation; the latter was implemented as an ElasticSearch plugin that performed dot products on the raw embedding vectors, but this was not a scaleable solution and did not subjectively lead to particularly good similarity results.
 
-Sear\begin{figure}
-  \includegraphics[width=\linewidth]{figures/compare/shirt_es}
+The third approach of combining the existing title matching and discretised/tokenised vectors was somewhat successful.
+As seen in figure \ref{chair_tokenised}, the title matching ensures that top results are at least about the same kind of items (chairs) while the tokenised embedding query returns products that share some visual similarity (mostly the legs of the chair).
+This approach still suffered from similar problems as the second approach - poor performance and somewhat inconsistent visual similarity - while introducing an additional complication of finding a good weighting between the title and visual scores.
+Given that there was no efficient way to evaluate the different weightings, it was decided to use raw image embeddings for visual similarity (either as an ANN or a precise realtime version).
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{figures/compare/shirt_es}
   \caption{Nearest neighbours based on ElasticSearch title matching (TF-IDF-like)}
   \label{shirt_es}
 \end{figure}
 \begin{figure}
-  \includegraphics[width=\linewidth]{figures/compare/shirt_nmslib}
+  \includegraphics[width=0.8\linewidth]{figures/compare/shirt_nmslib}
   \caption{Nearest neighbours based on approximate nearest neighbour search of image embeddings}
   \label{shirt_nmslib}
 \end{figure}
 
 \begin{figure}
-  \includegraphics[width=\linewidth]{figures/compare/chair_es}
+  \centering
+  \includegraphics[width=0.8\linewidth]{figures/compare/chair_es}
   \caption{Nearest neighbours based on ElasticSearch title matching (TF-IDF-like)}
   \label{chair_es}
 \end{figure}
 \begin{figure}
-  \includegraphics[width=\linewidth]{figures/compare/chair_nmslib}
-  \caption{Nearest neighbours based on approximate nearest neighbour search of image embeddings}
+  \centering
+  \includegraphics[width=0.8\linewidth]{figures/compare/chair_nmslib}
+  \caption{Nearest neighbours based on ANN search of image embeddings}
   \label{chair_nmslib}
 \end{figure}
 \begin{figure}
-  \includegraphics[width=\linewidth]{figures/compare/chair_tokenised}
+  \centering
+  \includegraphics[width=0.8\linewidth]{figures/compare/chair_tokenised}
   \caption{Nearest neighbours based on fulltext search on discretised/tokenised image embeddings as in \cite{vec_fulltext}. Here scores from the title and image embedding fields was combined.}
   \label{chair_tokenised}
 \end{figure}
