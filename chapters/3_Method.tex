@@ -346,6 +346,26 @@ In section \ref{widedeep} we describe the first model that was trained as a base
 The different input features and how these were represented is described in section \ref{model_comb}, along with how linear and deep modelds were trained from these input representations.
 Section \ref{tuning} describes how hyperparameters were selected, and two attempts at tuning these programmatically.
 
+
+\subsubsection{Evaluation}
+
+Many metrics can be used to evaluate \textbf{multi-label classification}: accuracy, precision, recall, F1 score, true/false positive/negative rate, ROC AUC, PR AUT. Let us examine each of these.
+
+\begin{itemize}
+  \item TP, TN, FP, FN: true positives, true negatives, false positives, false negatives,
+  \item accuracy: $\frac{TP + TN}{FP + FN}$, fraction of correct predictions,
+  \item precision: $\frac{TP}{TP + FP}$, fraction of positive predictions that were correct,
+  \item recall: $\frac{TP}{TP + FN}$, fraction of positive labels that were correctly ``recalled'',
+  \item F1: $2\frac{precision * recall}{precision + recall}$, harmonic average of precision and recall,
+  \item TPR = precision: $\frac{TP}{TP+FP}$, true positive rate,
+  \item FPR: $\frac{FP}{FP+FN}$, false positive rate,
+  \item ROC AUC: the area under the curve of TPR plotted against FPR.
+  \item PR AUC: the area under the curve of precision plotted against recall.
+\end{itemize}
+
+In our case, an overwhelming number of labels are negative, therefore a very simple predictor (that predict ``negative'' for every product / category) would have an accuracy near 99\%.
+
+
 \subsubsection{Baseline Model: Wide \& Deep}
 \label{widedeep}
 
