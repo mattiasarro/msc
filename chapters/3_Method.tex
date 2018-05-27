@@ -397,7 +397,9 @@ To assess which features are most useful for learning the rule-based objective, 
 The columns represent the input feature; refer to \ref{data_pp} for the full feature names and their description.
 The entries in the table show how each input feature was represented: \textit{emb} for for categorical features that are represented as random embedding vectors (which are updated during SGD), \text{emb avg} for multi-token fields where tokens are represented as random embeddings and the input feature is a weighted sum of these embeddings\footnote{Each embedding vector is weighted by the number of times it appears in the input feature, and divided by the L2 norm of the token counts; this gives good results for bag-of-words inputs according to TensorFlow documentation:
 \newline
-https://www.tensorflow.org/api\_docs/python/tf/feature\_column/embedding\_column}
+https://www.tensorflow.org/api\_docs/python/tf/feature\_column/embedding\_column}.
+Feature columns marked with \textit{u.s.enc} have been converted from raw text into dense embedding vectors of size 512 using a pre-trained model Universal Sentence Encoder \cite{uni_sent_enc}; cells marked with \textit{mobilenet} and \textit{inceptionv3} have respectively extracted image embeddings of size 1280 and 2048 using the Mobilenet \cite{mobilenet} and InceptionV3 \cite{inceptionv3} models that were pre-trained on the ImageNet challenge; these embedding models were used via TensorFlow Hub\footnote{TensorFlow Hub is a collection of TensorFlow models that are pre-trained on some other task and can be used as a feature extractor or as an initialisation for a model that is fine-tuned: https://www.tensorflow.org/hub/}.
+Pre-trained models were used only as feature extractors, i.e. were not fine-tuned on our data.
 
 \begin{figure}
   \centering
@@ -405,6 +407,7 @@ https://www.tensorflow.org/api\_docs/python/tf/feature\_column/embedding\_column
   \caption{Input types. Orange: embedding representation, blue: 1-hot or k-hot, red: embedding extracted with a pretrained deep network.}
   \label{input_types}
 \end{figure}
+
 
 
 \subsubsection{Hyperparameter Selection \& Tuning}
