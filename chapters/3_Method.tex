@@ -383,6 +383,8 @@ The original idea of Wide \& Deep was to use the wide component for feature cros
 Initial experiments with this model were done on a dataset of roughly 800 000 products which were labeled by the rule-based system\footnote{The database in the client company was in constant flux, so the training set sizes depended on how many labels the rule based-system had assigned to the current database}.
 The data was partitioned into a train (\textasciitilde80\%), validation (\textasciitilde10\%) and test (\textasciitilde10\%) sets in the Dataflow preprocessing pipeline based on a pseudorandom number generator - assign the product in question to the dataset if the random number is in the range 0 ... 0.8, 0.8 ... 0.9, 0.9 ... 1.
 This allowed us to use parallel data preprocessing where workers do not need to be aware of the index of the data point it is processing or what the other workers are doing; due to the randomness the dataset split boundaries will not be exact (e.g. test and validation sets may end up with 12\% and 8\% of products), but this is acceptable given the relatively large dataset size.
+The train set was used to train the model, and the validation set was used to evaluate the model periodically as it was trained - during individual training runs and during hyperparameter tuning.
+The test set was held out for evaluating the model after hyperparameter tuning, but was not used in this case.
 
 \paragraph{Results}
 The PR AUC on the 800,000-item dataset for this model after hyperparameter tuning was 0.9981 (see section \ref{tuning} for a full description of the set-up).
@@ -408,6 +410,17 @@ Pre-trained models were used only as feature extractors, i.e. were not fine-tune
   \label{input_types}
 \end{figure}
 
+Two model types were used to train with each of these 16 input types: linear and deep.
+Like in the case of the baseline model, the \textasciitilde1.6 million data points were split into train/validation/test sets (80\%/10\%/10\%); train and validation sets were used during individual training runs and hyperparameter tuning.
+All 32 combinations of input and model type were trained using hyperparameters listed in section \ref{tuning}; these were selected based on what worked well on the baseline model and in general ``seemed reasonable''.
+The initial plan was to use automatic hyperparameter tuning on a few model/input types, but the tuning failed to produce good results.
+The PR AUC on the validation set is shown in figure \ref{pr_auc_all}, where each model is trained for 300 000 batches, which is roughly 6 epochs.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/pr_auc_all}
+  \caption{PR AUC of all combinations of input and model types; x axis = train step (batch number), y axis = PR AUC. Refer to figure ... for exact scores.}
+  \label{pr_auc_all}
+\end{figure}
 
 
 \subsubsection{Hyperparameter Selection \& Tuning}
@@ -423,5 +436,5 @@ from rb to ex
 \subsection{Active Learning}
 \label{exp_al}
 
-\subsection{Performance Optimisation}
-\label{performance}
+% \subsection{Performance Optimisation}
+% \label{performance}
