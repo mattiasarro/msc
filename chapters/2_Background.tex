@@ -412,6 +412,9 @@ There are some versatile methods that can help regularise a neural network, or t
 L2  regularisation should always be used to decrease moral complexity and impose prior on the model parameters, which  implies that very high and very low values are unlikely.
 Dropout can mitigate overfitting by preventing neurons from co-adapting, encouraging each to learn representations that are useful independently \cite{dropout}; this has been interpreted as training and exponential (in the number of parameters) number of models and averaging their predictions.
 
+Batch normalisation is known to stabilise training and hence speed up convergence  by normalising each input to have unit variance and zero mean \cite{batch_norm}.
 gradient clipping
 layer norm
-Batch normalisation is known to stabilise training and hence speed up convergence  by normalising each input to have unit variance and zero mean \cite{batch_norm}.
+
+\subsection{Hyperparameter Tuning Using Bayesian Optimisation}
+\label{bayesian_opt}

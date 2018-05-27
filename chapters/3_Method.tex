@@ -449,16 +449,6 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
   \label{pr_auc_chart}
 \end{figure}
 
-\subsubsection{Hyperparameter Selection \& Tuning}
-\label{tuning}
-
-
-
-\begin{figure}
-  \includegraphics[width=\linewidth]{figures/tuning_rounds}
-  \caption{Hyperparameter ranges and the values found during automatic tuning.}
-  \label{tuning_rounds}
-\end{figure}
 
 \subsection{Multi-Objective Training}
 \label{multiobj}
@@ -466,6 +456,34 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
 pre-train vs train exclusive from the start
 both vs interleave
 from rb to ex
+
+
+\subsubsection{Hyperparameter Selection \& Tuning}
+\label{tuning}
+
+Hyperparameters were chosen based on gut feeling and Bayesian optimisation.
+The former was used to come up with reasonable ranges for hyperparameter ranges; automatic tuning was done on the GCP ML Engine, where one just needs to specify the ranges of hyperparameters, their type (categorical, integer, reverse log scale), and how many models are trained in these hyperparameter ranges.
+The ML Engine tuning mechanism uses Bayesian optimisation to come up with candidate hyperparameter values, which is described in section \ref{bayesian_opt} and by GCP engineers\footnote{https://cloud.google.com/blog/big-data/2017/08/hyperparameter-tuning-in-cloud-machine-learning-engine-using-bayesian-optimization}.
+The hyperparameter ranges used and the results that each of the three tuning rounds found is shown in table \ref{tuning_rounds}.
+In all cases 60 models were trained, with maximum 4 models trained in parallel, with early stopping.
+
+The \textit{L2 scale} parameter is the weighting factor on the L2 regularisation term that is applied across the weights of the linear and deep models.
+\textit{Linear learning rate} is the learning rate of the Adam optimiser for the linear part of Wide \& Deep, or the weights of the linear model; the other parameters of the optimiser were left as defaults (TensorFlow and the original paper); similarly for \textit{deep learning rate}.
+Dropout corresponds to the likelihood of dropping out a hidden unit during training; \textit{layers} corresponds to the number of hidden layers, and \textit{hidden units} corresponds to the number of units in those hidden layers; \textit{activation} corresponds to the activation function used in the hidden layers; the four hyperparameters are only applicable to the deep and Wide \& Deep models.
+
+Table \ref{tuning_rounds} shows the the tuning rounds in different colours, as well as the PR AUC achieved by each.
+In the \textit{Wide \& Deep} case, tuning was performed over \textasciitilde800k data points on the rule-based objective, with each model trained up to 10 epochs (e.g. 125k time steps with a batch size of 64).
+In the \textit{Deep (rb title)} case, a random sample of 15\% of the full 1.6M dataset was used to train on the rule-based objective for up to 50k time steps; the model used was deep\_title\_emb\_avg, which showed good results compared to the small selection of models that was manually tried.
+In the \textit{Deep (ex from rb)} case, the deep\_noimg\_emb model was trained on the full 1.6M dataset on the \textit{from\_rb\_to\_ex} objective (described in section \ref{multiobj}) for up to 300k time steps.
+In the {Wide \& Deep} and \textit{Deep (rb title)} cases, models with a higher PR AUC score were preferred while in \textit{Deep (ex from rb)} accuracy was used to choose between hyperparameter performance.
+
+It is clear that the hyperparameters found by the \textit{Deep (ex from rb)} round were not optimal, therefore the ones used in the \textit{Deep (rb all)} was used in most experiments described in section \ref{model_comb}.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/tuning_rounds}
+  \caption{Hyperparameter ranges and the values found during automatic tuning. A single value in the ``full range'' column means the value was fixed.}
+  \label{tuning_rounds}
+\end{figure}
 
 \subsection{Active Learning}
 \label{exp_al}
