@@ -414,7 +414,23 @@ Two model types were used to train with each of these 16 input types: linear and
 Like in the case of the baseline model, the \textasciitilde1.6 million data points were split into train/validation/test sets (80\%/10\%/10\%); train and validation sets were used during individual training runs and hyperparameter tuning.
 All 32 combinations of input and model type were trained using hyperparameters listed in section \ref{tuning}; these were selected based on what worked well on the baseline model and in general ``seemed reasonable''.
 The initial plan was to use automatic hyperparameter tuning on a few model/input types, but the tuning failed to produce good results.
-The PR AUC on the validation set is shown in figure \ref{pr_auc_all}, where each model is trained for 300 000 batches, which is roughly 6 epochs.
+
+Table \ref{metrics_all} shows the precise PR AUC and recall scores of the final time steps.
+The training loss function of linear and deep models with all features (but no extra embeddings extracted with another pre-trained model) is shown in figure \ref{train_loss_all}.
+The PR AUC on the validation set is shown in figure \ref{pr_auc_all}, where each model is trained for 300 000 batches, which is roughly 6 epochs; similarly, figure \ref{recall_all} shows how recall changes during the course of training.
+The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure \ref{pr_auc_chart}; recall on the final time step was omitted, as it was very similar to the final PR AUC scores.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/metrics_all}
+  \caption{Evaluation metrics of the rule-based training objective on the final time step. Minus denotes a train run that was not scheduled (inadvertently).}
+  \label{metrics_all}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/train_loss_all}
+  \caption{x axis = train step (batch number), y axis = training loss of rule-based objective.}
+  \label{train_loss_all}
+\end{figure}
 
 \begin{figure}
   \includegraphics[width=\linewidth]{figures/pr_auc_all}
@@ -426,14 +442,18 @@ The PR AUC on the validation set is shown in figure \ref{pr_auc_all}, where each
   \caption{Recall of all combinations of input and model types; x axis = train step (batch number), y axis = recall..}
   \label{recall_all}
 \end{figure}
+
 \begin{figure}
-  \includegraphics[width=\linewidth]{figures/train_loss_all}
-  \caption{ x axis = train step (batch number), y axis = training loss of rule-based objective.}
-  \label{train_loss_all}
+  \includegraphics[width=\linewidth]{figures/pr_auc_chart}
+  \caption{PR AUC on final timestep (300k, or 220k for inceptionv3)}
+  \label{pr_auc_chart}
 \end{figure}
 
 \subsubsection{Hyperparameter Selection \& Tuning}
 \label{tuning}
+
+
+
 
 \subsection{Multi-Objective Training}
 \label{multiobj}
