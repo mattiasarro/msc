@@ -386,12 +386,18 @@ This allowed us to use parallel data preprocessing where workers do not need to 
 
 \paragraph{Results}
 The PR AUC on the 800,000-item dataset for this model after hyperparameter tuning was 0.9981 (see section \ref{tuning} for a full description of the set-up).
-A manual examination of the predictions revealed that the top predictions for most categories was high-quality, but there was a large number of products below the decision boundary that actually belonged above the boundary.
+A manual examination of the predictions revealed that the top predictions for most categories was high-quality, but there was a large number of products below the decision boundary that actually belonged above it.
 A later run of the model on 1 600 000 products gave an PR AUC of 0.8647; this was using the hyperparameters that the tuning step produced, so it is likely that the decreased AUC PR score is caused by a bug\footnote{Three possible explanations come to mind: (1) the initial PR AUC was artificially high as some of the test set products ended up in the training set; (2) when migrating from the 800k dataset to the 1.6M dataset, the image embeddings were transferred over as an attempted optimisation approach; (3) the model was overfitting, 10 epochs of 1.6M is effectively 20 epochs of 800k products (the fact that there were more products does not necessarily matter, because labels were assigned simplistically from keyword matches on the title).}.
 There were occasional odd results from the model once it was trained on the 1.6M dataset; it was hard to tell which part of the model was causing it, or even whether all the input features are actually improving predictive power; therefore, a more systematic approach was tried, explained in the next section.
 
 \subsubsection{Input Representation \& Model Type Combinations}
 \label{model_comb}
+
+To assess which features are most useful for learning the rule-based objective, different features were grouped into \textit{input types}, shown in table \ref{input_types}.
+The columns represent the input feature; refer to \ref{data_pp} for the full feature names and their description.
+The entries in the table show how each input feature was represented: \textit{emb} for for categorical features that are represented as random embedding vectors (which are updated during SGD), \text{emb avg} for multi-token fields where tokens are represented as random embeddings and the input feature is a weighted sum of these embeddings\footnote{Each embedding vector is weighted by the number of times it appears in the input feature, and divided by the L2 norm of the token counts; this gives good results for bag-of-words inputs according to TensorFlow documentation:
+\newline
+https://www.tensorflow.org/api\_docs/python/tf/feature\_column/embedding\_column}
 
 \begin{figure}
   \centering
