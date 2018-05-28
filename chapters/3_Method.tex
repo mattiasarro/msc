@@ -454,6 +454,16 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
   \label{pr_auc_chart}
 \end{figure}
 
+\subsection{Labelling of Exclusive Products}
+
+There were three purposes for labelling products: (1) creating a validation set, (2) creating an initial dataset for training the exclusive outputs so that reasonable uncertainty scores could be computed for active learning, and (3) labelling during active labelling rounds.
+There are three ways of picking products to be labelled: random sampling (a product is sampled randomly from all products that do not have an exclusive label), uncertainty sampling (the unlabelled product with the highest uncertainty score is chosen), and searching for a product manually using our web UI.
+Each label that gets persisted has the following metadata associated with it: the label type (\textit{random}, \textit{uncertainty} or \textit{searchFor}), created and modified at timestamps, and ``round''.
+Round is used to differentiate between labels from the initial labelling and the active labelling rounds; round 0 corresponds to the validation set, round 1 corresponds to the purpose (2) above, and rounds 2 ... n correspond to active labelling rounds.
+
+In the experiments of the following section, the validation set contained 509 randomly sampled products and 5439 products that were manually searched for; for training set the equivalent numbers were 509 and 5646.
+Initially random sampling was used to obtain labels for products, to avoid bias in gathering data only through title search.
+Yet this approach would have taken a long time to populate all categories in the validation set with products, therefore the labelling team went through each existing category one by one and added ~5 products to the test and validation set using title matching.
 
 \subsection{Multi-Objective Training}
 \label{multiobj}
@@ -511,17 +521,16 @@ In figure \ref{pretrain} all the other parameters are the same as in \ref{nopret
 Our real goal is to properly predict the exclusive objective.
 As is evident from figure \ref{ex_vs_joint}, the model trained with just the exclusive objective converges fast and improves little after the first epoch, while the stable multi-objective model continues to improve in accuracy after several epochs, surpassing the single-objective accuracy after about three epochs.
 This is as expected, though the overall accuracy of 60\% is not particularly strong.
+A reasonable guess is that the parameters of the exclusive output layer did not receive enough training examples to learn from, so a model was trained on the exclusivised data set as well.
+Alas, as seen in figure [ref], the exclusivised training objective does not outperform the former multi-objective learning and has a very high variance in the training error.
+As training loss that has a high learning rate would fluctuate similarly when the learning rate is too high, a hyperparameter tuning job was scheduled to find out whether a lower learning rate would provide better results.
+Alas, this was not the case, and the poor performance of the exclusivised objective is most likely caused by the noise in the labels.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{figures/multiobj/ex_vs_joint}
   \caption{Validation accuracy per time step. Green: multi-objective model (exclusive, rule-based) with interleaved input files. Blue: only exclusive objective. Orange: multi-objective model (exclusive, rule-based) loaded from the same training file (unstable).}
   \label{ex_vs_joint}
 \end{figure}
-
-
-ex vs multiobj
-from rb to ex
-
 
 \subsection{Hyperparameter Selection \& Tuning}
 \label{tuning}
