@@ -476,6 +476,24 @@ Note that the file shards are of different sizes: how many products end up in ea
 Therefore, to avoid long periods where batches are filled with data points from a single objective, larger shuffle buffer sizes should be used.
 It takes time to read data from disk into the shuffle buffer, especially with images, so larger shuffle buffer sizes slow down training, as the buffer needs to be re-filled after every time the model is evaluated.
 
+Another simple option for combining data from different objectives is to dump all data in the same file, and optimise the model's parameters with respect to all the objectives for which your items in the given batch have labels for.
+This ensures that data points are seen an equal number of times, but is problematic when the different objectives have vastly different number of labels, as there is no good way to force training on the under-represented objective more heavily.
+An additional unforeseen problem occurred with this set-up: due to the way data was pre-processed, the data points from the exclusive objective often ended up in a single file, which resulted in terribly unstable training unless the shuffle buffer was the size of the whole dataset.
+This can be seen in figure \ref{pretrain}, where the training loss of the rule-based objective (purple) shoots through the roof once it encounters its first exclusive data point.
+In this case it happened a late stage, when the model had trained for nearly 4 epochs' worth of data\footnote{Due to the way the input function that feeds data to the model is restarted every time the model is evaluated, there is no guarantee that all files/data points are accessed the same number of times. So it is possible the chunk with all the exclusive labels comes at a late stage or several times.}, and by that time the adaptive learning rate of Adam has already learned that the weights of the exclusive output layer are never updated, i.e. the next update should have a very strong learning rate.
+Now when the model sees all the exclusive labels at once, the gradients are big enough to affect the whole network, which is why the changes are visible even in the loss function of the rule-based objective; many other metrics (such as L2 regularisation loss and gradient norm) also grew sharply at the time step when exclusive and rule-based losses blew up.
+
+The initial plan was to pre-train the model on the rule-based objective, and then train jointly on both objectives.
+As seen on figure \ref{pretrain}, the training loss of the rule-based objective (blue) makes large periodical jumps, followed by periods of high-variance downwards fluctuation.
+The first such jump starts when after the first epoch of pre-training, and following jumps can leave the loss function plateaued on the level it jumped to.
+The sharp jumps can be explained by the high learning rate set for the parameters of the exclusive output layer that have received few or no updates, and the subsequent plateau of the loss function could be explained by the fact that the learning rate for the rest of the model has been reduced substantially, and the model (which is shaken up from its position near an optimum) is unable to escape its new sub-optimal ``valley'' of the loss surface.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/multiobj/pretrain}
+  \caption{Unregularised training loss of rule-based objective. Dark red: only rule-based objective. Light blue: until step 35K, only rule-based objective, then a combination of rule-based and exclusive. Purple: . Shuffle buffer size: 15K.}
+  \label{pretrain}
+\end{figure}
+
 pre-train vs train exclusive from the start
 both vs interleave
 from rb to ex
