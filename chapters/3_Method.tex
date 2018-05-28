@@ -468,6 +468,8 @@ For the rule-based objective, this was done based on random splitting; for the e
 The exclusivised validation set had the same products as the exclusive validation set, and the exclusivised train set contained all the ``exclusivised'' rule-based labels as well as all the labels from the exclusive train set; when both an exclusivised and manual exclusive label were available, the latter was used.
 The train and test set sizes were as follows: rule-based (1.14M / 142K), exclusive (6K, 6.6K), exclusivised (1.24K, 6.6K).
 
+\subsubsection{Combining Data From Objectives}
+
 To train jointly for the rule-based and exclusive objectives, the data from the different datasets had to be combined.
 In the naive version, data from both datasets is loaded into memory and shuffled, but this would not work when we are also loading images or the dataset size grows.
 As a scaleable workaround, we read the files of each objective into memory (a few hundred to a few thousand in our case), shuffle these files, and alternate between reading $m$ files from the first objective and $n$ files from the second objective (we used $m = n = 1$); when one dataset runs out of files, wrap around, but if the other objective also runs out of files, terminate producing filenames.
@@ -483,23 +485,45 @@ This can be seen in figure \ref{pretrain}, where the training loss of the rule-b
 In this case it happened a late stage, when the model had trained for nearly 4 epochs' worth of data\footnote{Due to the way the input function that feeds data to the model is restarted every time the model is evaluated, there is no guarantee that all files/data points are accessed the same number of times. So it is possible the chunk with all the exclusive labels comes at a late stage or several times.}, and by that time the adaptive learning rate of Adam has already learned that the weights of the exclusive output layer are never updated, i.e. the next update should have a very strong learning rate.
 Now when the model sees all the exclusive labels at once, the gradients are big enough to affect the whole network, which is why the changes are visible even in the loss function of the rule-based objective; many other metrics (such as L2 regularisation loss and gradient norm) also grew sharply at the time step when exclusive and rule-based losses blew up.
 
+\subsubsection{Pretraining on the Rule-Based Objective}
+
 The initial plan was to pre-train the model on the rule-based objective, and then train jointly on both objectives.
 As seen on figure \ref{pretrain}, the training loss of the rule-based objective (blue) makes large periodical jumps, followed by periods of high-variance downwards fluctuation.
 The first such jump starts when after the first epoch of pre-training, and following jumps can leave the loss function plateaued on the level it jumped to.
 The sharp jumps can be explained by the high learning rate set for the parameters of the exclusive output layer that have received few or no updates, and the subsequent plateau of the loss function could be explained by the fact that the learning rate for the rest of the model has been reduced substantially, and the model (which is shaken up from its position near an optimum) is unable to escape its new sub-optimal ``valley'' of the loss surface.
+Contrast this with figure \ref{nopretrain}, where the jointly trained model's loss (red) is gradually converging towards the loss of the single-objective loss (blue).
+In figure \ref{pretrain} all the other parameters are the same as in \ref{nopretrain}; the former uses pre-training and the latter does not, and obviously the runs had different outcomes when shuffling data.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{figures/multiobj/pretrain}
-  \caption{Unregularised training loss of rule-based objective. Dark red: only rule-based objective. Light blue: until step 35K, only rule-based objective, then a combination of rule-based and exclusive. Purple: . Shuffle buffer size: 15K.}
+  \caption{Unregularised training loss of rule-based objective. Red: only rule-based objective. Blue: until step 35K, only rule-based objective, then a combination of rule-based and exclusive. Purple: rule-based and exclusive objectives loaded from the same files. Shuffle buffer size: 15K.}
   \label{pretrain}
 \end{figure}
 
-pre-train vs train exclusive from the start
-both vs interleave
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/multiobj/nopretrain}
+  \caption{Unregularised training loss of rule-based objective. Blue: only rule-based objective. Red: combination of rule-based and exclusive objective. Purple: rule-based and exclusive objectives loaded from the same files. Shuffle buffer size: 15K.}
+  \label{nopretrain}
+\end{figure}
+
+\subsubsection{Exclusive, Exclusive \& Rule-Based, and Exclusivised Objectives}
+
+Our real goal is to properly predict the exclusive objective.
+As is evident from figure \ref{ex_vs_joint}, the model trained with just the exclusive objective converges fast and improves little after the first epoch, while the stable multi-objective model continues to improve in accuracy after several epochs, surpassing the single-objective accuracy after about three epochs.
+This is as expected, though the overall accuracy of 60\% is not particularly strong.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/multiobj/ex_vs_joint}
+  \caption{Validation accuracy per time step. Green: multi-objective model (exclusive, rule-based) with interleaved input files. Blue: only exclusive objective. Orange: multi-objective model (exclusive, rule-based) loaded from the same training file (unstable).}
+  \label{ex_vs_joint}
+\end{figure}
+
+
+ex vs multiobj
 from rb to ex
 
 
-\subsubsection{Hyperparameter Selection \& Tuning}
+\subsection{Hyperparameter Selection \& Tuning}
 \label{tuning}
 
 Hyperparameters were chosen based on gut feeling and Bayesian optimisation.
