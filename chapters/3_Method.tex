@@ -75,17 +75,14 @@ The rule-based labels are also independent, since a product may be labelled to b
 Bearing in mind the considerable efficiency gain in labelling, we mark a subset of the categories (1063) as ``exclusive''.
 Exclusive categories are usually leaves, but at times a higher-level category was marked as exclusive, denoting the more general case\footnote{e.g. if ``Books'', ``Books > Travel Books'' and ``Books > Cookbooks'' are all marked as exclusive, then the semantics of ``Books'' is actually ``Books that are not about travel or cooking''. This means some categories are not strictly exclusive, but we had to work around the existing category structure.}.
 Therefore we have two training objectives: a multi-label prediction of independent categories labelled by the rule-based system, and a multi-class prediction of exclusive categories labelled by the employees of the client company - respectively called the \textbf{rule-based} and \textbf{exclusive} training objectives.
-Note that if training on the exclusive objective turns out to have downsides, it is possible to revert to considering each category as independent, and to use all the labels assigned with the assumption that the category is exclusive, while the converse is not true.
 
-We can not use the rule-based labels directly for training the exclusive categories; even if they share the same set of categories, the logits (the value before the softmax/sigmoid activation) of multi-class and multi-label classification behave differently, so we can not just copy the parameters learned from rule-based labels to the exclusive objective.
-
-Independent categories are also somewhat easier to handle: with exclusive categories the rule-based and hand-assigned labels would have to be considered as separate training objectives, because the activations from softmax and sigmoid layers that lead to a positive prediction will be different and we can not share the output layer across these two types of labels.
-
-
-A third option is to take the labels assigned by the rule-based system (which are inherently independent) and convert these to exclusive categories.
+We can not use the rule-based labels directly for training the exclusive objective; even if they share the same set of categories, the logits (the value before the softmax/sigmoid activation) of multi-class and multi-label classification behave differently, so we can not just copy the parameters learned from rule-based objective to the exclusive objective.
+We can either do multi-objective training where the neural network has two output layers: one for the exclusive and one for rule-based objective.
+Alternatively, we could convert the labels assigned by the rule-based system (which are inherently independent) into exclusive labels; we call this training objective ``from rule-based to exclusive'' or \textbf{``from rb to ex''}.
+This would allow us to train with only a single training objective, where most labels are assigned using the rule-based system and ``exclusivised'', and a small number of labels comes from human labellers; this approach might have benefits as the output layer would receive far more examples compared to the exclusive objective in the multi-objective training scenario.
 To do that, we look at all the rule-based labels of a product that are applied to categories marked as ``exclusive''.
 If there is only one such label assigned, as would be for most products, the label is already ``exclusive''; if there are more than one such label, we can either insert the product to the training set twice (once for each label), or select a random label.
-We chose the latter approach: for each product that has many rule-based labels for exclusive categories
+We chose the latter approach.
 
 % \subsection{Class and Label Imbalance}
 \label{label_imbalance}
@@ -365,8 +362,8 @@ Many metrics can be used to evaluate \textbf{multi-label classification}:
   \item precision: $\frac{TP}{TP + FP}$, fraction of positive predictions that were correct,
   \item recall: $\frac{TP}{TP + FN}$, fraction of positive labels that were correctly ``recalled'',
   \item F1: $2\frac{precision * recall}{precision + recall}$, harmonic average of precision and recall,
-  \item TPR = precision: $\frac{TP}{TP+FP}$, true positive rate,
-  \item FPR: $\frac{FP}{FP+FN}$, false positive rate,
+  \item TPR = recall: $\frac{TP}{TP+FN}$, true positive rate, probability of detection,
+  \item FPR: $\frac{FP}{FP+FN}$, false positive rate, probability of false alarm,
   \item ROC AUC: the area under the curve of TPR plotted against FPR.
   \item PR AUC: the area under the curve of precision plotted against recall.
 \end{itemize}
@@ -460,7 +457,9 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
 \subsection{Multi-Objective Training}
 \label{multiobj}
 
-As described in section \ref{cat_tree}
+As described in section \ref{cat_tree} we have three distinct training objectives: \textit{rule-based}, \textit{exclusive}, and a hybrid \textit{from rb to ex}.
+The models described in the previous section were trained only on the rule-based objective.
+In this section we see how the most performant models from the previous section perform when trained on the exclusive objective (from a small number of hand-assigned labels), how jointly training using both the rule-based and exclusive objective improves the accuracy of the exclusive objective, and how it compares to the ``from rb to ex'' training objective .
 
 pre-train vs train exclusive from the start
 both vs interleave
