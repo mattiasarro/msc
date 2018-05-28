@@ -460,12 +460,21 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
 
 As described in section \ref{cat_tree} we have three distinct training objectives: \textit{rule-based}, \textit{exclusive}, and a hybrid \textit{from rb to ex}.
 The models described in the previous section were trained only on the rule-based objective.
-In this section we see how a performant models from the previous section perform when trained on the exclusive objective (from a small number of hand-assigned labels), how jointly training using both the rule-based and exclusive objective improves the accuracy of the exclusive objective, and how it compares to the ``from rb to ex'' training objective.
+In this section we see how a performant models from the previous section performs when trained on the exclusive objective (from a small number of hand-assigned labels), how jointly training using both the rule-based and exclusive objective improves the accuracy of the exclusive objective, and how it compares to the ``from rb to ex'' training objective.
 
 Each of the three datasets is represented by a separate set of tfrecords files; these were produced by Dataflow during the preprocessing stage described in section \ref{pp}.
 Each objective had two sets of files that corresponded to the training and validation datasets.
 For the rule-based objective, this was done based on random splitting; for the exclusive objective, this was done based on a boolean variable the human labeller could specify (``assign this product I am labelling to the train or validation set'').
 The exclusivised validation set had the same products as the exclusive validation set, and the exclusivised train set contained all the ``exclusivised'' rule-based labels as well as all the labels from the exclusive train set; when both an exclusivised and manual exclusive label were available, the latter was used.
+The train and test set sizes were as follows: rule-based (1.14M / 142K), exclusive (6K, 6.6K), exclusivised (1.24K, 6.6K).
+
+To train jointly for the rule-based and exclusive objectives, the data from the different datasets had to be combined.
+In the naive version, data from both datasets is loaded into memory and shuffled, but this would not work when we are also loading images or the dataset size grows.
+As a scaleable workaround, we read the files of each objective into memory (a few hundred to a few thousand in our case), shuffle these files, and alternate between reading $m$ files from the first objective and $n$ files from the second objective (we used $m = n = 1$); when one dataset runs out of files, wrap around, but if the other objective also runs out of files, terminate producing filenames.
+The resulting stream of filenames is read by a tf.data.Dataset, which keeps a shuffle buffer of $b$ elements; within this buffer the data points from the different objectives get mixed up, so each training batch usually gets products from both objectives.
+Note that the file shards are of different sizes: how many products end up in each file depends on how many Dataflow workers were used and how work was divided among those workers.
+Therefore, to avoid long periods where batches are filled with data points from a single objective, larger shuffle buffer sizes should be used.
+It takes time to read data from disk into the shuffle buffer, especially with images, so larger shuffle buffer sizes slow down training, as the buffer needs to be re-filled after every time the model is evaluated.
 
 pre-train vs train exclusive from the start
 both vs interleave
