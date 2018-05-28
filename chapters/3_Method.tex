@@ -562,5 +562,10 @@ It is clear that the hyperparameters found by the \textit{Deep (ex from rb)} rou
 \subsection{Active Learning}
 \label{exp_al}
 
-% \subsection{Performance Optimisation}
-% \label{performance}
+Active labelling was used in two ways.
+In the first case, the full\_emb model was trained on the rule-based objective, and the entropy of the rule-based prediction was calculated for each product, summed across all classes of the product.
+Ideally we would have also tried disagreement sampling, but this would have involved loading predictions from different models across a large number of large files\footnote{To store probabilities for 1000 classes across 4M products as 32bit floats, one needs 16GB; multiply that with the number of models you need to compare uncertainty between.}, which is not only slow but can easily introduce bugs related to misaligned predictions (i.e. products are in a different order across the predictions of different models.)
+The products returned by this method were in some sense what one might expect - at times returning products that were tricky to label or did not yet have a category - but the products were very similar to one another. Therefore this labelling round was aborted.
+
+The entropy of the rule-based objective was supposed to serve just as a surrogate for the exclusive uncertainty, as the following labelling rounds were supposed to be based on the entropy of the exclusive predictions.
+Therefore the labellers were instructed to provide at least 5 labels for each exclusive category (both in the training and validation sets), so that we could train a model with the exclusive objective and experiment with its uncertainty scores.
