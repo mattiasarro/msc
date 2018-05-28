@@ -420,7 +420,9 @@ layer norm
 \label{bayesian_opt}
 
 There are roughly 4 ways of choosing hyperparameters (parameters that are not explicitly learned from the data): manual, grid search, random search and (Bayesian) optimisation.
-The former case is common, and remains a part in even the other options, as one still needs to decide on the intervals for the hyperparameters.
+Some manual choices are done in any case, as one still needs to decide on the intervals for the hyperparameters.
 Grid search, where all combinations of (discretised intervals of) hyperparameters is tried, is not scaleable, as the number of possible sets of hyperparameters grows combinatorially; a poor choice of intervals for continuous hyperparameters might miss the ``sweet spot'' for the given parameter, and the model would still need to be evaluated several times for a hyperparameter which has nearly no effect on model performance.
 In random search, sets of hyperparameters are sampled uniformly randomly from the given ranges, which is a more efficient use of compute power: since each hyperparameter has a distinct value at each train run, this reveals more about how the model's performance changes with respect to all hyperparameters.
-The fourth option considers the set of hyperparameters as an input surface and the model's validation performance as an output to be optimised; a common approach for this is Bayesian optimisation.
+The fourth option considers the set of hyperparameters as an input and the model's validation performance as an output to be optimised.
+As sampling from this function that maps hyperparameters to validation performance is very expensive - it involves training a neural network until convergence - we need an approach that can explore the space of values efficiently.
+We do not have a closed form description of the objective function or gradients of the objective with respect to the inputs, but we can make assumptions about the objective function that can be encoded as priors in a Bayesian framework.
