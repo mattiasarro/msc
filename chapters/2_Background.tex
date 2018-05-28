@@ -173,6 +173,10 @@ A simpler gating mechanism is offered by gated recurrent units (GRU) \cite{gru},
 We are interested in using RNNs as text encoders, though they are often used for sequence to sequence modelling, or for predicting an output at each time step.
 In the simplest case, the concatenation of the cell state $c$ and the hidden state $h$ at the last time step could be used as a representation of the sequence.
 
+\subsubsection{Deep Averaging Network}
+
+We use the Universal Sentence Encoder \cite{uni_sent_enc} in our experiments, which is a RNN model pre-trained on a large corpus.
+
 \subsection{Image Models}
 \label{image_models}
 
@@ -423,6 +427,8 @@ There are roughly 4 ways of choosing hyperparameters (parameters that are not ex
 Some manual choices are done in any case, as one still needs to decide on the intervals for the hyperparameters.
 Grid search, where all combinations of (discretised intervals of) hyperparameters is tried, is not scaleable, as the number of possible sets of hyperparameters grows combinatorially; a poor choice of intervals for continuous hyperparameters might miss the ``sweet spot'' for the given parameter, and the model would still need to be evaluated several times for a hyperparameter which has nearly no effect on model performance.
 In random search, sets of hyperparameters are sampled uniformly randomly from the given ranges, which is a more efficient use of compute power: since each hyperparameter has a distinct value at each train run, this reveals more about how the model's performance changes with respect to all hyperparameters.
+
 The fourth option considers the set of hyperparameters as an input and the model's validation performance as an output to be optimised.
-As sampling from this function that maps hyperparameters to validation performance is very expensive - it involves training a neural network until convergence - we need an approach that can explore the space of values efficiently.
-We do not have a closed form description of the objective function or gradients of the objective with respect to the inputs, but we can make assumptions about the objective function that can be encoded as priors in a Bayesian framework.
+As sampling from this objective function is very expensive - it involves training a neural network until convergence - we need an approach that can explore the space of values efficiently.
+We do not have a closed form description of the objective function or gradients of the objective with respect to the inputs, but we can make assumptions about the objective function that can be encoded as priors in a Bayesian framework, e.g. by assuming it has a Gaussian distribution.
+To choose sets of hyperparameters that are likely to result in a good performance, the tuning algorithm can use the Bayes rule to compute the posterior distribution of the objective function; points that have a high posterior mean and variance should be explored \cite{bayesian}, as these are the uncertain points that are expected to have the highest value.

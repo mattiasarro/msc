@@ -65,19 +65,27 @@ At the time of writing, there were roughly 1300 categories defined in the client
 Categories were structured in a way that is typical of  e-commerce:  categories can have  child categories, which in turn can have child categories, etc.
 In our case, the typical depth of the tree structure was five, i.e. a leaf category often had four parents;  naturally, the tree structure was not balanced, so many branches ended at depth three or four.
 
-Categories can be considered as independent (multi-label) or mutually exclusive (multi-class).
+Categories can be considered as independent (multi-label, sigmoid activation) or mutually exclusive (multi-class, softmax ``activation'').
 The common way to handle this is to assume categories are mutually exclusive.
 With exclusive categories, assigning a label to a product determines its label across all categories, whereas with independent categories a positive label only determines the label across the category in question (and its ancestors in the category tree) - that is roughly a thousand-fold difference in labelling efficiency.
 The prediction task is also easier for exclusive classes - rather than needing to predict a probability score above a threshold separately for each class, the model would need to just assign the highest probability to the correct class compared to other classes.
-
 On the other hand, some categories at the client company are inherently ambiguous or even overlapping.
 The rule-based labels are also independent, since a product may be labelled to belong to zero or many categories.
-Independent categories are also somewhat easier to handle: with exclusive categories the rule-based and hand-assigned labels would have to be considered as separate training objectives, because the activations from softmax and sigmoid layers that lead to a positive prediction will be different and we can not share the output layer across these two types of labels.
 
 Bearing in mind the considerable efficiency gain in labelling, we mark a subset of the categories (1063) as ``exclusive''.
 Exclusive categories are usually leaves, but at times a higher-level category was marked as exclusive, denoting the more general case\footnote{e.g. if ``Books'', ``Books > Travel Books'' and ``Books > Cookbooks'' are all marked as exclusive, then the semantics of ``Books'' is actually ``Books that are not about travel or cooking''. This means some categories are not strictly exclusive, but we had to work around the existing category structure.}.
 Therefore we have two training objectives: a multi-label prediction of independent categories labelled by the rule-based system, and a multi-class prediction of exclusive categories labelled by the employees of the client company - respectively called the \textbf{rule-based} and \textbf{exclusive} training objectives.
 Note that if training on the exclusive objective turns out to have downsides, it is possible to revert to considering each category as independent, and to use all the labels assigned with the assumption that the category is exclusive, while the converse is not true.
+
+We can not use the rule-based labels directly for training the exclusive categories; even if they share the same set of categories, the logits (the value before the softmax/sigmoid activation) of multi-class and multi-label classification behave differently, so we can not just copy the parameters learned from rule-based labels to the exclusive objective.
+
+Independent categories are also somewhat easier to handle: with exclusive categories the rule-based and hand-assigned labels would have to be considered as separate training objectives, because the activations from softmax and sigmoid layers that lead to a positive prediction will be different and we can not share the output layer across these two types of labels.
+
+
+A third option is to take the labels assigned by the rule-based system (which are inherently independent) and convert these to exclusive categories.
+To do that, we look at all the rule-based labels of a product that are applied to categories marked as ``exclusive''.
+If there is only one such label assigned, as would be for most products, the label is already ``exclusive''; if there are more than one such label, we can either insert the product to the training set twice (once for each label), or select a random label.
+We chose the latter approach: for each product that has many rule-based labels for exclusive categories
 
 % \subsection{Class and Label Imbalance}
 \label{label_imbalance}
@@ -397,7 +405,7 @@ There were occasional odd results from the model once it was trained on the 1.6M
 
 To assess which features are most useful for learning the rule-based objective, different features were grouped into \textit{input types}, shown in table \ref{input_types}.
 The columns represent the input feature; refer to \ref{data_pp} for the full feature names and their description.
-The entries in the table show how each input feature was represented: \textit{emb} for for categorical features that are represented as random embedding vectors (which are updated during SGD), \text{emb avg} for multi-token fields where tokens are represented as random embeddings and the input feature is a weighted sum of these embeddings\footnote{Each embedding vector is weighted by the number of times it appears in the input feature, and divided by the L2 norm of the token counts; this gives good results for bag-of-words inputs according to TensorFlow documentation:
+The entries in the table show how each input feature was represented: \textit{emb} for for categorical features that are represented as random embedding vectors (which are updated during SGD), \textit{emb avg} for multi-token fields where tokens are represented as random embeddings and the input feature is a weighted sum of these embeddings\footnote{Each embedding vector is weighted by the number of times it appears in the input feature, and divided by the L2 norm of the token counts; this gives good results for bag-of-words inputs according to TensorFlow documentation:
 \newline
 https://www.tensorflow.org/api\_docs/python/tf/feature\_column/embedding\_column}.
 Feature columns marked with \textit{u.s.enc} have been converted from raw text into dense embedding vectors of size 512 using a pre-trained model Universal Sentence Encoder \cite{uni_sent_enc}; cells marked with \textit{mobilenet} and \textit{inceptionv3} have respectively extracted image embeddings of size 1280 and 2048 using the Mobilenet \cite{mobilenet} and InceptionV3 \cite{inceptionv3} models that were pre-trained on the ImageNet challenge; these embedding models were used via TensorFlow Hub\footnote{TensorFlow Hub is a collection of TensorFlow models that are pre-trained on some other task and can be used as a feature extractor or as an initialisation for a model that is fine-tuned: https://www.tensorflow.org/hub/}.
@@ -412,13 +420,12 @@ Pre-trained models were used only as feature extractors, i.e. were not fine-tune
 
 Two model types were used to train with each of these 16 input types: linear and deep.
 Like in the case of the baseline model, the \textasciitilde1.6 million data points were split into train/validation/test sets (80\%/10\%/10\%); train and validation sets were used during individual training runs and hyperparameter tuning.
-All 32 combinations of input and model type were trained using hyperparameters listed in section \ref{tuning}; these were selected based on what worked well on the baseline model and in general ``seemed reasonable''.
-The initial plan was to use automatic hyperparameter tuning on a few model/input types, but the tuning failed to produce good results.
+All 32 combinations of input and model type were trained using hyperparameters listed in table \ref{tuning_rounds} column \textit{Deep (rb all)}.
 
 Table \ref{metrics_all} shows the precise PR AUC and recall scores of the final time steps.
-The training loss function of linear and deep models with all features (but no extra embeddings extracted with another pre-trained model) is shown in figure \ref{train_loss_all}.
+The training loss function of linear and deep versions of noimg\_emb is shown in figure \ref{train_loss_all}.
 The PR AUC on the validation set is shown in figure \ref{pr_auc_all}, where each model is trained for 300 000 batches, which is roughly 6 epochs; similarly, figure \ref{recall_all} shows how recall changes during the course of training.
-The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure \ref{pr_auc_chart}; recall on the final time step was omitted, as it was very similar to the final PR AUC scores.
+The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure \ref{pr_auc_chart}; recall plot of the final time step was omitted, as it was very similar to the final PR AUC scores.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{figures/metrics_all}
@@ -452,6 +459,8 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
 
 \subsection{Multi-Objective Training}
 \label{multiobj}
+
+As described in section \ref{cat_tree}
 
 pre-train vs train exclusive from the start
 both vs interleave
