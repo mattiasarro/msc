@@ -197,6 +197,7 @@ As \textit{hparams\_id} encodes only the general model architecture and training
 There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
 
 \subsubsection{Preprocessing}
+\label{pp}
 
 This pipeline loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
 Figure \ref{df} shows a screenshot of this pipeline, as visualised by the GCP UI.
@@ -459,7 +460,12 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
 
 As described in section \ref{cat_tree} we have three distinct training objectives: \textit{rule-based}, \textit{exclusive}, and a hybrid \textit{from rb to ex}.
 The models described in the previous section were trained only on the rule-based objective.
-In this section we see how the most performant models from the previous section perform when trained on the exclusive objective (from a small number of hand-assigned labels), how jointly training using both the rule-based and exclusive objective improves the accuracy of the exclusive objective, and how it compares to the ``from rb to ex'' training objective .
+In this section we see how a performant models from the previous section perform when trained on the exclusive objective (from a small number of hand-assigned labels), how jointly training using both the rule-based and exclusive objective improves the accuracy of the exclusive objective, and how it compares to the ``from rb to ex'' training objective.
+
+Each of the three datasets is represented by a separate set of tfrecords files; these were produced by Dataflow during the preprocessing stage described in section \ref{pp}.
+Each objective had two sets of files that corresponded to the training and validation datasets.
+For the rule-based objective, this was done based on random splitting; for the exclusive objective, this was done based on a boolean variable the human labeller could specify (``assign this product I am labelling to the train or validation set'').
+The exclusivised validation set had the same products as the exclusive validation set, and the exclusivised train set contained all the ``exclusivised'' rule-based labels as well as all the labels from the exclusive train set; when both an exclusivised and manual exclusive label were available, the latter was used.
 
 pre-train vs train exclusive from the start
 both vs interleave
