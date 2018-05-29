@@ -1,17 +1,25 @@
 \chapter{Discussion}
 
+In this section we analyse the experiments that were described in the previous section.
+Since many different topics were explored, we organise the discussion into subsections.
+
 \section{Visual Similarity}
+
+Although this assessment is subjective, the results from the approximate nearest neighbour were strikingly good; this is the opinion of many people at the client company that saw a demo of it.
+The biggest challenge here is to find a way to evaluate visual similarity performance; although there are various algorithms for tweaking similarity and evaluating it on a test set, creating such a dataset would have been prohibitively expensive.
+Given that vanilla pre-trained CNNs produce good embeddings for visual similarity, it is sensible to focus one's efforts on the scalability and productionalisation aspect of this problem.
+Still, two relatively easy directions could yet be explored: the model architecture and the layer from which embeddings are extracted.
+Our model of choice was Inception V3, which had a good accuracy to memory footprint ratio - with respect to the original ImageNet challenge.
+However it has been shown that models that are well tuned for a given classification task are not necessarily the best feature extractors; in fact, ResNets are currently the best at this \cite{img_feature_extract}.
 
 Could also try image embeddings extracted from the last non-FC layer to extract lower-level fisual features
 
-\section{Baseline Model}
+\section{Individual Models \& Hyperparameters}
 
 it is questionable whether adding the same data to the deep and wide components is beneficial
   some justification is given by highway networks \& densenets; our version could be seen as a special case of a highway connection from the input to the output
 
 model consistently underpredicted categories due to
-
-\section{Independent Models}
 
 Would be interesting to see results from character n-grams, gradient boosted trees, tfidf-weighted inputs
 the same number of tokens was used for embeddings and 1-hot encoding; it could be beneficial to take nearly all tokens for embeddings that aappear more than once, as we're not adding input dimensions
@@ -19,3 +27,7 @@ the same number of tokens was used for embeddings and 1-hot encoding; it could b
 weight decay not necessarily a hyperparameter
 
 k-fold xvalid
+
+\section{Multi-Objective Training}
+
+\section{Active Learning}
