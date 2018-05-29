@@ -1,2 +1,22 @@
 \chapter{Conclusion}
 \label{sum}
+
+In this work we covered a large breadth of topics.
+Neural networks and deep models have many useful qualities: their performance continues to improve with additional training data, they can be successfully used for transfer and multi-task learning, and they can synthesise realistic samples of their own.
+In general, deep models based on embedding inputs outperform ones with sparse inputs, while linear models do well with 1-hot encoded inputs.
+Transfer learning is remarkably useful, as our experiments with visual similarity show, though models models trained from scratch on raw product data is still superior for fine-grained affiliate product classification.
+While this work did not experiment with ensembling of models, we did look at joint training of models that individually performed reasonably well, and as was expected found that a combination of all these inputs outperforms any subset.
+
+A big part of the time spent on this project involved building the technical architecture.
+This was a non-trivial task given the large number of technologies, distributed components and dataset sizes involved.
+This could serve as a blueprint for many projects that are planning to deploy to the GCP cloud.
+
+Our experiments with multi-objective training ultimately produced the expected results, and the performance increase could be hopefully improved with more analysis of the high gradient variance during training.
+Even though a good number of models were trained to optimise hyperparameters using Bayesian optimisation, the bulk of these were still picked based on intuition.
+At the very least, such tuning reveals that at least for this problem the models are not too sensitive to hyperparameters.
+
+The results from active learning are not yet conclusive, though the tentative conclusion is that uncertainty sampling should not be used too early when the model is not yet close to an optimal solution, as it might sample very similar data points.
+Our experiments are still in progress, though, and a later evaluation might conclude something more positive.
+
+Overall, the choice of tools and approaches was reasonable.
+There are clearly more straightforward ways to do product classification, yet the complications introduced by transfer, multi-objective and active learning will most likely pay off when predicting much more difficult aspects, such as whether a product would sell well for a given audience or not - which has immense potential to increase profitability.
