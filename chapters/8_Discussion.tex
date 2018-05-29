@@ -58,16 +58,18 @@ There was not much variability within even the high-capacity models, which often
 
 \section{Multi-Objective Training}
 
-Even though the rule-based objective gave good PR AUC scores, the model was not deployable as is, since it severely under-predicted for all nontrivial categories.
+Even though the rule-based objective gave good PR AUC scores, the model was not deployable as is, since it severely under-predicted all nontrivial categories.
 As one might expect, training for multiple objectives has a higher variance in the gradients.
 This was exacerbated by the limitations of the tf.data APIs, which did not enable to efficiently alternate between the training objectives precisely.
 Probably the variability could be reduced if each batch had a consistent number of products from each objective.
 For more thorough experimentation, one should probably fall back to manually feeding data batch-by-batch, as was the standard in earlier versions of TensorFlow.
 
 Although Adam was a versatile optimiser across the different deep and shallow architectures for the rule-based objective, updates to the parameters of each top layer becomes less frequent in the multi-objective case.
-As Adam learns to assign more weight to less frequently updated variables, this is probably the cause of a wide range of issues described in section \ref{multiobj}.
+As Adam learns to update less frequently updated variables more heavily, this is probably the cause of a wide range of issues described in section \ref{multiobj}.
 Note that it is not formally confirmed that the peculiarities are caused by adaptive learning rates.
 Experimenting with a simpler optimiser and outputting per-step statistics about how many data points from each objective ended up in each bach would help further understand the shape of the loss functions.
 For example, currently the best guess to the peculiar shape of the rule-based training loss (blue line in figure \ref{pretrain}) in a multi-objective training setting is that the large jumps are caused by a large batch of data points from the exclusive objective which has had few updates in a while; the medium-variance periods that follow such jumps (e.g. steps 40k - 80k) also contain data from that objective; the gradually decreasing plateaus (e.g. steps 80k - 120k and 170k - 200k) are periods where the model is trained only on the rule-based objective, which is considerably more stable.
+
+
 
 \section{Active Learning}

@@ -537,6 +537,29 @@ Alas, this was not the case, and the poor performance of the exclusivised object
   \label{ex_vs_exclusivised}
 \end{figure}
 
+To assess whether the low accuracy of 60\% is caused by a genuine problem with learning or an ambiguous validation set, a confusion matrix was computed on the validation set.
+Considering there were ~1000 categories, the heat map of the confusion matrix was too dense to reveal useful patterns.
+Instead, a histogram of the number of categories that have a given misclassification rate was computed (figure \ref{misclassification_rates}); note that this was computed from both sides of the diagonal of the confusion matrix, therefore a misclassification is counted twice.
+Top 20 categories with the highest misclassification rates are shown in figure \ref{misclassified_top}.
+The categories with many misclassifications tend to be very general ones; for example, Clothing, Men's Clothing and Casual Shoes are certainly not exclusive, and the client company is advised to find ways of expressing these as exclusive categories.
+For some (e.g. ``Knee Length'', ``Mini'', ``Tall''), visual information could be useful which in this round was not used.
+The large number of categories that have a single or a handful of misclassifications is most likely caused by a learning problem such as insufficient labels or suboptimal training.
+
+\begin{figure}
+\centering
+\begin{minipage}{.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/multiobj/misclassification_rates}
+  \caption{Number of misclassified products in validation set.}
+  \label{misclassification_rates}
+\end{minipage}%
+\begin{minipage}{.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/multiobj/misclassified_top}
+  \caption{Worst performers in validation set.}
+  \label{misclassified_top}
+\end{minipage}
+\end{figure}
 
 
 \subsection{Hyperparameter Selection \& Tuning}
