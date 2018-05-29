@@ -11,13 +11,31 @@ Given that vanilla pre-trained CNNs produce good embeddings for visual similarit
 Still, two relatively easy directions could yet be explored: the model architecture and the layer from which embeddings are extracted.
 Our model of choice was Inception V3, which had a good accuracy to memory footprint ratio - with respect to the original ImageNet challenge.
 However it has been shown that models that are well tuned for a given classification task are not necessarily the best feature extractors; in fact, ResNets are currently the best at this \cite{img_feature_extract}.
+The other decision of of using the penultimate layer of the CNN as a feature extractor is also a common one.
+Often the transfer learning task is classification, for which the higher-level fully-connected layers would provide good high-level semantic features.
+In our case, extracting features from the first fully-connected layer or even from the raw convolutional feature maps at a lower layer might have given us similarity that is highly sensitive to certain visual patterns and shapes - which could be deployed to certain categories where such sensitivity is required.
 
-Could also try image embeddings extracted from the last non-FC layer to extract lower-level fisual features
+As already discussed, the tokenised versions of feature vectors had less spectacular results.
+While appealing as a way to combine visual and textual similarity, there is not theoretical justification for this approach.
+Note that the original paper \ref{vec_fulltext} extracted dense features from text, and only hypothetically proposed this approach to be applied on images.
+Perhaps the inherent discrete nature of language (sentences, words, topics as opposed to a continuous 2D space)  makes it more amenable to such tokenisation.
 
 \section{Individual Models \& Hyperparameters}
 
-it is questionable whether adding the same data to the deep and wide components is beneficial
-  some justification is given by highway networks \& densenets; our version could be seen as a special case of a highway connection from the input to the output
+Choosing a relatively complex model such as Wide \& Deep as a baseline model can be criticised: a baseline should be simple and interpretable.
+One of the justifications was the ability to turn some part of the model off, as removing all deep input columns would have resulted in a linear model and vice versa; eventually it was easier to have separate model types (deep, linear, wide \& deep).
+The other intuition was drawn from models with skip connections such as ResNets \cite{resnet} and DenseNets \cite{densenet}.
+The assumption was that linear models are relatively good at predicting the output, as the relevant word tokens would be present in the textual fields of many products; for a deep model to use this raw knowledge, it would need to learn an identity function from the input of the layer to the output, which can be a hard problem with some loss functions.
+Therefore, a linear layer with the same input as the deep layer could be justified to simplify learning for such simple cases, though not necessarily as the first ``baseline''.
+Overall Wide \& Deep performed very well, though it is hard to compare its PR AUC to the other models, which were trained and evaluated on twice the amount of data.
+When its performance degraded once it was trained on a new dataset (that most likely had mixed up image embeddings of some products), its drawback became apparent: we had no clue which of the input features were most responsible for good or bad performance.
+
+Training a large selection of deep and shallow models was a good way to get a sense of the capabilities of these models.
+The performance of linear models was lower than expected, but this is probably not a fair comparison, as the models were trained on the same sets of hyperparameters that were at least in part chosen to be suitable for deep models.
+In general the tools used (TensorFlow, Adam optimiser) may not be optimal for learning linear models, but considering the large difference of PR AUC between the two, there seem to be benefits to using deeper models.
+Of course the biggest problem in interpreting the PR AUC scores of the rule-based objective is that its labels were generated using a relatively simple automatic procedure which only considers text as its input.
+Therefore a high PR AUC score shows us only how well the model was able to reproduce the behaviour of the rule-based system, but we are after good generalisation and consistent multi-objective performance.
+We consider the classification problem to be a quite easy optimisation problem, however the power of more complex models might be better served when we are adding more training objectives (e.g. colour, style, conversion of products).
 
 model consistently underpredicted categories due to
 
