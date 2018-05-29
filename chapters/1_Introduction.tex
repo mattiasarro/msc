@@ -66,17 +66,12 @@ The goals of the work, in chronological order, is to:
   \item Use a pre-trained 2-dimensional convolutional neural network (2D CNN) to extract features for an approximate nearest-neighbour search of visually similar products.
   \item Build an interface for subjectively evaluating the visual similarity algorithm.
   \item Train  baseline model to reproduce the behaviour of the rule-based system.
-  \item Train and evaluate a number of different models on the rule-based labels.
+  \item Train and evaluate a number of different models on the rule-based labels\footnote{We call these the rule-based rather than independent labels/objective, as we are planning to train with independent training targets other than the rule-based labels at a later stage in the project.}.
   \item
     Define a subset of the 1300 independent categories to be exclusive (non-overlapping).
     Build an interface for assigning \textbf{exclusive labels} to products either through \textbf{uncertainty} or \textbf{random} sampling.\footnote{The final version of this interface was built by an employee of the client company, though earlier versions for displaying the results of classification / item similarity were implemented by the author.}
   % \item Train a selection of models that had good performance as an ensemble, preferring model diversity over good performance. Evaluate this model on the rule-based test set as well as the ground truth dataset.
-  \item Implement the active labelling mechanism defined in \ref{exp_al} and train a small selection of well-performing models in the following 6 settings:
-    \begin{itemize}
-      \item One training objective: \textbf{exclusive}.
-      \item Two training objectives: \textbf{exclusive} and \textbf{rule-based}. In addition to human-assigned exclusive labels, the model is trained on the original 1300 independent categories assigned by the rule-based system. \footnote{We call this the rule-based rather than independent objective, as we are planning to train with independent training targets other than the rule-based labels at a later stage in the project.}
-      \item Both training objectives are trained in three settings: exclusive labels are either limited to random or uncertainty sampling (to determine the efficacy of active learning), or not limited (labels from random and uncertainty sampling are combined to have the largest training set).
-    \end{itemize}
+  \item Implement the active labelling mechanism defined in \ref{exp_al} and train a small selection of well-performing models in the following 3 settings: exclusive labels are either limited to random or uncertainty sampling (to determine the efficacy of active learning), or not limited (labels from random and uncertainty sampling are combined to have the largest training set).
   \item Document the results as well as the technical architecture and workflow.
 \end{itemize}
 

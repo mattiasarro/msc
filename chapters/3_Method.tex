@@ -78,7 +78,7 @@ Therefore we have two training objectives: a multi-label prediction of independe
 
 We can not use the rule-based labels directly for training the exclusive objective; even if they share the same set of categories, the logits (the value before the softmax/sigmoid activation) of multi-class and multi-label classification behave differently, so we can not just copy the parameters learned from rule-based objective to the exclusive objective.
 We can either do multi-objective training where the neural network has two output layers: one for the exclusive and one for rule-based objective.
-Alternatively, we could convert the labels assigned by the rule-based system (which are inherently independent) into exclusive labels; we call this training objective ``from rule-based to exclusive'' or \textbf{``from rb to ex''}.
+Alternatively, we could convert the labels assigned by the rule-based system (which are inherently independent) into exclusive labels; we call this training objective ``from rule-based to exclusive'' or \textbf{``exclusivised''}.
 This would allow us to train with only a single training objective, where most labels are assigned using the rule-based system and ``exclusivised'', and a small number of labels comes from human labellers; this approach might have benefits as the output layer would receive far more examples compared to the exclusive objective in the multi-objective training scenario.
 To do that, we look at all the rule-based labels of a product that are applied to categories marked as ``exclusive''.
 If there is only one such label assigned, as would be for most products, the label is already ``exclusive''; if there are more than one such label, we can either insert the product to the training set twice (once for each label), or select a random label.
@@ -455,6 +455,7 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
 \end{figure}
 
 \subsection{Labelling of Exclusive Products}
+\label{labex}
 
 There were three purposes for labelling products: (1) creating a validation set, (2) creating an initial dataset for training the exclusive outputs so that reasonable uncertainty scores could be computed for active learning, and (3) labelling during active labelling rounds.
 There are three ways of picking products to be labelled: random sampling (a product is sampled randomly from all products that do not have an exclusive label), uncertainty sampling (the unlabelled product with the highest uncertainty score is chosen), and searching for a product manually using our web UI.
@@ -468,9 +469,9 @@ Yet this approach would have taken a long time to populate all categories in the
 \subsection{Multi-Objective Training}
 \label{multiobj}
 
-As described in section \ref{cat_tree} we have three distinct training objectives: \textit{rule-based}, \textit{exclusive}, and a hybrid \textit{from rb to ex}.
+As described in section \ref{cat_tree} we have three distinct training objectives: \textit{rule-based}, \textit{exclusive}, and a hybrid \textit{exclusivised}.
 The models described in the previous section were trained only on the rule-based objective.
-In this section we see how a performant models from the previous section performs when trained on the exclusive objective (from a small number of hand-assigned labels), how jointly training using both the rule-based and exclusive objective improves the accuracy of the exclusive objective, and how it compares to the ``from rb to ex'' training objective.
+In this section we see how a performant models from the previous section performs when trained on the exclusive objective (from a small number of hand-assigned labels), how jointly training using both the rule-based and exclusive objective improves the accuracy of the exclusive objective, and how it compares to the ``exclusivised'' training objective.
 
 Each of the three datasets is represented by a separate set of tfrecords files; these were produced by Dataflow during the preprocessing stage described in section \ref{pp}.
 Each objective had two sets of files that corresponded to the training and validation datasets.
@@ -578,10 +579,10 @@ Dropout corresponds to the likelihood of dropping out a hidden unit during train
 Table \ref{tuning_rounds} shows the the tuning rounds in different colours, as well as the PR AUC achieved by each.
 In the \textit{Wide \& Deep} case, tuning was performed over \textasciitilde800k data points on the rule-based objective, with each model trained up to 10 epochs (e.g. 125k time steps with a batch size of 64).
 In the \textit{Deep (rb title)} case, a random sample of 15\% of the full 1.6M dataset was used to train on the rule-based objective for up to 50k time steps; the model used was deep\_title\_emb\_avg, which showed good results compared to the small selection of models that was manually tried.
-In the \textit{Deep (ex from rb)} case, the deep\_noimg\_emb model was trained on the full 1.6M dataset on the \textit{from\_rb\_to\_ex} objective (described in section \ref{multiobj}) for up to 300k time steps.
-In the {Wide \& Deep} and \textit{Deep (rb title)} cases, models with a higher PR AUC score were preferred while in \textit{Deep (ex from rb)} accuracy was used to choose between hyperparameter performance.
+In the \textit{Deep (exclusivised)} case, the deep\_noimg\_emb model was trained on the full 1.6M dataset on the \textit{from\_rb\_to\_ex} objective (described in section \ref{multiobj}) for up to 300k time steps.
+In the {Wide \& Deep} and \textit{Deep (rb title)} cases, models with a higher PR AUC score were preferred while in \textit{Deep (exclusivised)} accuracy was used to choose between hyperparameter performance.
 
-It is clear that the hyperparameters found by the \textit{Deep (ex from rb)} round were not optimal, therefore the ones used in the \textit{Deep (rb all)} was used in most experiments described in section \ref{model_comb}.
+It is clear that the hyperparameters found by the \textit{Deep (exclusivised)} round were not optimal, therefore the ones used in the \textit{Deep (rb all)} was used in most experiments described in section \ref{model_comb}.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{figures/tuning_rounds}
@@ -598,4 +599,15 @@ Ideally we would have also tried disagreement sampling, but this would have invo
 The products returned by this method were in some sense what one might expect - at times returning products that were tricky to label or did not yet have a category - but the products were very similar to one another. Therefore this labelling round was aborted.
 
 The entropy of the rule-based objective was supposed to serve just as a surrogate for the exclusive uncertainty, as the following labelling rounds were supposed to be based on the entropy of the exclusive predictions.
-Therefore the labellers were instructed to provide at least 5 labels for each exclusive category (both in the training and validation sets), so that we could train a model with the exclusive objective and experiment with its uncertainty scores.
+Therefore the labellers were instructed to provide at least 5 labels for each exclusive category (both in the training and validation sets).
+Then a deep noimg\_emb model was trained in a multi-objective setting until convergence, and the entropy of the exclusive output is used for sampling products for labelling (deterministically, highest entropy first).
+
+Active labelling would be conducted in rounds as described in section \ref{labex}.
+At each round, an equal number of products are labelled using random sampling and uncertainty sampling.
+After each round, three models are trained in a multi-objective manner.
+The rule-based objective is common to all three, but the number of exclusive labels is different in each: one is limited to randomly sampled labels, one is limited to uncertainty-sampled products, and one uses both.
+In all three cases the labels obtained in round 1 using text-based search are included.
+In this setting it should be possible to determine whether uncertainty sampling helps us increase validation accuracy faster than random sampling.
+
+The first round of active labelling (round 2 in total) is about to start soon.
+Very preliminary results show that uncertainty sampling on the exclusive objective also tends to choose a very narrow range of products to be labelled, though those are such products that it would be expected to be uncertain about (e.g. niche books that do not contain the word ``book'' anywhere in its data).

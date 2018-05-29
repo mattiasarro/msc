@@ -6,6 +6,7 @@ Since many different topics were explored, we organise the discussion into subse
 \section{Visual Similarity}
 
 Although this assessment is subjective, the results from the approximate nearest neighbour were strikingly good; this is the opinion of many people at the client company that saw a demo of it.
+The model did not require fine-tuning, contrary to the initial hypothesis.
 The biggest challenge here is to find a way to evaluate visual similarity performance; although there are various algorithms for tweaking similarity and evaluating it on a test set, creating such a dataset would have been prohibitively expensive.
 Given that vanilla pre-trained CNNs produce good embeddings for visual similarity, it is sensible to focus one's efforts on the scalability and productionalisation aspect of this problem.
 Still, two relatively easy directions could yet be explored: the model architecture and the layer from which embeddings are extracted.
@@ -70,6 +71,23 @@ Note that it is not formally confirmed that the peculiarities are caused by adap
 Experimenting with a simpler optimiser and outputting per-step statistics about how many data points from each objective ended up in each bach would help further understand the shape of the loss functions.
 For example, currently the best guess to the peculiar shape of the rule-based training loss (blue line in figure \ref{pretrain}) in a multi-objective training setting is that the large jumps are caused by a large batch of data points from the exclusive objective which has had few updates in a while; the medium-variance periods that follow such jumps (e.g. steps 40k - 80k) also contain data from that objective; the gradually decreasing plateaus (e.g. steps 80k - 120k and 170k - 200k) are periods where the model is trained only on the rule-based objective, which is considerably more stable.
 
+It is satisfying that a multi-objective training scheme outperforms a method trained on just exclusive labels.
+Though the exclusivised objective at times exceeds multi-objective training in terms of accuracy, the latter is preferred due to its stability and predictability; also, this scheme will be useful once we add additional training objectives.
+The 60\% on the exclusive objective is not ideal.
+This is achieved with roughly 6000 manual labels, which is far from the millions of labels deep neural networks usually require.
+Probably the biggest gains will come from re-organising the category tree further so that there are no ambiguous classes, and that all the ambiguous cases (e.g. ``Leather Jackets'') are handled as a combination of an exclusive class (``Jacket'') and independent feature detector (``Material: leather'').
+The remaining gains will come from active labelling, which should find the uncertain cases, or by manually adding labels to categories with a high error rate.
+An orthogonal approach is to train using the Wasserstein loss, which would be better at handling ambiguous and noisy labels; in this case, we might use the Wasserstein distance between the predicted and actual labels as the evaluation metric as well, as accuracy would still paint a pessimistic picture when in reality it is acceptable to classify into a semantically nearby class.
 
+A separate question is how to phase out the old rule-based system that the client company wishes to replace.
+As the rule-based system would stop producing labels, any new products would be unlabelled according to it.
+This would happen more often than one might think due to the way the data import process happens.
+The most likely solution is to create an interface for mass-labelling of products: present the labeller pages with hundreds of products it thinks belong to a category, and have them confirm the page or pick out incorrect predictions.
+This way we create a large number of high-quality labels with relatively little effort.
 
 \section{Active Learning}
+
+Preliminary results indicate that uncertainty sampling is effective at identifying products that might lack a category or sufficient labels in the training data, but it tends to sample products that are very much alike.
+Therefore this strategy may not be very well suited for such a ``batch-active'' learning scenario as was presented.
+A workaround might be a series of smaller training rounds.
+Identifying unseen categories is a useful feature, though an analysis of validation error might produce similar results.
