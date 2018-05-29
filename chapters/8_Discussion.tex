@@ -1,4 +1,5 @@
 \chapter{Discussion}
+\label{disc}
 
 In this section we analyse the experiments that were described in the previous section.
 Since many different topics were explored, we organise the discussion into subsections.
@@ -78,6 +79,7 @@ This is achieved with roughly 6000 manual labels, which is far from the millions
 Probably the biggest gains will come from re-organising the category tree further so that there are no ambiguous classes, and that all the ambiguous cases (e.g. ``Leather Jackets'') are handled as a combination of an exclusive class (``Jacket'') and independent feature detector (``Material: leather'').
 The remaining gains will come from active labelling, which should find the uncertain cases, or by manually adding labels to categories with a high error rate.
 An orthogonal approach is to train using the Wasserstein loss, which would be better at handling ambiguous and noisy labels; in this case, we might use the Wasserstein distance between the predicted and actual labels as the evaluation metric as well, as accuracy would still paint a pessimistic picture when in reality it is acceptable to classify into a semantically nearby class.
+Different training regimes could still be tried to stabilise multi-objective learning, such as gradient clipping, layer and batch normalisation.
 
 A separate question is how to phase out the old rule-based system that the client company wishes to replace.
 As the rule-based system would stop producing labels, any new products would be unlabelled according to it.

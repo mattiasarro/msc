@@ -1,5 +1,5 @@
 \chapter{Background}
-
+\label{bg}
 
 \section{Input Representations}
 \label{data_rep}
@@ -175,7 +175,9 @@ In the simplest case, the concatenation of the cell state $c$ and the hidden sta
 
 \subsubsection{Deep Averaging Network}
 
-We use the Universal Sentence Encoder \cite{uni_sent_enc} in our experiments, which is a RNN model pre-trained on a large corpus.
+Deep averaging networks are simple architectures where the embeddings of the input tokens (words, in our case) are averaged and fed through a deep network \ref{dan}.
+In fact, a deep model with embedding inputs is very similar to a deep averaging networks, the main difference is in the way the model is optimised.
+We use the Universal Sentence Encoder \cite{uni_sent_enc} in our experiments, which is a deep averaging network pre-trained on a large text corpus.
 
 \subsection{Image Models}
 \label{image_models}
@@ -417,8 +419,8 @@ L2  regularisation should always be used to decrease moral complexity and impose
 Dropout can mitigate overfitting by preventing neurons from co-adapting, encouraging each to learn representations that are useful independently \cite{dropout}; this has been interpreted as training and exponential (in the number of parameters) number of models and averaging their predictions.
 
 Batch normalisation is known to stabilise training and hence speed up convergence  by normalising each input to have unit variance and zero mean \cite{batch_norm}.
-gradient clipping
-layer norm
+The effect of batch normalisation depends on the minibatch size, so layer normalisation may be used instead ``by computing the mean and variance used for normalization from all of the summed inputs to the neurons in a layer on a single training case'' \cite{layer_norm}.
+Gradient clipping has been proposed to alleviate the vanishing and exploding gradient problem notorious in RNNs \cite{grad_clip}.
 
 \subsection{Hyperparameter Tuning Using Bayesian Optimisation}
 \label{bayesian_opt}

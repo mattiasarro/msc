@@ -1,5 +1,5 @@
 \chapter{Method}
-
+\label{meth}
 
 Several hypotheses were tested in this work.
 Section \ref{data_pp} gives an overview of how input data was pre-processed.
@@ -18,7 +18,7 @@ The experiments were conducted in four distinct stages:
     Training the independent classifiers to determine best performers (\ref{exp_models}).
     Due to the good perforance of individual models, ensembling was not attempted due to the engineering overhead it would incur.
     Experimenting with different multi-objective training approaches.
-   \item Training [TODO] iterations of active learning on the strong predictor (\ref{exp_al}).
+   \item Training 10 iterations of active learning on the strong predictor (\ref{exp_al}).
  \end{itemize}
 
 
@@ -78,7 +78,7 @@ Therefore we have two training objectives: a multi-label prediction of independe
 
 We can not use the rule-based labels directly for training the exclusive objective; even if they share the same set of categories, the logits (the value before the softmax/sigmoid activation) of multi-class and multi-label classification behave differently, so we can not just copy the parameters learned from rule-based objective to the exclusive objective.
 We can either do multi-objective training where the neural network has two output layers: one for the exclusive and one for rule-based objective.
-Alternatively, we could convert the labels assigned by the rule-based system (which are inherently independent) into exclusive labels; we call this training objective ``from rule-based to exclusive'' or \textbf{``exclusivised''}.
+Alternatively, we could convert the labels assigned by the rule-based system (which are inherently independent) into exclusive labels; we call this training objective ``from rule-based to exclusive'' or \textbf{``exclusivised''\footnote{This word does not exist in dictionaries, but its meaning should be clear.}}.
 This would allow us to train with only a single training objective, where most labels are assigned using the rule-based system and ``exclusivised'', and a small number of labels comes from human labellers; this approach might have benefits as the output layer would receive far more examples compared to the exclusive objective in the multi-objective training scenario.
 To do that, we look at all the rule-based labels of a product that are applied to categories marked as ``exclusive''.
 If there is only one such label assigned, as would be for most products, the label is already ``exclusive''; if there are more than one such label, we can either insert the product to the training set twice (once for each label), or select a random label.
