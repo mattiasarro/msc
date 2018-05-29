@@ -522,15 +522,22 @@ Our real goal is to properly predict the exclusive objective.
 As is evident from figure \ref{ex_vs_joint}, the model trained with just the exclusive objective converges fast and improves little after the first epoch, while the stable multi-objective model continues to improve in accuracy after several epochs, surpassing the single-objective accuracy after about three epochs.
 This is as expected, though the overall accuracy of 60\% is not particularly strong.
 A reasonable guess is that the parameters of the exclusive output layer did not receive enough training examples to learn from, so a model was trained on the exclusivised data set as well.
-Alas, as seen in figure [ref], the exclusivised training objective does not outperform the former multi-objective learning and has a very high variance in the training error.
+Alas, as seen in figure \ref{ex_vs_exclusivised}, the exclusivised training objective does not outperform the former multi-objective learning and has a very high variance in the training error; a larger shuffle queue seems to help both settings, however.
 As training loss that has a high learning rate would fluctuate similarly when the learning rate is too high, a hyperparameter tuning job was scheduled to find out whether a lower learning rate would provide better results.
 Alas, this was not the case, and the poor performance of the exclusivised objective is most likely caused by the noise in the labels.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{figures/multiobj/ex_vs_joint}
-  \caption{Validation accuracy per time step. Green: multi-objective model (exclusive, rule-based) with interleaved input files. Blue: only exclusive objective. Orange: multi-objective model (exclusive, rule-based) loaded from the same training file (unstable).}
+  \caption{Validation accuracy per time step. Green: multi-objective model (exclusive, rule-based) with interleaved input files. Blue: only exclusive objective. Orange: multi-objective model (exclusive, rule-based) loaded from the same training file (unstable). Shuffle queue: 15K.}
   \label{ex_vs_joint}
 \end{figure}
+\begin{figure}
+  \includegraphics[width=\linewidth]{figures/multiobj/ex_vs_exclusivised}
+  \caption{Validation accuracy per time step. Left green: exclusive objective in multi-objective training. Left blue: exclusive objective. Right orange: exclusivised objective. Shuffle queue: 100K.}
+  \label{ex_vs_exclusivised}
+\end{figure}
+
+
 
 \subsection{Hyperparameter Selection \& Tuning}
 \label{tuning}
