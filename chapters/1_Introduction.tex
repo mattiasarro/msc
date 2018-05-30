@@ -66,11 +66,12 @@ The goals of the work, in chronological order, is to:
   \item Use a pre-trained 2-dimensional convolutional neural network (2D CNN) to extract features for an approximate nearest-neighbour search of visually similar products.
   \item Build an interface for subjectively evaluating the visual similarity algorithm.
   \item Train  baseline model to reproduce the behaviour of the rule-based system.
-  \item Train and evaluate a number of different models on the rule-based labels\footnote{We call these the rule-based rather than independent labels/objective, as we are planning to train with independent training targets other than the rule-based labels at a later stage in the project.}.
+  \item Train and evaluate a number of different models on the \textbf{rule-based labels}\footnote{We call these the rule-based rather than independent labels/objective, as we are planning to train with independent training targets other than the rule-based labels at a later stage.}.
   \item
     Define a subset of the 1300 independent categories to be exclusive (non-overlapping).
-    Build an interface for assigning \textbf{exclusive labels} to products either through \textbf{uncertainty} or \textbf{random} sampling.\footnote{The final version of this interface was built by an employee of the client company, though earlier versions for displaying the results of classification / item similarity were implemented by the author.}
+    Build an interface for assigning \textbf{exclusive labels} to products either through \textbf{uncertainty} or \textbf{random} sampling.\footnote{The final version of this interface was built by an employee of the client company, though earlier versions for displaying the classification / similarity results were implemented by the author.}
   % \item Train a selection of models that had good performance as an ensemble, preferring model diversity over good performance. Evaluate this model on the rule-based test set as well as the ground truth dataset.
+  \item Train models on both the exclusive labels, and in a multi-objective manner where both the exclusive and rule-based labels are used. Evaluate whether multi-objective training improves accuracy over training just on the exclusive labels.
   \item Implement the active labelling mechanism defined in \ref{exp_al} and train a small selection of well-performing models in the following 3 settings: exclusive labels are either limited to random or uncertainty sampling (to determine the efficacy of active learning), or not limited (labels from random and uncertainty sampling are combined to have the largest training set).
   \item Document the results as well as the technical architecture and workflow.
 \end{itemize}
@@ -104,7 +105,8 @@ How these hypotheses were evaluated is described in the relevant subsections of 
 
 Given how pervasive  machine learning is becoming, it is crucial that there is discussion about the safety, transparency and bias of machine learning systems.
 There have already been cases of black box algorithms being used to make decisions that severely influence a person's life -  predicting reoffending probability  of convicts to determine  whether they are given parole - with terrible results.
-The model that was touted to be and objective substitute to a subjective judge has simply learnt that biases inherent to the data (the prejudices and racism of  the judges at the time):  it consistently underestimated reoffending rate of white convicts and overestimated the reoffending rate for black convicts \cite{propub}.
+The model that was touted to be and objective substitute to a subjective judge has simply learnt the biases in the data (the prejudices and racism of  the judges at the time).
+It consistently underestimated reoffending rate of white convicts and overestimated the reoffending rate for black convicts \cite{propub}.
 Even though the data did not contain explicit information about race, the algorithm  was capable of implicitly detecting race through some other variable that was correlated with race.
 
 Most data scientists will never build models with such severe consequences, but even more subtle decisions  made autonomously by algorithms  can prolong the  inequalities of our society by consistently favouring certain  characteristics such as race, gender, place of origin, etc.
@@ -116,7 +118,7 @@ One way to quantify the fairness of a binary classifier the p\%  rule, which set
 One way to overcome a classifier that seems to rely on some ``nuisance parameter'' (such as gender or race - even when the parameter is removed from the training data) is adversarial training \cite{quantfair} to ensure the model's output distribution does not depend on the sensitive parameter.
 
 A related concern to fairness is privacy: ensuring that a ML model does not leak its training data to an attacker that might orchestrate a large series of queries on the model.
-Each individual query might not reveal much, but with a large number of queries the attacker can see how the statistics of the output distribution changes; paired with an external dataset for cross-referencing or knowledge that a data point was added to the training set (e.g. someone answered a questionnaire), it is possible to recover some of the original data (though not necessarily with high fidelity or probability).
+Each individual query might not reveal much, but with a large number of queries the attacker can see how the statistics of the output distribution changes; paired with an external dataset for cross-referencing or knowledge that a data point was added to the training set, it is possible to recover some of the original data, though not necessarily with high fidelity or probability.
 A countermeasure is differential privacy, which can be applied to the data sharing process or at the algorithm level.
 Algorithms that are differentially private inject noise at the input, model or output level to ensure that the output distribution of the model does not change substantially with the inclusion or exclusion of a data point.
 

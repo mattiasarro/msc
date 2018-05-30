@@ -1,6 +1,8 @@
 \chapter{Background}
 \label{bg}
 
+In this chapter we look at the ways one can represent input data (section \ref{data_rep}), and which models might be used for different input modalities (section \ref{models_considered}). We consider ways to increase label efficiency with unsupervised (section \ref{unsup}), semi-supervised (section \ref{unsup}) and active learning (section \ref{bg_al}), and general approaches to effective machine learning (section \ref{bg_general}) as well as combining different models either through joint training or ensembling (section \ref{bg_ensembling}).
+
 \section{Input Representations}
 \label{data_rep}
 
@@ -13,12 +15,13 @@ However, in cases where vocabulary sizes get  large, and the number of outputs (
 An alternative is to use  random embeddings:  dense, low-dimensional representations of a high-dimensional vectors.
 It has been shown in compressed sensing literature that if a high-dimensional signal in effect lies on a low-dimensional manifold, then the original signal can be reconstructed from a small number of linear measurements \cite{compressive_sensing2}.
 This has a useful implication for machine learning: categorical variables with large vocabularies of size \textit{d}  can be  represented with  random embedding vectors of size $M = \log(d)$.
-This is because it is possible to reconstruct any d-dimensional k-sparse signal using at most $k  log{\frac{d}{k}}$ dimensional vectors \cite{compressive_sensing1}, and 1-hot vectors are 1-sparse (only one dimension is nonzero).
+This is because it is possible to reconstruct any d-dimensional k-sparse signal using at most $k  log{\frac{d}{k}}$ dimensional vectors \cite{compressive_sensing1}, and 1-hot vectors are 1-sparse, as only one dimension is nonzero.
 
-An intuitive example is given in \cite{compressive_sensing3} about natural images: a 1-million-pixel image could have roughly 20,000 edges\footnote{technically: wavelet coefficients with a significant power, which roughly corresponds to a superimposition of edges}, i.e. it lies in a roughly 20,000-dimensional manifold from which the original image can be constructed with high fidelity.
+An intuitive example is given in \cite{compressive_sensing3} about natural images: a 1-million-pixel image could have roughly 20,000 edges\footnote{Technically: wavelet coefficients with a significant power, which roughly corresponds to a superimposition of edges.}, i.e. it lies in a roughly 20,000-dimensional manifold from which the original image can be constructed with high fidelity.
 The 1-million-dimensional image could be projected into a M-dimensional space ``by taking M measurements of the image, where each measurement consists of a weighted sum of all the pixel intensities, and allowing the weights themselves to be chosen randomly (for example, drawn independently from a Gaussian distribution)''\cite{compressive_sensing3}.
 The projection is random because the weights for the sum of pixel intensities are chosen randomly.
-Why the projections need to be random is motivated by another intuitive example:  when light is shined on a 3-dimensional wireframe, its shadow is a 2-dimensional projection of it.
+Why the projections need to be random is motivated by another intuitive example.
+When light is shined on a 3-dimensional wireframe, its shadow is a 2-dimensional projection of it.
 The projection could lose some important information about the regional object if the direction of the light source is chosen poorly,  however random directions are likely to result in projections where every link of the wire will have a corresponding nonzero length of shadow.
 
 \subsection{Text Input}
@@ -32,9 +35,9 @@ Another common representation is bag of n-grams (\textbf{BonG}), which  is a his
 
 The above representations are sparse, like 1-hot encoding of categorical variables.
 Text can also be  represented as a sequence of \textbf{word embeddings}.
-Word embeddings can either be random vectors or representations  learned with word cooccurrence algorithms such as word2vec \cite{word2vec} and GloVe \cite{glove};  these representations can remain fixed throughout the learning procedure, or updated as part of the stochastic gradient descent (SGD) when applicable.
+Word embeddings can either be random vectors or representations  learned with word co-occurrence algorithms such as word2vec \cite{word2vec} and GloVe \cite{glove};  these representations can remain fixed throughout the learning procedure, or updated as part of the stochastic gradient descent (SGD) when applicable.
 A simple way to represent text is to average the word embedding contained in it.
-The  average could also be weighted by the TF-IDF score of each word\footnote{the author is unaware whether this has been tried before, but it seems a promising approach}.
+The  average could also be weighted by the TF-IDF score of each word\footnote{The author is unaware whether this has been tried before, but it seems a promising approach.}.
 In \cite{doc2vec}, paragraph vectors are created in a similar manner to word2vec vectors by relying on these vectors to predict the next word in a sentence.
 
 More complex methods use recurrent neural networks (\textbf{RNNs}) to combine a sequence of word embeddings  into a fixed length vector (see section \ref{rnn}).
@@ -406,6 +409,7 @@ In this framework, a base informativeness measure $\phi_A(x)$ such as uncertaint
 where $sim$ is some similarity function and $\beta$ controls the importance of the density term.
 
 \section{General Practices in Machine Learning}
+\label{bg_general}
 
 We briefly list some techniques and approaches that could be used for many kinds of machine learning problems.
 Some of these will be used in our experiments, yet some may not be pragmatic due to long train times and time constraints.

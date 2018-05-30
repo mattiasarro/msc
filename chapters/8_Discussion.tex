@@ -35,12 +35,16 @@ When its performance degraded once it was trained on a new dataset (that most li
 Training a large selection of deep and shallow models was a good way to get a sense of the capabilities of these models.
 The performance of linear models was lower than expected, but this is probably not a fair comparison, as the models were trained on the same sets of hyperparameters that were at least in part chosen to be suitable for deep models.
 In general the tools used (TensorFlow, Adam optimiser) may not be optimal for learning linear models, but considering the large difference of PR AUC between the two, there seem to be benefits to using deeper models.
-Of course the biggest problem in interpreting the PR AUC scores of the rule-based objective is that its labels were generated using a relatively simple automatic procedure which only considers text as its input.
+Contrary to our hypothesis, deep models with 1-hot / k-hot inputs did outperform shallow ones, but the difference in performance decreased when the models received a bigger selection of input features.
+This implies that deep models are indeed generalising better from a small set of inputs; for example, the deep model that received averaged word embeddings of the title continued to improve even at epoch 6, and received a remarkably better PR AUC score (0.93) than its linear counterpart (0.42, or 0.53 for linear with k-hot inputs).
+
+The biggest problem in interpreting the PR AUC scores of the rule-based objective is that its labels were generated using a relatively simple automatic procedure which only considers text as its input.
 Therefore a high PR AUC score shows us only how well the model was able to reproduce the behaviour of the rule-based system, but we are after good generalisation and consistent multi-objective performance.
+Therefore good results from title-only models should be taken with a grain of salt.
 We consider the classification problem to be a quite easy optimisation problem, however the power of more complex models might be better served when we are adding more training objectives (e.g. colour, style, conversion of products).
 
 Some patterns emerge from training this selection of models.
-For linear models, 1-hot and k-hot encoding always outperforms embedding inputs.
+For linear models, 1-hot and k-hot encoding always outperforms embedding inputs, which was contrary to our hypothesis.
 Deep models pre-trained on other objectives are quite consistent in their generalisation, producing strikingly similar PR AUC and recall scores whether it takes the title, description or image as input.
 Examining the true/false positives/negatives of individual classes reveals that these models are relatively good at predicting certain classes, yet fail to differentiate between more specific ones.
 
