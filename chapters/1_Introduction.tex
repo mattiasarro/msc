@@ -44,7 +44,7 @@ As neural networks are notoriously data-hungry, the question immediately becomes
 The client company gathers data from various affiliate networks (that in turn get their data from various retailers) and displays it on their website.
 There are millions of products belonging to roughly 1300 categories, and categories follow the usual nested tree structure.
 The incoming data is noisy and inconsistent: what kind of data is stored in which column varies across affiliate networks, across retailers within an affiliate network, and the data within a retailer can have lots of missing values, noisy text, missing images, etc.
-There is currently a rule-based system for assigning products to categories: all products matching a condition (e.g. title contains the word ``trousers'') will be assigned to that category, i.e. categories are not mutually exclusive.
+There is currently a rule-based system for assigning products to categories. All products matching a condition (e.g. title contains the word ``trousers'') will be assigned to that category, i.e. labels provided by the rule-based system are not mutually exclusive.
 This way of categorising products works relatively well on some categories, but such a rule-based system has several drawbacks: these rules are cumbersome to define, their evaluation is manual, they fail to match a large fraction of products that in principle should be in a given category, it is hard to trace back the rule that caused a false positive, and such rules are limited to textual data.
 
 The client needs a classification system to replace the old way of categorising products.
