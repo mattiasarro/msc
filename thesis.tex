@@ -56,11 +56,14 @@
     \blurb{Master's Thesis at KTH Information and Communication Technology
     \\      MSc Data Science (EIT Digital track)
     \newline
-    % \\Academic Examiner: Magnus Boman
-    % \\Academic Supervisor: Jim Dowling
-    % \\Industrial Supervisor: Abubakrelsedik Karali
+    \\Academic Examiner: Magnus Boman
+    \\Academic Supervisor: Jim Dowling
+    \\Industrial Supervisor: Abubakrelsedik Karali
     }
     \trita{2018}
+\usepackage{imakeidx}
+\makeindex[options=-s thesis]
+
 \begin{document}
 
 \frontmatter
@@ -71,10 +74,10 @@
 \maketitle
 \selectlanguage{english}
 
-% \begin{abstract}
-% \input{extras/abstract_en}
-% \end{abstract}
-% \clearpage
+\begin{abstract}
+\input{extras/abstract_en}
+\end{abstract}
+\clearpage
 
 % \begin{foreignabstract}{swedish}
 % \input{extras/abstract_se}
@@ -89,13 +92,11 @@
 
 \mainmatter
 
-% \listoffigures
-%
-% \newpage
-% \listoftables
+\listoffigures
 
 \newpage
-\input{extras/_abbreviations}
+\input{abbr}
+
 
 \pagenumbering{arabic}
 \pagestyle{newchap}
