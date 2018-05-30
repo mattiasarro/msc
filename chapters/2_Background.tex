@@ -58,10 +58,11 @@ Similarly to RNNs  encoding a sequence of words to a vector, 2D convolutional ne
 
 The following sections describes a selection of models that could be used for our classification task.
 This is by no means an exhaustive list, nor is it a selection that is expected to have the highest predictive performance individually.
-These models might become part of an ensemble, where diversity matters much more than the performance of any individual model.
-Engineering  considerations and time constraints also influence the selection of models: we did not want to spend time implementing nontrivial models from scratch, or to use many frameworks for training models.
+These models might become part of an ensemble or be trained jointly with other models, where diversity matters much more than the performance of any individual model.
+Engineering  considerations and time constraints also influence the selection of models.
+We did not want to spend time implementing nontrivial models from scratch, or to use many frameworks for training models.
 TensorFlow  is a widely used machine learning library with a good selection of open source models, in particular a selection of pre-trained models for computer vision and NLP, and has arguably the most mature deployment ecosystem.
-Therefore models that did not have an open source TensorFlow implementation were automatically excluded.
+Therefore models that did not have an open source TensorFlow implementation or a trivial implementation were excluded.
 
 Section \ref{general_models} describes models that can take categorical and text inputs, section \ref{text_models} looks at some neural models that take only text inputs, and section \ref{image_models} describes 2D CNNs that can classify or extract features from images.
 
@@ -106,7 +107,7 @@ Similarly to logistic regression, we have two cases: sigmoid activation for inde
 Wide and deep model was originally proposed for recommender systems \cite{wide_deep}, but can just as well be used for classification.
 In this model a deep network and a linear logistic regression model are trained jointly in the same SGD learning process, rather than trained separately and then ensembled.
 The wide component is good at remembering ``feature interactions through a wide set of cross-product feature transformation'' while the deep model provides good generalisation.
-In our experiments we did not use feature cross products of features.
+In our experiments we did not use cross products of features.
 
 \subsubsection{Loss Function and Optimizers}
 \label{loss}
@@ -133,6 +134,9 @@ The Wasserstein distance metric (also called earth mover distance) can be used i
 In our case the two distributions are the label distribution of a data point (1-hot / k-hot vector) and the class distribution predicted by the model.
 The optimal transport plan is weighted by a $KxK$ distance matrix, where $K$ is the number of classes and the entries in the matrix correspond to how dissimilar the classes are\footnote{Similarity is known \textit{a priori}, e.g. derived from WordNet hierarchy. It would be interesting to explore similarity matrices created using cosine distance of embedding vectors of categories; embeddings could be extracted with an RNN from the description of the category}.
 Intuitively, transporting probability mass from the category ``Coats'' to ``Earrings'' should be more expensive than from ``Coats'' to ``Jackets''.
+As there could be many acceptable transport plans that preserve the probability mass, an iterative algorithm needs to be used to find an approximately optimal one that also considers the different cost associated with transporting probability from one class to another.
+In \cite{wasserstein_loss} the Sinkhorn-Knopp algorithm with an entropic regularisation term is used as a relaxation of the exact but costly linear programming solution.
+This is still an expensive operation compared to cross-entropy or mean squared error, but should be manageable in the ~1000-dimensional space of categories, as opposed to 500x500-dimensional image space where it is often also applied.
 
 % TODO describe why we won't use this loss
 
@@ -143,8 +147,7 @@ Intuitively, transporting probability mass from the category ``Coats'' to ``Earr
 
 A simple convolutional architecture for text classification is described in \cite{1dcnn}.
 Pre-trained $k$-dimensional word vectors are concatenated to represent a sentence, and a filter is $w \in R^{hk}$ is applied to a window of $h$ words at each possible window of words in a sentence; this gives a single variable-length feature vector representing the sentence.
-Several such filters are learned (each with potentially a different width $h$), and max-over-time pooling is applied to these feature maps; this gives a vector of the highest activations from each filter, which is then passed to a fully-connected softmax layer for final classification (in the case of multi-class classification).
-For multi-label classification, the final layer would be a fully-connected layer of sigmoid activations.
+Several such filters are learned (each with potentially a different width $h$), and max-over-time pooling is applied to these feature maps; this gives a vector of the highest activations from each filter, which is then passed to a fully-connected softmax or sigmoid layer for final classification.
 
 This simple architecture should be able to predict output classes reasonably.
 Each filter can indicate the presence of a a sequence of $h$ words; max-pooling discards information about where exactly in the text it appeared, and ensures the output is of a fixed length.
@@ -153,9 +156,9 @@ The relatively small number of shared parameters requires less training data tha
 Using pre-trained word embeddings further simplifies the task, as these already carry some information about the meaning or syntactic role of words.
 
 More sophisticated architectures can be built using 1D CNNs, although not used in our experiments.
-Most notably, several layers of convolutions (each optionally followed by pooling) can be stacked, where the following layer works on the feature maps output by the previous layer.
+Most notably, several layers of convolutions and pooling can be stacked, where the following layer works on the feature maps output by the previous layer.
 The model described above uses a stride and dilation of 1, but multi-layer architectures where the higher layers have use exponentially increasing dilation are able to expand the receptive field of the model, and as a result aggregate ``contextual information from multiple scales'' \cite{dilated}.
-Dilated convolutions were beneficial for semantic segmentation of images with 2D CNNs, but this increased receptive field has been useful for sequence-to-sequence models in NLP \cite{dilated_decoder}.
+Dilated convolutions were beneficial for semantic segmentation of images with 2D CNNs; increased receptive field has also been benefitial in sequence-to-sequence NLP models \cite{dilated_decoder}.
 
 \subsubsection{Recurrent Neural Networks}
 \label{rnn}
@@ -178,17 +181,17 @@ In the simplest case, the concatenation of the cell state $c$ and the hidden sta
 
 \subsubsection{Deep Averaging Network}
 
-Deep averaging networks are simple architectures where the embeddings of the input tokens (words, in our case) are averaged and fed through a deep network \ref{dan}.
-In fact, a deep model with embedding inputs is very similar to a deep averaging networks, the main difference is in the way the model is optimised.
+Deep averaging networks are simple architectures where the embeddings of the input tokens (words, in our case) are averaged and fed through a deep network \cite{dan}.
+In fact, a deep model with embedding inputs is very similar to a deep averaging networks, the main difference is in the way the model is optimised and regularised.
 We use the Universal Sentence Encoder \cite{uni_sent_enc} in our experiments, which is a deep averaging network pre-trained on a large text corpus.
 
 \subsection{Image Models}
 \label{image_models}
 
 2D CNNs are important historically - excellent results in computer vision revived interest and funding in deep learning - but also applicable to a wide range of problems.
-Computer vision CNNs tend to be complex models with millions of parameters and dozens (or even hundreds) of layers.
+Computer vision CNNs tend to be complex models with millions of parameters and hundreds of layers.
 It is very compute-intensive and time-consuming to search for new architectures, and the analysis of these is beyond the scope of this work.
-Our goal is to use a CNN that has a reasonable performance without incurring unreasonable overhead.
+Our goal is to use a CNN that has a reasonable performance with decent speed.
 
 The general architecture of a 2D CNN is as follows.
 Patches of feature extractors are convolved over the x and y axis of the image; these are often small, e.g. 3x3x$c$ patches that span all the $c$ channels of the image ($c=3$ for RGB images), and convolution could be strided.
@@ -208,20 +211,23 @@ Therefore pre-trained 2D CNNs can be used as feature extractors for various othe
 \subsubsection{Item Similarity}
 \label{bg_sim}
 
-Similarity measures based on tokenised text are easily accessible to e-commerce companies: the popular open source NoSQL database ElasticSearch (which makes use of Lucene, a full-text search engine) provides document similarity metrics that are some combination of normalised TF-IDF vectors between all documents and a query (which could be another document).
+Similarity measures based on tokenised text are easily accessible to e-commerce companies.
+The full-text search engine Lucene is at the core of the popular open source NoSQL database ElasticSearch (ES).
+ES provides document similarity metrics that are some combination of normalised TF-IDF vectors between all documents and a query, which could be another document.
 This gives decent results in many cases, but it does not take advantage of a product image.
 
 Embeddings extracted with a deep network can be viewed as a distributed representation of the original data, which carries semantic meaning \cite{distributed_reps}.
 In the contrived examples of distributed representations, each dimension would represent the degree to which a property (e.g. of shape or colour) is present of an object, however the dimensions are not necessarily so nicely disentangled in the representations learned by deep networks\footnote{The author has not seen strong evidence in literature to support either case, but at least in \cite{towards} extra steps had to be taken to \textit{prevent} certain latent variables from encoding properties of the data that were designed to be captured by other latent variables. This implies that by default, each latent variable contains a little bit of information about each aspect of the input, and that the whole pattern of the embedding matters for conveying semantic information}.
-Still, it is clear that such dense representations help linear models do accurate predictions, and semantically similar data points will have similar embedding vectors.
+Still, semantically similar data points will have similar embedding vectors, which help shallow models make accurate predictions.
 
-Therefore we can compare any two embedding vectors (extracted with the same neural network) using standard vector space similarity measures, such as cosine similarity (1 - normalised dot product between the vectors).
+Therefore we can compare any two embedding vectors extracted with the same neural network using standard vector space similarity measures, such as cosine similarity (1 - normalised dot product between the vectors).
 Such embeddings can be extracted from product images with 2D CNNs pre-trained on another task, 1D CNNs or RNNs on product title and descriptions, or from the joint embeddings described in section \ref{bg_ensembling}.
 With large numbers of products, calculating pairwise similarity scores becomes intractable, therefore approximate nearest neighbour methods could be used \cite{nmslib}.
 
 Another interesting method of computing similarity scores between documents utilises the full-text search capability of tools such as Lucene, which would be valuable to firms already using such technologies.
 The embedding vectors of products could be tokenised, by converting each dimension of each embedding vector into tokens that represent the feature with some precision \cite{vec_fulltext}.
-For example, we could consider two levels of precision and divide the normalised feature into 10 intervals of size 0.1 and 100 intervals of size 0.01; each product would get two tokens per embedding dimension\footnote{It would be a good idea to also have some wider overlapping intervals as well, e.g. 0 ... 0.5}.
+For example, we could consider two levels of precision and divide the normalised feature into 10 intervals of size 0.1 and 100 intervals of size 0.01; each product would get two tokens per embedding dimension.
+It would be a good idea to also have some wider overlapping intervals as well, e.g. 0 ... 0.5.
 For example, if the first embedding dimension is 0.46, the inserted tokens would be d1\_0.4 and d1\_0.46.
 Full-text search engines would assign higher scores to co-occurrences in the more precise tokens and lower scores to co-occurrences in more coarse token.
 
@@ -233,14 +239,14 @@ These are briefly described here to motivate our focus on models that obtain den
 
 Models that deal exclusively with deep embeddings \cite{mvdl} require huge amounts of user-product feedback pairs, therefore the more interesting solutions are ones which work together with classical methods such as matrix factorisation (MF).
 MF finds - purely from the implicit or explicit feedback users give to items - vectors of latent factors that represent each user's preferences and each item's ``qualities''; the inner product between a user's and item's latent factors gives a score of compatibility between the two.
-Deep models can augment the item latent factors by injecting the embeddings learned for another task
+Deep models can augment the item latent factors by injecting the embeddings learned for another task.
 The main difference in these methods is how the deep embeddings are merged into MF, and how the deep embeddings are obtained in the first place.
 In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature learning of item data, while \cite{dl_mf} uses simply visual embeddings extracted from a 2D CNN pre-trained on ImageNet.
 
 \section{Unsupervised and Semisupervised Learning}
 \label{unsup}
 
-This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve sample complexity.
+This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve label complexity.
 Generic semi-supervised methods such as self-training are not considered, as one of our goals is to learn good representations, but also because these methods can reinforce poor predictions or do not make full use of all available unlabelled data.
 
 Some generic methods can still improve the representations learned by our models when applied to models that learn deep embeddings in order to make predictions.
@@ -252,22 +258,22 @@ The teacher's predictions are higher-quality than the student's (and can be appl
 \subsection{Autoencoders \& Variational Autoencoders}
 
 Deep autoencoders (AEs) can be used to learn low-dimensional representations of inputs.
-Many variants exist,  but  the general pattern is to have an ``hourglass-structured'' neural network where the first half of the model shrinks the input, and the second half of the network reconstructs the original input.
+Many variants exist,  but  the general pattern is to have an ``hourglass-structured'' neural network where the first half of the model shrinks the input, and the second half of the network reconstructs it.
 Activations in the middle layer correspond to a dense embedding of the sample;  the shrinking layers need to  throw away some of the detail in the input, yet persists enough for the expanding layers to be able to reconstruct the original input with some fidelity.
 The embedding contains information that is mostly unique to the data point, while the parameters of the encoding and decoding layers ensure that the reconstructed input is realistic.
 It is common to add noise (Gaussian, dropout) to the input or the intermediate layers to increase resilience to noisy inputs and to prevent the autoencoder simply memorising each data point.
 
 If the bottleneck layer is unconstrained, it will use a wide range of values to represent different inputs.
 We would like embedding for similar inputs to also be similar, which is not always the case for ordinary autoencoders.
-Variational autoencoders (VAEs) impose a prior distribution on the values of the embedding, often a multivariate Gaussian distribution with a diagonal covariance matrix, and the model is regularised during training to respect this prior.
-The model is optimised to minimise the reconstruction loss and KL divergence between the model's distribution $z$ and the prior on it, which can be computed just from $\mu$ and $\sigma$ if the prior is a isotropic standard normal.
+Variational autoencoders (VAEs) impose a prior distribution on the values of the embedding $z$, often a multivariate Gaussian distribution with a diagonal covariance matrix, and the model is regularised during training to respect this prior.
+The model is optimised to minimise the reconstruction loss and KL divergence between the model's distribution of and the prior on it, which can be computed just from $\mu(z)$ and $\sigma(z)$ if the prior is a isotropic standard normal.
 Enforcing the prior also means that the embeddings $z$ will occupy a smooth, contiguous space, which allows us to draw samples from the prior $\epsilon \sim \mathcal{N}(0, 1)\,$ and use that as the input to the decoder - this gives us a generative model, which would not be possible with ordinary autoencoders.
 The output of the VAE is also probabilistic: e.g. for images, the output for a pixel would be a Gaussian distribution, which is sampled the same way as the Gaussians for $z$.
 
 The VAEs described here are probabilistic models parameterised by neural networks for approximating the true posterior $p(z|x)$, since the exact posterior is intractable.
 In practice, VAEs add an extra loss term (KL divergence) to AEs, and additional step to determining the embedding $z$.
-There are two separate neural network layers from the bottleneck layer of the AE:  one for determining $\mu$ (the vector of means of the multivariate Gaussian), and one for determining $\sigma$ (the vector of standard deviations of the multivariate gaussian).
-Given $\mu$ and $\sigma$, we can sample the final item embedding $z \sim \mathcal{N}(\mu,\,\sigma^{2})\,$.
+There are two separate neural network layers from the bottleneck layer of the AE:  one for determining $\mu(z)$ (the vector of means of the multivariate Gaussian), and one for determining $\sigma(z)$ (the vector of standard deviations of the multivariate gaussian).
+Given $\mu(z)$ and $\sigma(z)$, we can sample the final item embedding $z \sim \mathcal{N}(\mu,\,\sigma^{2})\,$.
 Note that sampling of $z$ is a discrete decision that would normally stop gradient from propagating past this step, but we can use the reparametrisation trick introduced by \cite{vae} that turns the discrete decision into a deterministic function of $z = \mu + \sigma\epsilon$, where $\epsilon \sim \mathcal{N}(0, 1)\,$ is a random auxiliary noise parameter.
 
 
@@ -275,7 +281,7 @@ Note that sampling of $z$ is a discrete decision that would normally stop gradie
 \label{gans}
 It is easier for linear models to learn from embeddings extracted with AEs, and embeddings from VAEs make the classes even easier to separate.
 These are unsupervised methods that do not take advantage of labels in the training data.
-In the semisupervised approach introduced by \cite{semi_vae} there are two inference networks: a discriminative classifier that outputs a categorical distribution from the input $x$, and a class-conditional encoder that takes as input both $x$ and the 1-hot encoded categorical label $y$\footnote{class-conditional encoder means that the encoder is aware of the class of the data point, i.e. the output distribution $z$ is conditioned on the class $y$ in addition to the original input $x$}.
+In the semisupervised approach introduced by \cite{semi_vae} there are two inference networks: a discriminative classifier that outputs a categorical distribution from the input $x$, and a class-conditional encoder that takes as input both $x$ and the 1-hot encoded categorical label $y$\footnote{Class-conditional encoder means that the encoder is aware of the class of the data point, i.e. the output distribution $z$ is conditioned on the class $y$ in addition to the original input $x$.}.
 The model is trained on both labelled and unlabelled data.
 For labelled examples, the $x$ and $y$ are given as input to the model, which embeds it in $z$ as described earlier, and reconstructs the original $x$.
 The value of $y$ is unknown for unlabelled data points; therefore the model is run $|y|$ times, encoding and decoding the data point conditioned on each possible class $i$; loss from these runs is averaged, weighted by the discriminator's estimate of the sample belonging to class $i$.
