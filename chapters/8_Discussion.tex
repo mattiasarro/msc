@@ -27,7 +27,7 @@ Perhaps the inherent discrete nature of language (sentences, words, topics as op
 Choosing a relatively complex model such as Wide \& Deep as a baseline model can be criticised: a baseline should be simple and interpretable.
 One of the justifications was the ability to turn some part of the model off, as removing all deep input columns would have resulted in a linear model and vice versa; eventually it was easier to have separate model types (deep, linear, wide \& deep).
 The other intuition was drawn from models with skip connections such as ResNets \cite{resnet} and DenseNets \cite{densenet}.
-The assumption was that linear models are relatively good at predicting the output, as the relevant word tokens would be present in the textual fields of many products; for a deep model to use this raw knowledge, it would need to learn an identity function from the input of the layer to the output, which can be a hard problem with some loss functions.
+The assumption was that linear models are relatively good at predicting the output, as the relevant word tokens would be present in the textual fields of many products; for a deep model to use this raw knowledge, it would need to learn an identity function from the input of the layer to the output, which can be a hard problem with some activation functions.
 Therefore, a linear layer with the same input as the deep layer could be justified to simplify learning for such simple cases, though not necessarily as the first ``baseline''.
 Overall Wide \& Deep performed very well, though it is hard to compare its PR AUC to the other models, which were trained and evaluated on twice the amount of data.
 When its performance degraded once it was trained on a new dataset (that most likely had mixed up image embeddings of some products), its drawback became apparent: we had no clue which of the input features were most responsible for good or bad performance.
@@ -88,7 +88,7 @@ Different training regimes could still be tried to stabilise multi-objective lea
 A separate question is how to phase out the old rule-based system that the client company wishes to replace.
 As the rule-based system would stop producing labels, any new products would be unlabelled according to it.
 This would happen more often than one might think due to the way the data import process happens.
-The most likely solution is to create an interface for mass-labelling of products: present the labeller pages with hundreds of products it thinks belong to a category, and have them confirm the page or pick out incorrect predictions.
+The most likely solution is to create an interface for mass-labelling of products: present the labeller pages with hundreds of products that are predicted to belong to a category, and have them confirm the page or pick out incorrect predictions.
 This way we create a large number of high-quality labels with relatively little effort.
 
 \section{Active Learning}
