@@ -17,7 +17,7 @@ Complex models are prone to overfitting and require more training data and heavi
 The naive conclusion is to use deep learning only when labeled data is abundant, but the depth of a model is not a binary ``deep vs shallow'' decision - one can start out with a shallow model and increase model complexity to see the effects on performance and generalisation.
 Logistic regression might well be the most appropriate model for a classification problem, but this is often not obvious up front, so it is beneficial to build models in a framework that also supports deep models.
 In addition to easy experimentation with model architectures, it is easy to do transfer learning with deep models on popular platforms: image or text models pretrained on large datasets can be utilised to increase product classification performance, and representations learned for classification could in turn be used by a downstream product recommender system.
-Datasets with abundant unlabeled data can benefit from unsupervised and semisupervised learning using deep generative models.
+Datasets with abundant unlabeled data can benefit from unsupervised and semi-supervised learning using deep generative models.
 
 %  balancing between predictive performance, label complexity, transfer learning capabilities
 % It is not immediately obvious  which kind of model should one use for a given task and dataset.
@@ -136,7 +136,7 @@ Many directions for data-efficient learning are described in the theory section,
 \section{Outline}
 
 The following report is organised as follows.
-The required theoretical background is covered in section \ref{bg}: the different ways to represent input, various neural network models that could be used, unsupervised and semisupervised learning methods, joint training, ensembling and active learning.
+The required theoretical background is covered in section \ref{bg}: the different ways to represent input, various neural network models that could be used, unsupervised and semi-supervised learning methods, joint training, ensembling and active learning.
 In section \ref{meth} we describe the system architecture and technical set-up, how categories are handled, and all the experiments that were conducted along with results.
 A more speculative and subjective analysis of the results is presented in section \ref{disc}.
 A summary of the work is presented in section \ref{sum}.

@@ -243,7 +243,7 @@ Deep models can augment the item latent factors by injecting the embeddings lear
 The main difference in these methods is how the deep embeddings are merged into MF, and how the deep embeddings are obtained in the first place.
 In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature learning of item data, while \cite{dl_mf} uses simply visual embeddings extracted from a 2D CNN pre-trained on ImageNet.
 
-\section{Unsupervised and Semisupervised Learning}
+\section{Unsupervised and Semi-supervised Learning}
 \label{unsup}
 
 This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve label complexity.
@@ -281,7 +281,7 @@ Note that sampling of $z$ is a discrete decision that would normally stop gradie
 \label{gans}
 It is easier for linear models to learn from embeddings extracted with AEs, and embeddings from VAEs make the classes even easier to separate.
 These are unsupervised methods that do not take advantage of labels in the training data.
-In the semisupervised approach introduced by \cite{semi_vae} there are two inference networks: a discriminative classifier that outputs a categorical distribution from the input $x$, and a class-conditional encoder that takes as input both $x$ and the 1-hot encoded categorical label $y$\footnote{Class-conditional encoder means that the encoder is aware of the class of the data point, i.e. the output distribution $z$ is conditioned on the class $y$ in addition to the original input $x$.}.
+In the semi-supervised approach introduced by \cite{semi_vae} there are two inference networks: a discriminative classifier that outputs a categorical distribution from the input $x$, and a class-conditional encoder that takes as input both $x$ and the 1-hot encoded categorical label $y$\footnote{Class-conditional encoder means that the encoder is aware of the class of the data point, i.e. the output distribution $z$ is conditioned on the class $y$ in addition to the original input $x$.}.
 The model is trained on both labelled and unlabelled data.
 For labelled examples, the $x$ and $y$ are given as input to the model, which embeds it in $z$ as described earlier, and reconstructs the original $x$.
 The value of $y$ is unknown for unlabelled data points; therefore the model is run $|y|$ times, encoding and decoding the data point conditioned on each possible class $i$; loss from these runs is averaged, weighted by the discriminator's estimate of the sample belonging to class $i$.
@@ -293,7 +293,7 @@ The discriminator's loss is optimised as part of the VAE's loss function, which 
 The approach was developed and tested on the MNIST dataset, which consists of 28x28 grayscale images - a very simple dataset by today's standards.
 Some reports have emerged that fail to reproduce this success on more complex datasets such as CIFAR-10, being outperformed even by PCA \cite{vae_bad}.
 
-One related approach is offered by \cite{towards}, where a class-conditional VAE is used to generate synthetic data for a discriminator network, which has reportedly a higher accuracy in semisupervised setting than the approach described just above.
+One related approach is offered by \cite{towards}, where a class-conditional VAE is used to generate synthetic data for a discriminator network, which has reportedly a higher accuracy in semi-supervised setting than the approach described just above.
 They use it for conditional text generation, but this approach of using the class-conditional VAE to synthesise training data to train a discriminator is applicable to any input modality.
 In fact the general approach to ``dreaming up'' new training samples in the \textit{sleep phase} and training the classifier in the \textit{wake phase} was introduced already in \cite{wake_sleep}.
 The current author has implemented this model and open sourced it\footnote{https://github.com/mattiasarro/seq2seq-cvae-tensorflow}.
@@ -332,16 +332,17 @@ This would be an engineering challenge due to the different ways these model req
 In our case this would be clearly an overkill, but it would be an interesting research problem to examine whether joint training has advantages over ensembling in cases where we have different views of the data (in terms of considering different input dimensions or processing the inputs differently).
 As mentioned in the Wide \& Deep paper \cite{wide_deep}, the wide component of the model has to just handle cases where the deep component falls short, and can therefore be simpler than it would need to be in an ensemble; analogously, jointly training different kinds of models neural networks would allow each component to be simpler.
 
-One of the motivations for picking mostly deep neural networks as our ensemble components was their transfer learning capability: they all produce a dense feature vector (embedding) from which separate logistic regressions predict the class.
+One of the motivations for picking mostly deep neural models was their transfer learning capability.
+They all produce a dense embedding vector from which separate logistic or multinomial regressions predict the class.
 While it is useful to have separate embeddings for images, text and categorical variables, we would also like to have a compound embedding of each product.
 A simple concatenation of all individual embeddings could be a useful (albeit a quite high-dimensional) representation to be used in downstream models.
 Alternatively, we could use this concatenation as an input to a neural network, whose goal is to (1) reduce its dimensionality by removing redundant information and (2) predict the output classes from this compressed embedding.
-The latter case could act as a kind of a (replacement for) the meta-learner, with the difference that it takes the penultimate (as opposed to the final) layer of each individual model as input.
+The latter case could act as a replacement for the meta-learner, with the difference that it takes the penultimate (as opposed to the final) layer of each individual model as input.
 
 A related idea is \textbf{multi-objective learning}, where a neural network is trained to predict multiple aspects about the training data.
 In our setting we can consider the rule-based multi-label objective and the hand-assigned exclusive labels as separate training objectives; we might add additional training objectives that predict colour (multi-label) or conversion (binary).
 When using feedforward networks for multi-objective learning, the lower layers are usually shared among the objectives, and the top layers are specific to each training objective.
-It has been shown repeatedly that when the training objectives are somewhat related, then adding an additional objective increases the prediction accuracy across the other objectives.
+It has been shown repeatedly that when the training objectives are somewhat related, then adding an additional objective increases the prediction accuracy across the other objectives \cite{}.
 When implementing multi-objective training, care must be taken not to influence the parameters that are specific to another objective.
 
 
@@ -438,7 +439,8 @@ Gradient clipping has been proposed to alleviate the vanishing and exploding gra
 There are roughly 4 ways of choosing hyperparameters (parameters that are not explicitly learned from the data): manual, grid search, random search and (Bayesian) optimisation.
 Some manual choices are done in any case, as one still needs to decide on the intervals for the hyperparameters.
 Grid search, where all combinations of (discretised intervals of) hyperparameters is tried, is not scaleable, as the number of possible sets of hyperparameters grows combinatorially; a poor choice of intervals for continuous hyperparameters might miss the ``sweet spot'' for the given parameter, and the model would still need to be evaluated several times for a hyperparameter which has nearly no effect on model performance.
-In random search, sets of hyperparameters are sampled uniformly randomly from the given ranges, which is a more efficient use of compute power: since each hyperparameter has a distinct value at each train run, this reveals more about how the model's performance changes with respect to all hyperparameters.
+In random search, sets of hyperparameters are sampled uniformly randomly from the given ranges, which is a more efficient use of compute power.
+Since each hyperparameter has a distinct value at each train run, this reveals more about how the model's performance changes with respect to all hyperparameters.
 
 The fourth option considers the set of hyperparameters as an input and the model's validation performance as an output to be optimised.
 As sampling from this objective function is very expensive - it involves training a neural network until convergence - we need an approach that can explore the space of values efficiently.
