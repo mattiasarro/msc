@@ -28,10 +28,10 @@ These labeled triplets can be ranked using with similarity precision (percentage
 Creating this dataset of triplets would be a very time-consuming process. Therefore evaluation was done entirely subjectively.
 
 Comparing the similarity between the former ElasticSearch title (ES title) matching and the new approximate nearest neighbour (ANN) search was straightforward - one look at the results was enough to confirm that the embedding-based approach outperforms title matching.
-Figures \ref{shirt_es} and \ref{shirt_nmslib} show the nearest neighbours according to ES title and ANN, respectively; the image embeddings nicely pick up the pattern on the shirt, as well as the general style, but also seems to prefer pictures with no fashion model.
+Figures \ref{shirt_es} and \ref{shirt_nmslib} show the nearest neighbours according to ES title and ANN, respectively; the image embeddings nicely pick up the pattern on the shirt, as well as the general style.
 For some clothing categories this worked remarkably well, but with categories that had more varied products within it, there were occasional odd results.
 For example, in the ``Hiking'' category, the nearest neighbours of sleeping bags could be items with seemingly similar shapes, such as a flashlight that a very zoomed-in product photo that had similar contours as an unrolled sleeping bag.
-Another example of this is given in figure \ref{chair_nmslib}, which mostly returns chairs that are indeed visually and even functionally very similar to the chair in question - more so than the ElasticSearch title match seen in \ref{chair_es} - but also returns tables with similar legs; this is understandable, given that nearly half of the surface area of these images is covered by these foldable legs, which are visually quite unique.
+Another example of this is given in figure \ref{chair_nmslib}, which mostly returns chairs that are indeed visually and even functionally very similar to the chair in question - more so than the ElasticSearch title match seen in \ref{chair_es} - but also returns tables with similar legs; this is understandable, given that nearly half of the surface area of these images is covered by these foldable legs.
 This problem can mostly be mitigated by having more fine-grained product categories and restricting the nearest neighbour search to those more specific categories.
 The nearest neighbour similarity search may pick up qualities of the image that are not related to the product in question, such as background or fashion model; this is un-intended but is acceptable, and it could be argued creates a product listing which is more homogenous and therefore more aesthetically pleasing.
 
@@ -39,7 +39,6 @@ The second approach of discretised and tokenised image embeddings had mixed resu
 The returned nearest neighbours were reasonable, but subjectively felt inferior to the ones computed from the raw image embeddings using ANN.
 At times it felt like some aspect of the appearance dominated, which is understandable considering a lot of precision is lost when discretising the embeddings, and there is no theoretical justification why a TF-IDF score of these arbitrarily discretised tokens should behave similarly as a dot product between the original vectors.
 With enough precision (using several discrete intervals per embedding dimension) this may well work, but this would incur a considerable performance overhead when indexing and querying.
-A hybrid approach was also attempted, where the tokenised version is used to come up with a small set of candidate nearest neighbours, which are used for a precise nearest neighbour calculation; the latter was implemented as an ElasticSearch plugin that performed dot products on the raw embedding vectors, but this was not a scaleable solution and did not subjectively lead to particularly good similarity results.
 
 The third approach of combining the existing title matching and discretised and tokenised vectors was somewhat successful.
 As seen in figure \ref{chair_tokenised}, the title matching ensures that top results are at least about the same kind of items (chairs) while the tokenised embedding query returns products that share some visual similarity (mostly the legs of the chair).
@@ -82,22 +81,19 @@ Given that there was no efficient way to evaluate the different weightings, it w
 \label{exp_models}
 
 Several models were trained on the rule-based labels to find out which models can best replicate its behaviour.
-We first describe the first model that was trained as a baseline.
+We first describe the Wide \& Deep model that was trained as a baseline.
 Then the different input features and how these were represented are described, along with how linear and deep models were trained from these input representations.
-The final section describes how hyperparameters were selected, and two attempts at tuning these programmatically.
-
 
 \subsection{Baseline Model: Wide \& Deep}
 \label{widedeep}
 
-As described in section \ref{bg_wide_deep} ``Wide \& Deep'' consists of two models that are trained jointly using stochastic gradient descent: a deep and a shallow neural network which both predict the same set of binary outputs.
+As described in section \ref{bg_wide_deep}, the ``Wide \& Deep'' model consists of two models that are trained jointly using stochastic gradient descent: a deep and a shallow neural network which both predict the same set of binary outputs.
 The original idea of Wide \& Deep was to use the wide component for feature crosses (e.g. of two categorical values), but in our experiments the wide component received mostly just the 1-hot encoded categorical inputs while the wide component received the same inputs as random embeddings (or as pre-computed image embeddings extracted with Inception V3 that is pre-trained on ImageNet).
 
 Initial experiments with this model were done on a dataset of roughly 800 000 products which were labeled by the rule-based system\footnote{The database in the client company was in constant flux, so the training set sizes depended on how many labels the rule based-system had assigned to the current database}.
 The data was partitioned into a train (\textasciitilde80\%), validation (\textasciitilde10\%) and test (\textasciitilde10\%) sets in the Dataflow preprocessing pipeline based on a pseudorandom number generator - assign the product in question to the dataset if the random number is in the range 0 ... 0.8, 0.8 ... 0.9, 0.9 ... 1.
-This allowed us to use parallel data preprocessing where workers do not need to be aware of the index of the data point it is processing or what the other workers are doing; due to the randomness the dataset split boundaries will not be exact (e.g. test and validation sets may end up with 12\% and 8\% of products), but this is acceptable given the relatively large dataset size.
 The train set was used to train the model, and the validation set was used to evaluate the model periodically as it was trained - during individual training runs and during hyperparameter tuning.
-The test set was held out for evaluating the model after hyperparameter tuning, but was not used in this case.
+The test set was held out for evaluating the model after hyperparameter tuning, but was not used due to the low variance in validation set error during the different tuning rounds.
 
 \subsection{Input Representation \& Model Type Combinations}
 \label{model_comb}
@@ -143,11 +139,7 @@ Precision and recall are useful measures to understand the model: it is expected
 Precision and recall are competing metrics: increased precision tends to lead to decreased recall and vice versa, therefore models which combine the two are suitable for evaluating multi-label prediction problems with unbalanced classes.
 While F1 score gives the harmonic mean of precision and recall at a given threshold, PR AUC paints a more complete picture by showing what the ratio would be at all the threshold values\footnote{There are infinitely many threshold values in the range 0 ... 1, so naturally we consider a small number of threshold values when approximating AUC.}.
 Therefore, all evaluation of multi-label classification is based on PR AUC, i.e. when choosing between model architectures or hyperparameters, a model with a higher PR AUC is preferred.
-
-For \textbf{multi-class classification}, accuracy is still a reasonable measure.
-Even though classes are imbalanced (``Dresses'' has more products than ``Travel Books''), there is no single dominant class that could be used as a shortcut by the model.
-On the other hand, similar problems arise with evaluating multi-class problems where there is potentially overlap between some classes: the metric would give a low score even if the model predicted a semantically very similar class, or a more general class instead of the more specific one it was labelled as.
-Therefore a manual evaluation of the misclassified products is needed to determine whether the error rate is caused by the ambiguity of the classes or by problems with learning.
+Refer to \cite{prauc} for an explanation why PR AUC should be a preferred metric for highly imbalanced binary classification problems.
 
 \subsection{Results}
 
@@ -204,55 +196,67 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
 
 At the time of writing, there were roughly 1300 categories defined in the client database.
 Categories were structured in a way that is typical of  e-commerce:  categories can have  child categories, which in turn can have child categories, etc.
-In our case, the typical depth of the tree structure was five, i.e. a leaf category often had four parents;  naturally, the tree structure was not balanced, so many branches ended at depth three or four.
 
-Categories can be considered as independent (multi-label, sigmoid activation) or mutually exclusive (multi-class, softmax output layer).
+Categories can be considered as independent (multi-label, sigmoid activation) or mutually exclusive (multi-class, softmax output layer); the difference is shown on a Venn diagram in figure \ref{excl_ind}.
 The common way to handle this is to assume categories are mutually exclusive.
-With exclusive categories, assigning a label to a product determines its label across all categories, whereas with independent categories a positive label only determines the label across the category in question (and its ancestors in the category tree) - that is roughly a thousand-fold difference in labelling efficiency.
+With exclusive categories, assigning a label to a product determines its label across all categories, whereas with independent categories a positive label only determines the label regarding the category in question (and its ancestors in the category tree) - that is roughly a thousand-fold difference in labelling efficiency.
 The prediction task is also easier for exclusive classes - rather than needing to predict a probability score above a threshold separately for each class, the model would need to just assign the highest probability to the correct class compared to other classes.
 On the other hand, some categories at the client company are inherently ambiguous or even overlapping.
 The rule-based labels are also independent, since a product may be labelled to belong to zero or many categories.
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\linewidth]{figures/slides/excl_ind}
+  \caption{Exclusive (green) vs independent (yellow) categories. A product belonging to a mutually exclusive category would not belong to any other category (e.g. a jacket is never a wine), while a product can belong to many independent categories (e.g. the same jacket can be a bomber jacked as well as a leather jacket). }
+  \label{excl_ind}
+\end{figure}
+
 Bearing in mind the considerable efficiency gain in labelling, we mark a subset of the categories (1063) as ``exclusive''.
 Exclusive categories are usually leaves, but at times a higher-level category was marked as exclusive, denoting the more general case\footnote{e.g. if ``Books'', ``Books > Travel Books'' and ``Books > Cookbooks'' are all marked as exclusive, then the semantics of ``Books'' is actually ``Books that are not about travel or cooking''. This means some categories are not strictly exclusive, but we had to work around the existing category structure.}.
-Therefore we have two training objectives: a multi-label prediction of independent categories labelled by the rule-based system, and a multi-class prediction of exclusive categories labelled by the employees of the client company - respectively called the \textbf{rule-based} and \textbf{exclusive} training objectives.
+Therefore we have \textbf{two training objectives}: a multi-label prediction of independent categories labelled by the rule-based system, and a multi-class prediction of exclusive categories labelled by the employees of the client company - respectively called the \textbf{rule-based} and \textbf{exclusive} training objectives.
 
 We can not use the rule-based labels directly for training the exclusive objective; even if they share the same set of categories, the logits (the value before the softmax/sigmoid activation) of multi-class and multi-label classification behave differently, so we can not just copy the parameters learned from rule-based objective to the exclusive objective.
-We can either do multi-objective training where the neural network has two output layers: one for the exclusive and one for rule-based objective.
+We can either do multi-objective training where the neural network has two output layers: one for the exclusive and one for rule-based objective. % TODO multiobj model? or to intro
 Alternatively, we could convert the labels assigned by the rule-based system (which are inherently independent) into exclusive labels; we call this training objective \textbf{``exclusivised''\footnote{This word does not exist in dictionaries, but its meaning should be clear.}}.
 This would allow us to train with only a single training objective, where most labels are assigned using the rule-based system and ``exclusivised'', and a small number of labels comes from human labellers; this approach might have benefits as the output layer would receive far more examples compared to the exclusive objective in the multi-objective training scenario.
 To do that, we look at all the rule-based labels of a product that are applied to categories marked as exclusive.
 If there is only one such label assigned, as would be for most products, the label is already exclusive; if there are more than one such label, we can either insert the product to the training set twice (once for each label), or select a random label.
 We chose the latter approach.
 
-\label{label_imbalance}
-The labels provided by the rule-based system are only positive:  some products are labelled to belong to a given category, but many products that ought to belong to a category are not labelled  accordingly -  but their label still appears to be negative.
-This (which we call the \textbf{label imbalance} problem) only exacerbates the \textbf{class imbalance} problem (that most products do not belong to most categories).
-As a result the model trained on rule-based labels will certainly underestimate the likelihood of any product belonging to any category.
+% \label{label_imbalance}
+% The labels provided by the rule-based system are only positive:  some products are labelled to belong to a given category, but many products that ought to belong to a category are not labelled  accordingly -  but their label still appears to be negative.
+% This (which we call the \textbf{label imbalance} problem) only exacerbates the \textbf{class imbalance} problem (that most products do not belong to most categories).
+% As a result the model trained on rule-based labels will certainly underestimate the likelihood of any product belonging to any category.
 
 
 \subsection{Labelling of Exclusive Products}
 \label{labex}
 
 There were three purposes for labelling products: (1) creating a validation set, (2) creating an initial dataset for training the exclusive outputs so that reasonable uncertainty scores could be computed for active learning, and (3) labelling during active labelling rounds.
-There are three ways of picking products to be labelled: random sampling (a product is sampled randomly from all products that do not have an exclusive label), uncertainty sampling (the unlabelled product with the highest uncertainty score is chosen), and searching for a product manually using our web UI.
-Each label that gets persisted has the following metadata associated with it: the label type (\textit{random}, \textit{uncertainty} or \textit{searchFor}), created and modified at timestamps, and ``round''.
-Round is used to differentiate between labels from the initial labelling and the active labelling rounds; round 0 corresponds to the validation set, round 1 corresponds to the purpose (2) above, and rounds 2 ... n correspond to active labelling rounds.
+There are three ways of picking products to be labelled: random sampling (a product is sampled randomly from all products that do not have an exclusive label), uncertainty sampling (the unlabelled product with the highest prediction entropy is chosen), and searching for a product manually using our web UI.
+When saving a label, the relevant metadata about how it was obtained is also persisted to enable filtering out certain types of labels when running experiments.
 
 In the experiments of the following section, the validation set contained 509 randomly sampled products and 5439 products that were manually searched for; for training set the equivalent numbers were 509 and 5646.
 Initially random sampling was used to obtain labels for products, to avoid bias in gathering data only through title search.
 Yet this approach would have taken a long time to populate all categories in the validation set with products, therefore the labelling team went through each existing category one by one and added ~5 products to the test and validation set using title matching.
+
+% Each of the three datasets is represented by a separate set of tfrecords files; these were produced by Dataflow during the preprocessing stage described in section \ref{pp}.
+% Each objective had two sets of files that corresponded to the training and validation datasets.
+% For the rule-based objective, this was done based on random splitting; for the exclusive objective, this was done based on a boolean variable the human labeller could specify (``assign this product I am labelling to the train or validation set'').
+% The exclusivised validation set had the same products as the exclusive validation set, and the exclusivised train set contained all the ``exclusivised'' rule-based labels as well as all the labels from the exclusive train set; when both an exclusivised and manual exclusive label were available, the latter was used.
+% The train and test set sizes were as follows: rule-based (1.14M / 142K), exclusive (6K, 6.6K), exclusivised (1.24K, 6.6K).
+
+\subsection{Evaluation}
 
 
 As described in section \ref{cat_tree} we have three distinct training objectives: \textit{rule-based}, \textit{exclusive}, and a hybrid \textit{exclusivised}.
 The models described in the previous section were trained only on the rule-based objective.
 In this section we see how a performant models from the previous section performs when trained on the exclusive objective (from a small number of hand-assigned labels), how jointly training using both the rule-based and exclusive objective improves the accuracy of the exclusive objective, and how it compares to the ``exclusivised'' training objective.
 
-Each of the three datasets is represented by a separate set of tfrecords files; these were produced by Dataflow during the preprocessing stage described in section \ref{pp}.
-Each objective had two sets of files that corresponded to the training and validation datasets.
-For the rule-based objective, this was done based on random splitting; for the exclusive objective, this was done based on a boolean variable the human labeller could specify (``assign this product I am labelling to the train or validation set'').
-The exclusivised validation set had the same products as the exclusive validation set, and the exclusivised train set contained all the ``exclusivised'' rule-based labels as well as all the labels from the exclusive train set; when both an exclusivised and manual exclusive label were available, the latter was used.
-The train and test set sizes were as follows: rule-based (1.14M / 142K), exclusive (6K, 6.6K), exclusivised (1.24K, 6.6K).
+For the exclusive objective, which is an instance of \textbf{multi-class classification}, accuracy is a reasonable measure.
+Even though classes are imbalanced (``Dresses'' has more products than ``Travel Books''), there is no single dominant class that could be used as a shortcut by the model.
+On the other hand, similar problems arise with evaluating multi-class problems where there is potentially overlap between some classes: the metric would give a low score even if the model predicted a semantically very similar class, or a more general class instead of the more specific one it was labelled as.
+Therefore a manual evaluation of the misclassified products is needed to determine whether the error rate is caused by the ambiguity of the classes or by problems with learning.
 
 \subsection{Combining Data From Objectives}
 
