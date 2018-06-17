@@ -216,12 +216,28 @@ Exclusive categories are usually leaves, but at times a higher-level category wa
 Therefore we have \textbf{two training objectives}: a multi-label prediction of independent categories labelled by the rule-based system, and a multi-class prediction of exclusive categories labelled by the employees of the client company - respectively called the \textbf{rule-based} and \textbf{exclusive} training objectives.
 
 We can not use the rule-based labels directly for training the exclusive objective; even if they share the same set of categories, the logits (the value before the softmax/sigmoid activation) of multi-class and multi-label classification behave differently, so we can not just copy the parameters learned from rule-based objective to the exclusive objective.
-We can either do multi-objective training where the neural network has two output layers: one for the exclusive and one for rule-based objective. % TODO multiobj model? or to intro
+We can either do multi-objective training where the neural network has two output layers: one for the exclusive and one for rule-based objective (see figure \ref{multiobj_model} for a depiction of this multi-objective model).
 Alternatively, we could convert the labels assigned by the rule-based system (which are inherently independent) into exclusive labels; we call this training objective \textbf{``exclusivised''\footnote{This word does not exist in dictionaries, but its meaning should be clear.}}.
 This would allow us to train with only a single training objective, where most labels are assigned using the rule-based system and ``exclusivised'', and a small number of labels comes from human labellers; this approach might have benefits as the output layer would receive far more examples compared to the exclusive objective in the multi-objective training scenario.
 To do that, we look at all the rule-based labels of a product that are applied to categories marked as exclusive.
 If there is only one such label assigned, as would be for most products, the label is already exclusive; if there are more than one such label, we can either insert the product to the training set twice (once for each label), or select a random label.
 We chose the latter approach.
+
+
+\begin{figure}
+  \hspace{-20pt}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/slides/multi_objective_model_RB}
+\end{subfigure}%
+\hspace{20pt}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/slides/multi_objective_model_ex}
+\end{subfigure}
+\caption{A multi-objective model. Left: gradients (pink) when a rule-based label is present. Right: gradients (pink) when an exclusive label is present.}
+\label{multiobj_model}
+\end{figure}
 
 % \label{label_imbalance}
 % The labels provided by the rule-based system are only positive:  some products are labelled to belong to a given category, but many products that ought to belong to a category are not labelled  accordingly -  but their label still appears to be negative.
@@ -258,7 +274,9 @@ Even though classes are imbalanced (``Dresses'' has more products than ``Travel 
 On the other hand, similar problems arise with evaluating multi-class problems where there is potentially overlap between some classes: the metric would give a low score even if the model predicted a semantically very similar class, or a more general class instead of the more specific one it was labelled as.
 Therefore a manual evaluation of the misclassified products is needed to determine whether the error rate is caused by the ambiguity of the classes or by problems with learning.
 
-\subsection{Combining Data From Objectives}
+\subsection{Experiments \& Results}
+
+\subsubsection{Combining Data From Objectives}
 
 To train jointly for the rule-based and exclusive objectives, the data from the different datasets had to be combined.
 In the naive version, data from both datasets is loaded into memory and shuffled, but this would not work when we are also loading images or the dataset size grows.
@@ -275,7 +293,7 @@ This can be seen in figure \ref{pretrain}, where the training loss of the rule-b
 In this case it happened a late stage, when the model had trained for nearly 4 epochs' worth of data\footnote{Due to the way the input function that feeds data to the model is restarted every time the model is evaluated, there is no guarantee that all files/data points are accessed the same number of times. So it is possible the chunk with all the exclusive labels comes at a late stage or several times.}, and by that time the adaptive learning rate of Adam has already learned that the weights of the exclusive output layer are never updated, i.e. the next update should have a very strong learning rate.
 Now when the model sees all the exclusive labels at once, the gradients are big enough to affect the whole network, which is why the changes are visible even in the loss function of the rule-based objective; many other metrics (such as L2 regularisation loss and gradient norm) also grew sharply at the time step when exclusive and rule-based losses blew up.
 
-\subsection{Pretraining on the Rule-Based Objective}
+\subsubsection{Pretraining on the Rule-Based Objective}
 
 The initial plan was to pre-train the model on the rule-based objective, and then train jointly on both objectives.
 As seen on figure \ref{pretrain}, the training loss of the rule-based objective (blue) makes large periodical jumps, followed by periods of high-variance downwards fluctuation.
@@ -296,7 +314,7 @@ In figure \ref{pretrain} all the other parameters are the same as in \ref{nopret
   \label{nopretrain}
 \end{figure}
 
-\subsection{Exclusive, Exclusive \& Rule-Based, and Exclusivised Objectives}
+\subsubsection{Exclusive, Exclusive \& Rule-Based, and Exclusivised Objectives}
 
 Our real goal is to properly predict the exclusive objective.
 As is evident from figure \ref{ex_vs_joint}, the model trained with just the exclusive objective converges fast and improves little after the first epoch, while the stable multi-objective model continues to improve in accuracy after several epochs, surpassing the single-objective accuracy after about three epochs.
