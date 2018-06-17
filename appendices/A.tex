@@ -1,4 +1,108 @@
-\chapter{Screenshots}
+\chapter{Additional Background}
 
-\section{Dataprep Histogram}
-\label{dataprep}
+\section{Neural Models}
+
+\subsection{1D Convolutional Neural Networks}
+\label{1d_cnn_app}
+
+A simple convolutional architecture for text classification is described in \cite{1dcnn}.
+Pre-trained $k$-dimensional word vectors are concatenated to represent a sentence, and a filter is $w \in R^{hk}$ is applied to a window of $h$ words at each possible window of words in a sentence; this gives a single variable-length feature vector representing the sentence.
+Several such filters are learned (each with potentially a different width $h$), and max-over-time pooling is applied to these feature maps; this gives a vector of the highest activations from each filter, which is then passed to a fully-connected softmax or sigmoid layer for final classification.
+
+This simple architecture should be able to predict output classes reasonably.
+Each filter can indicate the presence of a a sequence of $h$ words; max-pooling discards information about where exactly in the text it appeared, and ensures the output is of a fixed length.
+The same filter $w$ is used across all possible word windows in the sentence, which can be seen as a form of parameter sharing (and as an infinitely strong prior over the parameters of the model \cite{dlb}), and enables processing variable-length sequences.
+The relatively small number of shared parameters requires less training data than an equivalent fully-connected architecture.
+Using pre-trained word embeddings further simplifies the task, as these already carry some information about the meaning or syntactic role of words.
+
+More sophisticated architectures can be built using 1D CNNs, although not used in our experiments.
+Most notably, several layers of convolutions and pooling can be stacked, where the following layer works on the feature maps output by the previous layer.
+The model described above uses a stride and dilation of 1, but multi-layer architectures where the higher layers have use exponentially increasing dilation are able to expand the receptive field of the model, and as a result aggregate ``contextual information from multiple scales'' \cite{dilated}.
+Dilated convolutions were beneficial for semantic segmentation of images with 2D CNNs; increased receptive field has also been benefitial in sequence-to-sequence NLP models \cite{dilated_decoder}.
+
+\subsubsection{Recurrent Neural Networks}
+\label{rnn_app}
+
+Recurrent neural networks (RNNs) are a family of models for processing sequential data.
+The sequence of inputs $x^{(1)} \dots x^{(t)}$ in our case are vectors of word embeddings, but there are other options for input representations (e.g. sequence of 1-hot encoded tokens, or vectors representing a multivariate time series at a given time step $t$).
+Vanilla RNNs maintain a hidden state vector $h$ which contains some information about the sequence it has seen so far, and is calculated from the input at the current time step $t$, and the previous hidden state:
+
+\begin{equation}
+  h^{(t)} = f(h^{(t-1)},x^{(t)})
+\end{equation}
+
+Vanilla RNNs suffer from the vanishing and exploding gradient problem in long sequences and are notoriously difficult to train.
+Probably the most widely used variant, the long short-term memory networks (LSTM) \cite{lstm} overcome this limitation by augmenting the network with a memory cell $c$; there is a learned gating mechanism that controls what part of (and the extent to which) the cell is forgotten, what gets persisted in the cell state, and what gets output at a given time step.
+An intuitive overview of the gating mechanisms is given by \cite{colah} and \cite{vanishing} describes well how this helps mitigate vanishing gradients.
+A simpler gating mechanism is offered by gated recurrent units (GRU) \cite{gru}, which has fewer parameters and works well on simpler tasks.
+
+We are interested in using RNNs as text encoders, though they are often used for sequence to sequence modelling, or for predicting an output at each time step.
+In the simplest case, the concatenation of the cell state $c$ and the hidden state $h$ at the last time step could be used as a representation of the sequence.
+
+\section{Unsupervised and Semi-supervised Learning}
+\label{unsup_appendix}
+
+This section explores ways in which unsupervised and semi-supervised learning can learn good feature representations and improve label complexity.
+Generic semi-supervised methods such as self-training are not considered, as one of our goals is to learn good representations, but also because these methods can reinforce poor predictions or do not make full use of all available unlabelled data.
+
+Some generic methods can still improve the representations learned by our models when applied to models that learn deep embeddings in order to make predictions.
+Entropy minimisation \cite{entropy_min} can be incorporated into models trained with SGD to encourage confident predictions of each class; this encourages the deep model to learn predictions that are strong predictors of some class and avoid producing features that produce mixed predictions.
+More complex but very performant approach is Mean Teacher \cite{mean_teacher}. A student that gets a harder task (such as predicting from a noisy/adversarial example), and a teacher that gets an easier task (i.e. the teacher model is an ensemble, which is more accurate).
+The student is trained on the prediction of the teacher; the teacher's parameters are an exponential moving average of the student's, updated after each minibatch.
+The teacher's predictions are higher-quality than the student's (and can be applied on unlabelled data), while the student tries to continuously learn to learn a predictor that is robust to noisy and adversarial examples.
+
+\subsection{Autoencoders \& Variational Autoencoders}
+
+Deep autoencoders (AEs) can be used to learn low-dimensional representations of inputs.
+Many variants exist,  but  the general pattern is to have an ``hourglass-structured'' neural network where the first half of the model shrinks the input, and the second half of the network reconstructs it.
+Activations in the middle layer correspond to a dense embedding of the sample;  the shrinking layers need to  throw away some of the detail in the input, yet persists enough for the expanding layers to be able to reconstruct the original input with some fidelity.
+The embedding contains information that is mostly unique to the data point, while the parameters of the encoding and decoding layers ensure that the reconstructed input is realistic.
+It is common to add noise (Gaussian, dropout) to the input or the intermediate layers to increase resilience to noisy inputs and to prevent the autoencoder simply memorising each data point.
+
+If the bottleneck layer is unconstrained, it will use a wide range of values to represent different inputs.
+We would like embedding for similar inputs to also be similar, which is not always the case for ordinary autoencoders.
+Variational autoencoders (VAEs) impose a prior distribution on the values of the embedding $z$, often a multivariate Gaussian distribution with a diagonal covariance matrix, and the model is regularised during training to respect this prior.
+The model is optimised to minimise the reconstruction loss and KL divergence between the model's distribution of and the prior on it, which can be computed just from $\mu(z)$ and $\sigma(z)$ if the prior is a isotropic standard normal.
+Enforcing the prior also means that the embeddings $z$ will occupy a smooth, contiguous space, which allows us to draw samples from the prior $\epsilon \sim \mathcal{N}(0, 1)\,$ and use that as the input to the decoder - this gives us a generative model, which would not be possible with ordinary autoencoders.
+The output of the VAE is also probabilistic: e.g. for images, the output for a pixel would be a Gaussian distribution, which is sampled the same way as the Gaussians for $z$.
+
+The VAEs described here are probabilistic models parameterised by neural networks for approximating the true posterior $p(z|x)$, since the exact posterior is intractable.
+In practice, VAEs add an extra loss term (KL divergence) to AEs, and additional step to determining the embedding $z$.
+There are two separate neural network layers from the bottleneck layer of the AE:  one for determining $\mu(z)$ (the vector of means of the multivariate Gaussian), and one for determining $\sigma(z)$ (the vector of standard deviations of the multivariate gaussian).
+Given $\mu(z)$ and $\sigma(z)$, we can sample the final item embedding $z \sim \mathcal{N}(\mu,\,\sigma^{2})\,$.
+Note that sampling of $z$ is a discrete decision that would normally stop gradient from propagating past this step, but we can use the reparametrisation trick introduced by \cite{vae} that turns the discrete decision into a deterministic function of $z = \mu + \sigma\epsilon$, where $\epsilon \sim \mathcal{N}(0, 1)\,$ is a random auxiliary noise parameter.
+
+
+\subsection{Conditional Variational Autoencoders}
+\label{gans}
+It is easier for linear models to learn from embeddings extracted with AEs, and embeddings from VAEs make the classes even easier to separate.
+These are unsupervised methods that do not take advantage of labels in the training data.
+In the semi-supervised approach introduced by \cite{semi_vae} there are two inference networks: a discriminative classifier that outputs a categorical distribution from the input $x$, and a class-conditional encoder that takes as input both $x$ and the 1-hot encoded categorical label $y$\footnote{Class-conditional encoder means that the encoder is aware of the class of the data point, i.e. the output distribution $z$ is conditioned on the class $y$ in addition to the original input $x$.}.
+The model is trained on both labelled and unlabelled data.
+For labelled examples, the $x$ and $y$ are given as input to the model, which embeds it in $z$ as described earlier, and reconstructs the original $x$.
+The value of $y$ is unknown for unlabelled data points; therefore the model is run $|y|$ times, encoding and decoding the data point conditioned on each possible class $i$; loss from these runs is averaged, weighted by the discriminator's estimate of the sample belonging to class $i$.
+This approach is acceptable for small numbers of classes, but is impractical for many multi-class problems.
+A solution uses the reparametrisation trick mentioned above: rather than running the procedure once per class, we take a Gumbel-softmax \cite{gumbel} to get a discrete estimate of $y$ that is still differentiable.
+
+Such class-conditional VAEs can be used in any situation where unlabelled data is abundant but labels are scarce.
+The discriminator's loss is optimised as part of the VAE's loss function, which means adding more unlabelled data can improve the accuracy of the discriminator.
+The approach was developed and tested on the MNIST dataset, which consists of 28x28 grayscale images - a very simple dataset by today's standards.
+Some reports have emerged that fail to reproduce this success on more complex datasets such as CIFAR-10, being outperformed even by PCA \cite{vae_bad}.
+
+One related approach is offered by \cite{towards}, where a class-conditional VAE is used to generate synthetic data for a discriminator network, which has reportedly a higher accuracy in semi-supervised setting than the approach described just above.
+They use it for conditional text generation, but this approach of using the class-conditional VAE to synthesise training data to train a discriminator is applicable to any input modality.
+In fact the general approach to ``dreaming up'' new training samples in the \textit{sleep phase} and training the classifier in the \textit{wake phase} was introduced already in \cite{wake_sleep}.
+The current author has implemented this model and open sourced it\footnote{https://github.com/mattiasarro/seq2seq-cvae-tensorflow}.
+
+\subsection{Generative Adversarial Networks}
+
+Generative adversarial networks (GANs) are an interesting approach capable of synthesising realistic data, but also useful for learning good representations of data.
+GANs have been most successful for image synthesis, but are in fact applicable to any kind of input data including text \cite{textgan} and even mixed data types such as e-commerce orders \cite{ecomgan}.
+In the GAN setting, there are two networks: a generator that tries to produce realistic synthetic samples, and a discriminator whose goal is to distinguish between synthetic and actual samples.
+% The networks are trained as a min-max optimisation problem where the generator is optimised to ``fool'' the discriminator by producing samples that appear to come from the true distribution, and the discriminator is optimised to  determine which samples are synthetic.
+Given that the training is stable enough, both the generator's and the discriminator's performance improves with time, resulting in more realistic synthetic samples, as opposed to the relative blurry images produced by VAEs.
+The discriminator needs to learn good representations of the input to  accurately distinguish which samples come from the true distribution, and which samples are synthetic; as with many CNNs for computer vision, these representations can be useful for other tasks as well.
+
+It has been shown that  linear models  from the embeddings learned by the discriminator outperform other unsupervised feature learning techniques such as k-means \cite{dcgan}.
+At the time of writing, variants of Wasserian GANs (WGANs) achieve the best performance by improving training stability and preventing the generator from generating samples from a limited number of modes; this is achieved by minimising the Wasserian distance between the generator's and real data distributions, as opposed to minimising the JS divergence as was common before.
+A performant variant of WGAN is CT-GAN, which adds a regularisation term to enforce a Lipschitz continuity condition over the manifold of the real data \cite{ctgan}.
