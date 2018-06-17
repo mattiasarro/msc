@@ -1,10 +1,14 @@
-\chapter{Data Preprocessing \& System Architecture}
+\chapter{Data Preprocessing \& \\System Architecture}
+\label{pp_sa}
+
+Section \ref{data_pp} gives an overview of how input data was pre-processed.
+Section \ref{architecture} describes the technical set up required for running all these experiments and deploying the model to production.
 
 \section{Data Preprocessing}
 \label{data_pp}
 
 There were around a dozen product features that affiliate networks provided.
-Most of these features were either categorical or textual,  with just a single numerical feature.
+Most of these were either categorical or textual,  with just a single numerical feature.
 Initially, the data was analysed using Dataprep, a Google Cloud Platform (GCP)  product for data wrangling, which at the time of use was in beta stage.
 Dataprep  was used to process a sample of ~800 000 products;  it produced histograms of the values present in each feature column (see figure \ref{dataprep}).
 

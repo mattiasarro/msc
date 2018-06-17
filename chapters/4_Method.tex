@@ -2,27 +2,10 @@
 \label{meth}
 \label{exp}
 
-Several hypotheses were tested in this work.
-Section \ref{data_pp} gives an overview of how input data was pre-processed.
-Section \ref{architecture} describes the technical set up required for running all these experiments and deploying the model to production before delving into the specific experiments and their evaluation in section \ref{exp}.
 
 \hfill \break \noindent
-The experiments were conducted in five distinct stages:
 
- \begin{itemize}
-   \item Building a visual similarity feature and evaluating its results subjectively.
-   \item
-    Training a baseline model on the rule-based labels to get a sense of the difficulty of this problem.
-    Exploring the predictions subjectively.
-   % Since there is no fundamental difference in the way this model was  trained and evaluated compared to the other classifiers, this is described in section \ref{exp_models} with the others. After this step, employees of the client company labeled products that would become the ground truth dataset. The visual comparison feature was also subjectively evaluated at this stage.
-   \item
-    Training the independent classifiers to determine best performers (\ref{exp_models}).
-    Due to the good performance of individual models, ensembling was not attempted due to the engineering overhead it would incur.
-   \item Experimenting with different multi-objective learning approaches to determine the most performant way to classify products into exclusive categories.
-   \item Training 10 iterations of active learning on the strong predictor (\ref{exp_al}).
- \end{itemize}
-
-There are many kinds of experiments conducted; the experiments, their evaluation and results are explained under the same subsection.
+Many kinds of experiments were conducted; the experiments, their evaluation and results are explained under the same subsection.
 In section \ref{exp_sim} three visual similarity approaches are described and subjectively evaluated;
 in section \ref{exp_models} we describe all the models that were trained to reproduce the behaviour of the rule-based system;
 how multi-objective learning was used to improve the accuracy of individual training objectives is described in section \ref{multiobj};
@@ -104,6 +87,41 @@ Then the different input features and how these were represented are described, 
 The final section describes how hyperparameters were selected, and two attempts at tuning these programmatically.
 
 
+\subsection{Baseline Model: Wide \& Deep}
+\label{widedeep}
+
+As described in section \ref{bg_wide_deep} ``Wide \& Deep'' consists of two models that are trained jointly using stochastic gradient descent: a deep and a shallow neural network which both predict the same set of binary outputs.
+The original idea of Wide \& Deep was to use the wide component for feature crosses (e.g. of two categorical values), but in our experiments the wide component received mostly just the 1-hot encoded categorical inputs while the wide component received the same inputs as random embeddings (or as pre-computed image embeddings extracted with Inception V3 that is pre-trained on ImageNet).
+
+Initial experiments with this model were done on a dataset of roughly 800 000 products which were labeled by the rule-based system\footnote{The database in the client company was in constant flux, so the training set sizes depended on how many labels the rule based-system had assigned to the current database}.
+The data was partitioned into a train (\textasciitilde80\%), validation (\textasciitilde10\%) and test (\textasciitilde10\%) sets in the Dataflow preprocessing pipeline based on a pseudorandom number generator - assign the product in question to the dataset if the random number is in the range 0 ... 0.8, 0.8 ... 0.9, 0.9 ... 1.
+This allowed us to use parallel data preprocessing where workers do not need to be aware of the index of the data point it is processing or what the other workers are doing; due to the randomness the dataset split boundaries will not be exact (e.g. test and validation sets may end up with 12\% and 8\% of products), but this is acceptable given the relatively large dataset size.
+The train set was used to train the model, and the validation set was used to evaluate the model periodically as it was trained - during individual training runs and during hyperparameter tuning.
+The test set was held out for evaluating the model after hyperparameter tuning, but was not used in this case.
+
+\subsection{Input Representation \& Model Type Combinations}
+\label{model_comb}
+
+To assess which features are most useful for learning the rule-based objective, different features were grouped into \textit{input types}, shown in table \ref{input_types}.
+The columns represent the input feature; refer to \ref{data_pp} for the full feature names and their description.
+The entries in the table show how each input feature was represented: \textit{emb} for for categorical features that are represented as random embedding vectors (which are updated during SGD), \textit{emb avg} for multi-token fields where tokens are represented as random embeddings and the input feature is a weighted sum of these embeddings\footnote{Each embedding vector is weighted by the number of times it appears in the input feature, and divided by the L2 norm of the token counts; this gives good results for bag-of-words inputs according to TensorFlow documentation:
+\newline
+https://www.tensorflow.org/api\_docs/python/tf/feature\_column/embedding\_column}.
+Feature columns marked with \textit{u.s.enc} have been converted from raw text into dense embedding vectors of size 512 using a pre-trained model Universal Sentence Encoder \cite{uni_sent_enc}; cells marked with \textit{mobilenet} and \textit{inceptionv3} have respectively extracted image embeddings of size 1280 and 2048 using the Mobilenet \cite{mobilenet} and InceptionV3 \cite{inceptionv3} models that were pre-trained on the ImageNet challenge; these embedding models were used via TensorFlow Hub\footnote{TensorFlow Hub is a collection of TensorFlow models that are pre-trained on some other task and can be used as a feature extractor or as an initialisation for a model that is fine-tuned: https://www.tensorflow.org/hub/}.
+Pre-trained models were used only as feature extractors, i.e. were not fine-tuned on our data.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{figures/input_types}
+  \caption{Input types. Orange: embedding representation, blue: 1-hot or k-hot, red: embedding extracted with a pretrained deep network.}
+  \label{input_types}
+\end{figure}
+
+Two model types were used to train with each of these 16 input types: linear and deep.
+Like in the case of the baseline model, the \textasciitilde1.2 million data points were split into train/validation/test sets (80\%/10\%/10\%); train and validation sets were used during individual training runs and hyperparameter tuning.
+All 32 combinations of input and model type were trained using hyperparameters listed in table \ref{tuning_rounds} column \textit{Deep (rb all)}.
+
+
 \subsection{Evaluation}
 
 Many metrics can be used to evaluate \textbf{multi-label classification}:
@@ -131,45 +149,16 @@ Even though classes are imbalanced (``Dresses'' has more products than ``Travel 
 On the other hand, similar problems arise with evaluating multi-class problems where there is potentially overlap between some classes: the metric would give a low score even if the model predicted a semantically very similar class, or a more general class instead of the more specific one it was labelled as.
 Therefore a manual evaluation of the misclassified products is needed to determine whether the error rate is caused by the ambiguity of the classes or by problems with learning.
 
-\subsection{Baseline Model: Wide \& Deep}
-\label{widedeep}
+\subsection{Results}
 
-As described in section \ref{bg_wide_deep} ``Wide \& Deep'' consists of two models that are trained jointly using stochastic gradient descent: a deep and a shallow neural network which both predict the same set of binary outputs.
-The original idea of Wide \& Deep was to use the wide component for feature crosses (e.g. of two categorical values), but in our experiments the wide component received mostly just the 1-hot encoded categorical inputs while the wide component received the same inputs as random embeddings (or as pre-computed image embeddings extracted with Inception V3 that is pre-trained on ImageNet).
 
-Initial experiments with this model were done on a dataset of roughly 800 000 products which were labeled by the rule-based system\footnote{The database in the client company was in constant flux, so the training set sizes depended on how many labels the rule based-system had assigned to the current database}.
-The data was partitioned into a train (\textasciitilde80\%), validation (\textasciitilde10\%) and test (\textasciitilde10\%) sets in the Dataflow preprocessing pipeline based on a pseudorandom number generator - assign the product in question to the dataset if the random number is in the range 0 ... 0.8, 0.8 ... 0.9, 0.9 ... 1.
-This allowed us to use parallel data preprocessing where workers do not need to be aware of the index of the data point it is processing or what the other workers are doing; due to the randomness the dataset split boundaries will not be exact (e.g. test and validation sets may end up with 12\% and 8\% of products), but this is acceptable given the relatively large dataset size.
-The train set was used to train the model, and the validation set was used to evaluate the model periodically as it was trained - during individual training runs and during hyperparameter tuning.
-The test set was held out for evaluating the model after hyperparameter tuning, but was not used in this case.
-
-\paragraph{Results}
+\paragraph{Wide \& Deep}
 The PR AUC on the 800,000-item dataset for this model after hyperparameter tuning was 0.9981 (see section \ref{tuning} for a full description of the set-up).
 A manual examination of the predictions revealed that the top predictions for most categories was high-quality, but there was a large number of products below the decision boundary that actually belonged above it.
 A later run of the model on 1.2M products gave an PR AUC of 0.8647; this was using the hyperparameters that the tuning step produced, so it is likely that the decreased AUC PR score is caused by a bug\footnote{Three possible explanations come to mind: (1) the initial PR AUC was artificially high as some of the test set products ended up in the training set; (2) when migrating from the 800k dataset to the 1.2M dataset, the image embeddings were transferred over as an attempted optimisation approach, which may have mixed up image embeddings between products; (3) the model was overfitting, 10 epochs of 1.2M is effectively 15 epochs of 800k products (the fact that there were more products does not necessarily matter, because labels were assigned simplistically from keyword matches on the title).}.
 There were occasional odd results from the model once it was trained on the 1.2M dataset; it was hard to tell which part of the model was causing it, or even whether all the input features are actually improving predictive power; therefore, a more systematic approach was tried, explained in the next section.
 
-\subsection{Input Representation \& Model Type Combinations}
-\label{model_comb}
-
-To assess which features are most useful for learning the rule-based objective, different features were grouped into \textit{input types}, shown in table \ref{input_types}.
-The columns represent the input feature; refer to \ref{data_pp} for the full feature names and their description.
-The entries in the table show how each input feature was represented: \textit{emb} for for categorical features that are represented as random embedding vectors (which are updated during SGD), \textit{emb avg} for multi-token fields where tokens are represented as random embeddings and the input feature is a weighted sum of these embeddings\footnote{Each embedding vector is weighted by the number of times it appears in the input feature, and divided by the L2 norm of the token counts; this gives good results for bag-of-words inputs according to TensorFlow documentation:
-\newline
-https://www.tensorflow.org/api\_docs/python/tf/feature\_column/embedding\_column}.
-Feature columns marked with \textit{u.s.enc} have been converted from raw text into dense embedding vectors of size 512 using a pre-trained model Universal Sentence Encoder \cite{uni_sent_enc}; cells marked with \textit{mobilenet} and \textit{inceptionv3} have respectively extracted image embeddings of size 1280 and 2048 using the Mobilenet \cite{mobilenet} and InceptionV3 \cite{inceptionv3} models that were pre-trained on the ImageNet challenge; these embedding models were used via TensorFlow Hub\footnote{TensorFlow Hub is a collection of TensorFlow models that are pre-trained on some other task and can be used as a feature extractor or as an initialisation for a model that is fine-tuned: https://www.tensorflow.org/hub/}.
-Pre-trained models were used only as feature extractors, i.e. were not fine-tuned on our data.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=\linewidth]{figures/input_types}
-  \caption{Input types. Orange: embedding representation, blue: 1-hot or k-hot, red: embedding extracted with a pretrained deep network.}
-  \label{input_types}
-\end{figure}
-
-Two model types were used to train with each of these 16 input types: linear and deep.
-Like in the case of the baseline model, the \textasciitilde1.2 million data points were split into train/validation/test sets (80\%/10\%/10\%); train and validation sets were used during individual training runs and hyperparameter tuning.
-All 32 combinations of input and model type were trained using hyperparameters listed in table \ref{tuning_rounds} column \textit{Deep (rb all)}.
+\paragraph{Input Representation \& Model Type Combinations}
 
 Table \ref{metrics_all} shows the precise PR AUC and recall scores of the final time steps.
 The training loss function of linear and deep versions of noimg\_emb is shown in figure \ref{train_loss_all}.
@@ -205,19 +194,12 @@ The PR AUC on the final step (300k, or 220k for inceptionv3) is shown in figure 
   \label{pr_auc_chart}
 \end{figure}
 
-\section{Labelling of Exclusive Products}
-\label{labex}
 
-There were three purposes for labelling products: (1) creating a validation set, (2) creating an initial dataset for training the exclusive outputs so that reasonable uncertainty scores could be computed for active learning, and (3) labelling during active labelling rounds.
-There are three ways of picking products to be labelled: random sampling (a product is sampled randomly from all products that do not have an exclusive label), uncertainty sampling (the unlabelled product with the highest uncertainty score is chosen), and searching for a product manually using our web UI.
-Each label that gets persisted has the following metadata associated with it: the label type (\textit{random}, \textit{uncertainty} or \textit{searchFor}), created and modified at timestamps, and ``round''.
-Round is used to differentiate between labels from the initial labelling and the active labelling rounds; round 0 corresponds to the validation set, round 1 corresponds to the purpose (2) above, and rounds 2 ... n correspond to active labelling rounds.
+\section{Multi-Objective Training}
+\label{multiobj}
 
-In the experiments of the following section, the validation set contained 509 randomly sampled products and 5439 products that were manually searched for; for training set the equivalent numbers were 509 and 5646.
-Initially random sampling was used to obtain labels for products, to avoid bias in gathering data only through title search.
-Yet this approach would have taken a long time to populate all categories in the validation set with products, therefore the labelling team went through each existing category one by one and added ~5 products to the test and validation set using title matching.
 
-\section{Category Structure}
+\subsection{Category Structure}
 \label{cat_tree}
 
 At the time of writing, there were roughly 1300 categories defined in the client database.
@@ -243,15 +225,24 @@ To do that, we look at all the rule-based labels of a product that are applied t
 If there is only one such label assigned, as would be for most products, the label is already exclusive; if there are more than one such label, we can either insert the product to the training set twice (once for each label), or select a random label.
 We chose the latter approach.
 
-% \section{Class and Label Imbalance}
 \label{label_imbalance}
-
 The labels provided by the rule-based system are only positive:  some products are labelled to belong to a given category, but many products that ought to belong to a category are not labelled  accordingly -  but their label still appears to be negative.
 This (which we call the \textbf{label imbalance} problem) only exacerbates the \textbf{class imbalance} problem (that most products do not belong to most categories).
 As a result the model trained on rule-based labels will certainly underestimate the likelihood of any product belonging to any category.
 
-\section{Multi-Objective Training}
-\label{multiobj}
+
+\subsection{Labelling of Exclusive Products}
+\label{labex}
+
+There were three purposes for labelling products: (1) creating a validation set, (2) creating an initial dataset for training the exclusive outputs so that reasonable uncertainty scores could be computed for active learning, and (3) labelling during active labelling rounds.
+There are three ways of picking products to be labelled: random sampling (a product is sampled randomly from all products that do not have an exclusive label), uncertainty sampling (the unlabelled product with the highest uncertainty score is chosen), and searching for a product manually using our web UI.
+Each label that gets persisted has the following metadata associated with it: the label type (\textit{random}, \textit{uncertainty} or \textit{searchFor}), created and modified at timestamps, and ``round''.
+Round is used to differentiate between labels from the initial labelling and the active labelling rounds; round 0 corresponds to the validation set, round 1 corresponds to the purpose (2) above, and rounds 2 ... n correspond to active labelling rounds.
+
+In the experiments of the following section, the validation set contained 509 randomly sampled products and 5439 products that were manually searched for; for training set the equivalent numbers were 509 and 5646.
+Initially random sampling was used to obtain labels for products, to avoid bias in gathering data only through title search.
+Yet this approach would have taken a long time to populate all categories in the validation set with products, therefore the labelling team went through each existing category one by one and added ~5 products to the test and validation set using title matching.
+
 
 As described in section \ref{cat_tree} we have three distinct training objectives: \textit{rule-based}, \textit{exclusive}, and a hybrid \textit{exclusivised}.
 The models described in the previous section were trained only on the rule-based objective.
