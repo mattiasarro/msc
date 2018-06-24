@@ -226,9 +226,13 @@ In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature 
 \section{Combining Models}
 \label{bg_ensembling}
 
-This section covers ensembling and joint training as ways to combine individual models to increase accuracy and label efficiency.
+Individual models can be combined to achieve greater accuracy and lower label complexity; the models can either become a part of an enseble (described in section \ref{ens}), or trained jointly as part of the same gradient descent optimisation process (described in section \ref{joint}).
+A neural network can be optimised simultaneously for many objectives, which can improve performance across the training objectives.
+Multi-objective learning (described in section \ref{multiobj}) can be seen as a way of combining the models of individual training objectives into one.
 
 \subsection{Ensembling}
+\label{ens}
+
 Some ensembling approaches (bagging, boosting)  are expected to consist of weak learners or models from the same model family, while others (committee methods, stacked generalisation) are more appropriate for ensembles of strong models.
 
 Bootstrap aggregation (a.k.a bagging)   draws several bootstrap samples  from the training data,  trains a separate model per bootstrap sample,  and averages the predictions of these individual models.  This reduces the variance of predictions without increasing its bias and generally leads to  more accurate predictors \cite{bagging}.
@@ -241,6 +245,8 @@ A more appealing approach is stacked generalisation, where a meta-learner is tra
 This meta-learner could be a relatively simple model, such as logistic regression or a decision tree, and the results of the meta-learner could be therefore quite interpretable.
 
 \subsection{Joint Training}
+\label{joint}
+
 % One orthogonal approach to combining models is joint training of model components.
 All models described here are trained using stochastic gradient descent, so in principle it would be possible to learn the parameters of all components (1D CNN, 2D CNN, RNN, DNN, logistic regression) as part of a single optimisation loop.
 This would be an engineering challenge due to the different ways these model require their input to be represented and the large size of the model, and optimisation would surely be difficult.
@@ -256,6 +262,8 @@ The latter case could act as a replacement for the meta-learner, with the differ
 
 
 \subsection{Multi-Objective Learning}
+\label{multiobj}
+
 A related idea is \textbf{multi-objective learning}, where a neural network is trained to predict multiple aspects about the training data.
 In our setting we can consider the rule-based multi-label objective and the hand-assigned exclusive labels as separate training objectives; we might add additional training objectives that predict colour (multi-label) or conversion (binary).
 When using feedforward networks for multi-objective learning, the lower layers are usually shared among the objectives, and the top layers are specific to each training objective.
