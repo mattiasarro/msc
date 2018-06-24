@@ -226,8 +226,10 @@ In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature 
 \section{Combining Models}
 \label{bg_ensembling}
 
-This section  introduces common ensembling methods, describes joint learning and multi-objective training.
-Some of these (bagging, boosting)  are expected to consist of weak learners or models from the same model family, while others (committee methods, BIC, stacked generalisation) or more appropriate for ensembles of strong models.
+This section covers ensembling and joint training as ways to combine individual models to increase accuracy and label efficiency.
+
+\subsection{Ensembling}
+Some ensembling approaches (bagging, boosting)  are expected to consist of weak learners or models from the same model family, while others (committee methods, stacked generalisation) are more appropriate for ensembles of strong models.
 
 Bootstrap aggregation (a.k.a bagging)   draws several bootstrap samples  from the training data,  trains a separate model per bootstrap sample,  and averages the predictions of these individual models.  This reduces the variance of predictions without increasing its bias and generally leads to  more accurate predictors \cite{bagging}.
 Boosting is another common meta-algorithm that iteratively trains an ensemble of weak models, such that the data points that incurred a higher error on the previous ensemble are weighted more heavily, and each new weak model is added to the ensemble with a weight proportional to the weak learners accuracy.
@@ -238,7 +240,8 @@ Simple solutions are voting or (weighted) averaging, where the weights can be fo
 A more appealing approach is stacked generalisation, where a meta-learner is trained on the outputs of the individual models.
 This meta-learner could be a relatively simple model, such as logistic regression or a decision tree, and the results of the meta-learner could be therefore quite interpretable.
 
-One orthogonal approach to combining models is \textbf{joint training} of model components.
+\subsection{Joint Training}
+% One orthogonal approach to combining models is joint training of model components.
 All models described here are trained using stochastic gradient descent, so in principle it would be possible to learn the parameters of all components (1D CNN, 2D CNN, RNN, DNN, logistic regression) as part of a single optimisation loop.
 This would be an engineering challenge due to the different ways these model require their input to be represented and the large size of the model, and optimisation would surely be difficult.
 In our case this would be clearly an overkill, but it would be an interesting research problem to examine whether joint training has advantages over ensembling in cases where we have different views of the data (in terms of considering different input dimensions or processing the inputs differently).
@@ -251,6 +254,8 @@ A simple concatenation of all individual embeddings could be a useful (albeit a 
 Alternatively, we could use this concatenation as an input to a neural network, whose goal is to (1) reduce its dimensionality by removing redundant information and (2) predict the output classes from this compressed embedding.
 The latter case could act as a replacement for the meta-learner, with the difference that it takes the penultimate (as opposed to the final) layer of each individual model as input.
 
+
+\subsection{Multi-Objective Learning}
 A related idea is \textbf{multi-objective learning}, where a neural network is trained to predict multiple aspects about the training data.
 In our setting we can consider the rule-based multi-label objective and the hand-assigned exclusive labels as separate training objectives; we might add additional training objectives that predict colour (multi-label) or conversion (binary).
 When using feedforward networks for multi-objective learning, the lower layers are usually shared among the objectives, and the top layers are specific to each training objective.
