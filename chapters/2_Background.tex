@@ -227,19 +227,19 @@ In \cite{cdl}, stacked denoising autoencoders are used for unsupervised feature 
 \label{bg_ensembling}
 
 Individual models can be combined to achieve greater accuracy and lower label complexity; the models can either become a part of an enseble (described in section \ref{ens}), or trained jointly as part of the same gradient descent optimisation process (described in section \ref{joint}).
-A neural network can be optimised simultaneously for many objectives, which can improve performance across the training objectives.
-Multi-objective learning (described in section \ref{multiobj}) can be seen as a way of combining the models of individual training objectives into one.
+A neural network can be optimised simultaneously for many objectives; additional training objectives can improve the accuracy of other objectives.
+Multi-objective learning (described in section \ref{multiobj}) can be seen as a way of combining the models of individual training objectives.
 
 \subsection{Ensembling}
 \label{ens}
 
-Some ensembling approaches (bagging, boosting)  are expected to consist of weak learners or models from the same model family, while others (committee methods, stacked generalisation) are more appropriate for ensembles of strong models.
-
+Some ensembling approaches  are expected to consist of \textbf{weak learners} or models from the same model family.
 Bootstrap aggregation (a.k.a bagging)   draws several bootstrap samples  from the training data,  trains a separate model per bootstrap sample,  and averages the predictions of these individual models.  This reduces the variance of predictions without increasing its bias and generally leads to  more accurate predictors \cite{bagging}.
 Boosting is another common meta-algorithm that iteratively trains an ensemble of weak models, such that the data points that incurred a higher error on the previous ensemble are weighted more heavily, and each new weak model is added to the ensemble with a weight proportional to the weak learners accuracy.
 A common boosting algorithm is AdaBoost \cite{adaboost}.
 
 We are interested in ways of combining models that are separately trained and combined into a single predictor.
+Committee methods and stacked generalisation are more appropriate for \textbf{ensembling strong, independently trained models}.
 Simple solutions are voting or (weighted) averaging, where the weights can be found with k-fold cross-validation.
 A more appealing approach is stacked generalisation, where a meta-learner is trained on the outputs of the individual models.
 This meta-learner could be a relatively simple model, such as logistic regression or a decision tree, and the results of the meta-learner could be therefore quite interpretable.
@@ -248,10 +248,10 @@ This meta-learner could be a relatively simple model, such as logistic regressio
 \label{joint}
 
 % One orthogonal approach to combining models is joint training of model components.
-All models described here are trained using stochastic gradient descent, so in principle it would be possible to learn the parameters of all components (1D CNN, 2D CNN, RNN, DNN, logistic regression) as part of a single optimisation loop.
-This would be an engineering challenge due to the different ways these model require their input to be represented and the large size of the model, and optimisation would surely be difficult.
+All models described in section \ref{models_considered} are trained using stochastic gradient descent, so in principle it would be possible to learn the parameters of all components (1D CNN, 2D CNN, RNN, DNN, logistic regression) as part of a single optimisation loop.
+This would be an engineering challenge due to the different ways these model require their input to be represented and the large size of the combined model.
 In our case this would be clearly an overkill, but it would be an interesting research problem to examine whether joint training has advantages over ensembling in cases where we have different views of the data (in terms of considering different input dimensions or processing the inputs differently).
-As mentioned in the Wide \& Deep paper \cite{wide_deep}, the wide component of the model has to just handle cases where the deep component falls short, and can therefore be simpler than it would need to be in an ensemble; analogously, jointly training different kinds of models neural networks would allow each component to be simpler.
+As mentioned in the Wide \& Deep paper \cite{wide_deep}, the wide component of the model has to just handle cases where the deep component falls short, and can therefore be simpler than it would need to be in an ensemble; analogously, jointly training different neural networks would allow each component to be simpler.
 
 One of the motivations for picking mostly deep neural models was their transfer learning capability.
 They all produce a dense embedding vector from which separate logistic or multinomial regressions predict the class.
