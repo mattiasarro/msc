@@ -264,7 +264,7 @@ The latter case could act as a replacement for the meta-learner, with the differ
 \subsection{Multi-Objective Learning}
 \label{multiobj}
 
-A related idea is \textbf{multi-objective learning}, where a neural network is trained to predict multiple aspects about the training data.
+A neural network can be trained to predict multiple targets from the inputs.
 In our setting we can consider the rule-based multi-label objective and the hand-assigned exclusive labels as separate training objectives; we might add additional training objectives that predict colour (multi-label) or conversion (binary).
 When using feedforward networks for multi-objective learning, the lower layers are usually shared among the objectives, and the top layers are specific to each training objective.
 It has been shown repeatedly that when the training objectives are somewhat related, then adding an additional objective increases the prediction accuracy across the other objectives \cite{}.
