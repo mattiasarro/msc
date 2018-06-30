@@ -242,7 +242,8 @@ We are interested in ways of combining models that are separately trained and co
 Committee methods and stacked generalisation are more appropriate for \textbf{ensembling strong, independently trained models}.
 Simple solutions are voting or (weighted) averaging, where the weights can be found with k-fold cross-validation.
 A more appealing approach is stacked generalisation, where a meta-learner is trained on the outputs of the individual models.
-This meta-learner could be a relatively simple model, such as logistic regression or a decision tree, and the results of the meta-learner could be therefore quite interpretable.
+This meta-learner could be a relatively simple model, such as logistic regression or a decision tree, and the results of the meta-learner can be therefore quite interpretable.
+Refer to figure \ref{ens_vs_joint} for a schema of an ensemble of two neural networks.
 
 \subsection{Joint Training}
 \label{joint}
@@ -259,6 +260,15 @@ While it is useful to have separate embeddings for images, text and categorical 
 A simple concatenation of all individual embeddings could be a useful (albeit a quite high-dimensional) representation to be used in downstream models.
 Alternatively, we could use this concatenation as an input to a neural network, whose goal is to (1) reduce its dimensionality by removing redundant information and (2) predict the output classes from this compressed embedding.
 The latter case could act as a replacement for the meta-learner, with the difference that it takes the penultimate (as opposed to the final) layer of each individual model as input.
+Refer to figure \ref{ens_vs_joint} for a schema of joint training.
+
+\begin{figure}
+  \centering
+  \hspace*{-0.2\textwidth}
+  \includegraphics[width=1.4\textwidth]{diagrams/ens_vs_joint}
+  \caption{Ensebling / Stacked Generalisation vs Joint Training. Boxes represent inputs (e.g. embedding vectors), hidden layers, and outputs. In ensembles and stacked generalisation (left), we have separate models with no parameter sharing, and the final output is computed either through voting or passing the output of the ensemble components through the meta learner model.  In joint training (right), the two distinct inputs are concatenated and the parameters of the hidden layers are shared.}
+  \label{ens_vs_joint}
+\end{figure}
 
 
 \subsection{Multi-Objective Learning}
@@ -269,6 +279,8 @@ In our setting we can consider the rule-based multi-label objective and the hand
 When using feedforward networks for multi-objective learning, the lower layers are usually shared among the objectives, and the top layers are specific to each training objective.
 It has been shown repeatedly that when the training objectives are somewhat related, then adding an additional objective increases the prediction accuracy across the other objectives \cite{}.
 When implementing multi-objective training, care must be taken not to influence the parameters that are specific to another objective.
+
+\ref{multiobj_model}
 
 % https://arxiv.org/abs/0911.0460
 % TODO figure of meta-learner and embedding lear
