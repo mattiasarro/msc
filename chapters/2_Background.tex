@@ -277,13 +277,9 @@ Refer to figure \ref{ens_vs_joint} for a schema of joint training.
 A neural network can be trained to predict multiple targets from the inputs.
 In our setting we can consider the rule-based multi-label objective and the hand-assigned exclusive labels as separate training objectives; we might add additional training objectives that predict colour (multi-label) or conversion (binary).
 When using feedforward networks for multi-objective learning, the lower layers are usually shared among the objectives, and the top layers are specific to each training objective.
-It has been shown repeatedly that when the training objectives are somewhat related, then adding an additional objective increases the prediction accuracy across the other objectives \cite{}.
+It has been shown repeatedly that when the training objectives are somewhat related, then adding an additional objective increases the prediction accuracy across the other objectives \cite{multiobj1, multiobj2}.
 When implementing multi-objective training, care must be taken not to influence the parameters that are specific to another objective.
-
-\ref{multiobj_model}
-
-% https://arxiv.org/abs/0911.0460
-% TODO figure of meta-learner and embedding lear
+Refer to figure \ref{multiobj_model} for a schema of a deep network with two objectives.
 
 \section{Active Learning}
 \label{bg_al}

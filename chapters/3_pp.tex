@@ -66,7 +66,7 @@ Below is a list of input features with information about how they were represent
   \item RabbitMQ - a message queue, used for transferring data among our microservices (using the Logstash adapter, that can read from and write to (among other things) ElasticSearch and RabbitMQ).
   \item Flask - a simple backend web framework for Python.
   \item Node.js - a JavaScript backend web framework.
-  \item React.js - a JavaScript front-end framework for JavaScript.
+  \item React.js - a JavaScript frontend framework.
   \item Redux - a framework for persisting user interface (UI) state and application data in single page applications.
   \item GraphQL - a query language for building flexible APIs
 \end{itemize}
@@ -94,35 +94,32 @@ Reading updates and sending these to RabbitMQ is done in a parallelised manner (
 
 A group of tasks that would need to be run together repeatedly is encapsulated in an Airflow pipeline, which is a directed acyclic graph (DAG) of tasks (also referred to as an AF pipeline).
 A DAG is run many times, either based on a schedule or triggered manually.
-Figure \ref{fig:af1} shows a screenshot of the most common Airflow pipeline ``cat\_pp\_train\_specific'', which is short for ``categorisation: preprocess and train a specific model''; figure \ref{fig:af2} shows the sub-DAG of the task ``train''.
+Figure \ref{fig:af1} shows a screenshot of the most common Airflow pipeline that preprocesses the data, trains and predicts for all products.
 
 \begin{figure}
 \centering
-\begin{minipage}{.48\textwidth}
   \centering
-  \includegraphics[width=1.0\linewidth]{figures/af_train_specific}
-  \captionof{figure}{Airflow DAG: preprocess, train specific model, update statistics. All tasks except for ``train'' have completed, which is not yet scheduled for execution.}
+  \includegraphics[width=0.8\linewidth]{figures/af_train_specific}
+  \captionof{figure}{Airflow DAG: preprocess, train model, predict, update the database. Tasks with green outline have completed, others have not been scheduled yet..}
   \label{fig:af1}
-\end{minipage}%
-\begin{minipage}{.48\textwidth}
-  \centering
-  \includegraphics[width=.6\linewidth]{figures/af_train}
-  \captionof{figure}{Airflow sub-DAG: train. No task has been scheduled for execution during this run.}
-  \label{fig:af2}
-\end{minipage}
 \end{figure}
 
-Most of our pipelines start by creating directories for our files.
-Which files are stored where is configured in a simple file that is accessed by Airflow, Dataflow and TensorFlow (locally or inside MLE); the configuration has placeholders for variables that are determined per run or are specific to a task inside a run.
-For example, the location of .tfrecords files is determined by ``\textit{:prefix}/runs/\textit{:run\_id}/ tfrecords/\textit{:objective}\_\textit{:split}.tfrecords'', where \textit{prefix} corresponds to the path to the data directory (either locally or in GCS), \textit{run\_id} is specific to the current run of the pipeline, \textit{objective} is either \textit{rule\_based} or \textit{exclusive}, and \textit{split} is either \textit{train}, \textit{test} or \textit{valid}.
-This ensures that all parts of the system look for the same file in the same place, and makes building file paths easier.
-All file access in the different parts work equally on a local file system and GCS, which makes it particularly convenient to switch between local experimentation and remote training; in fact, the \textit{prefix} parameter is by default read from an environment variable, which is different in local, Docker and cloud service environments.
+All pipelines create their own set of directories in GCS: the folder name becomes the \textit{run\_id}.
+Raw data is dumped into that directory; dataflow reads from and writes to subdirectories of the same run.
+The Tensorflow trainer also needs the \textit{run\_id} to find locations of the Tensorflow Transform model function (described below) and .tfrecords input files.
+A given run usually has a single model that is trained, however at times we train several models with different architectures or subsets of labels.
 
-A training dataset is identified by its \textit{run\_id}.
-The processed .tfrecords, transform function (described below) and metadata is persisted under that run's directory.
-Several models can be trained from the same dataset.
-The checkpoints of a model are saved under ``\textit{:prefix}/runs/\textit{:run\_id}/checkpoints/\textit{:hparams\_id}/'', where \textit{hparams\_id} identifies a model architecture, as well as what kinds of training objectives and label types it is trained on; during hyperparameter tuning, a unique index is appended to the \textit{hparams\_id} of the model.
-As \textit{hparams\_id} encodes only the general model architecture and training objectives, the full set of all hyperparameters is persisted along model checkpoints as a JSON file - for future reference.
+% Most of our pipelines start by creating directories for our files.
+% Which files are stored where is configured in a simple file that is accessed by Airflow, Dataflow and TensorFlow (locally or inside MLE); the configuration has placeholders for variables that are determined per run or are specific to a task inside a run.
+% For example, the location of .tfrecords files is determined by ``\textit{:prefix}/runs/\textit{:run\_id}/ tfrecords/\textit{:objective}\_\textit{:split}.tfrecords'', where \textit{prefix} corresponds to the path to the data directory (either locally or in GCS), \textit{run\_id} is specific to the current run of the pipeline, \textit{objective} is either \textit{rule\_based} or \textit{exclusive}, and \textit{split} is either \textit{train}, \textit{test} or \textit{valid}.
+% This ensures that all parts of the system look for the same file in the same place, and makes building file paths easier.
+% All file access in the different parts work equally on a local file system and GCS, which makes it particularly convenient to switch between local experimentation and remote training; in fact, the \textit{prefix} parameter is by default read from an environment variable, which is different in local, Docker and cloud service environments.
+%
+% A training dataset is identified by its \textit{run\_id}.
+% The processed .tfrecords, transform function (described below) and metadata is persisted under that run's directory.
+% Several models can be trained from the same dataset.
+% The checkpoints of a model are saved under ``\textit{:prefix}/runs/\textit{:run\_id}/checkpoints/\textit{:hparams\_id}/'', where \textit{hparams\_id} identifies a model architecture, as well as what kinds of training objectives and label types it is trained on; during hyperparameter tuning, a unique index is appended to the \textit{hparams\_id} of the model.
+% As \textit{hparams\_id} encodes only the general model architecture and training objectives, the full set of all hyperparameters is persisted along model checkpoints as a JSON file - for future reference.
 
 \subsection{Dataflow Pipelines}
 There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
