@@ -23,17 +23,17 @@ The third approach combined the similarity scores of the second approach and the
 \subsection{Evaluation \& Results}
 
 The evaluation of similarity scores is difficult, since it is inherently somewhat subjective.
-A common approach is to hand-label triplets of images Q, A, B with four choices: (1) both A and B are similar to query image Q, (2) both A and B are dissimilar to Q, (3) A is more similar to Q than B, and (4) B is more similar to Q than A.
+A common approach is to hand-label triplets of images Q, A, B with four choices of how similar A and B are to Q.
 These labeled triplets can be ranked using with similarity precision (percentage of triplets correctly ranked) and score at top K (see \cite{imgsimfineg}).
 Creating this dataset of triplets would be a very time-consuming process. Therefore evaluation was done entirely subjectively.
 
 Comparing the similarity between the former ElasticSearch title (ES title) matching and the new approximate nearest neighbour (ANN) search was straightforward - one look at the results was enough to confirm that the embedding-based approach outperforms title matching.
 Figures \ref{shirt_es} and \ref{shirt_nmslib} show the nearest neighbours according to ES title and ANN, respectively; the image embeddings nicely pick up the pattern on the shirt, as well as the general style.
 For some clothing categories this worked remarkably well, but with categories that had more varied products within it, there were occasional odd results.
-For example, in the ``Hiking'' category, the nearest neighbours of sleeping bags could be items with seemingly similar shapes, such as a flashlight that a very zoomed-in product photo that had similar contours as an unrolled sleeping bag.
+For example, in the ``Hiking'' category, the nearest neighbours of sleeping bags could be items with seemingly similar shapes, such as a flashlight with a very zoomed-in product photo that had similar contours as an unrolled sleeping bag.
 Another example of this is given in figure \ref{chair_nmslib}, which mostly returns chairs that are indeed visually and even functionally very similar to the chair in question - more so than the ElasticSearch title match seen in \ref{chair_es} - but also returns tables with similar legs; this is understandable, given that nearly half of the surface area of these images is covered by these foldable legs.
 This problem can mostly be mitigated by having more fine-grained product categories and restricting the nearest neighbour search to those more specific categories.
-The nearest neighbour similarity search may pick up qualities of the image that are not related to the product in question, such as background or fashion model; this is un-intended but is acceptable, and it could be argued creates a product listing which is more homogenous and therefore more aesthetically pleasing.
+The nearest neighbour similarity search may pick up qualities of the image that are not related to the product in question, such as background or fashion model; this is un-intended but is acceptable, and arguably creates a product listing which is more homogenous and therefore more aesthetically pleasing.
 
 The second approach of discretised and tokenised image embeddings had mixed results.
 The returned nearest neighbours were reasonable, but subjectively felt inferior to the ones computed from the raw image embeddings using ANN.
@@ -43,7 +43,7 @@ With enough precision (using several discrete intervals per embedding dimension)
 The third approach of combining the existing title matching and discretised and tokenised vectors was somewhat successful.
 As seen in figure \ref{chair_tokenised}, the title matching ensures that top results are at least about the same kind of items (chairs) while the tokenised embedding query returns products that share some visual similarity (mostly the legs of the chair).
 This approach still suffered from similar problems as the second approach - poor performance and somewhat inconsistent visual similarity - while introducing an additional complication of finding a good weighting between the title and visual scores.
-Given that there was no efficient way to evaluate the different weightings, it was decided to use raw image embeddings for visual similarity, either as an ANN or a precise realtime version.
+Given that there was no efficient way to evaluate the different weightings, it was decided to use raw image embeddings for visual similarity, either as an ANN search or a precise realtime version.
 
 \begin{figure}
   \centering
@@ -90,7 +90,7 @@ Then the different input features and how these were represented are described, 
 As described in section \ref{bg_wide_deep}, the ``Wide \& Deep'' model consists of two models that are trained jointly using stochastic gradient descent: a deep and a shallow neural network which both predict the same set of binary outputs.
 The original idea of Wide \& Deep was to use the wide component for feature crosses (e.g. of two categorical values), but in our experiments the wide component received mostly just the 1-hot encoded categorical inputs while the wide component received the same inputs as random embeddings (or as pre-computed image embeddings extracted with Inception V3 that is pre-trained on ImageNet).
 
-Initial experiments with this model were done on a dataset of roughly 800 000 products which were labeled by the rule-based system\footnote{The database in the client company was in constant flux, so the training set sizes depended on how many labels the rule based-system had assigned to the current database}.
+Initial experiments with this model were done on a dataset of roughly 800 000 products which were labeled by the rule-based system\footnote{The database in the client company was in constant flux, so the training set sizes depended on how many labels the rule based-system had assigned to the current database. Still, when comparing different model architectures, we used a ``frozen'' version of the data to avoid skewing the results.}.
 The data was partitioned into a train (\textasciitilde80\%), validation (\textasciitilde10\%) and test (\textasciitilde10\%) sets in the Dataflow preprocessing pipeline based on a pseudorandom number generator - assign the product in question to the dataset if the random number is in the range 0 ... 0.8, 0.8 ... 0.9, 0.9 ... 1.
 The train set was used to train the model, and the validation set was used to evaluate the model periodically as it was trained - during individual training runs and during hyperparameter tuning.
 The test set was held out for evaluating the model after hyperparameter tuning, but was not used due to the low variance in validation set error during the different tuning rounds.
@@ -99,8 +99,8 @@ The test set was held out for evaluating the model after hyperparameter tuning, 
 \label{model_comb}
 
 To assess which features are most useful for learning the rule-based objective, different features were grouped into \textit{input types}, shown in table \ref{input_types}.
-The columns represent the input feature; refer to \ref{data_pp} for the full feature names and their description.
-The entries in the table show how each input feature was represented: \textit{emb} for for categorical features that are represented as random embedding vectors (which are updated during SGD), \textit{emb avg} for multi-token fields where tokens are represented as random embeddings and the input feature is a weighted sum of these embeddings\footnote{Each embedding vector is weighted by the number of times it appears in the input feature, and divided by the L2 norm of the token counts; this gives good results for bag-of-words inputs according to TensorFlow documentation:
+The columns represent the input feature; refer to section \ref{data_pp} for the full feature names and their description.
+Entries in the table show how each input feature was represented: \textit{emb} for for categorical features that are represented as random embedding vectors (which are updated during SGD), \textit{emb avg} for multi-token fields where tokens are represented as random embeddings and the input feature is a weighted sum of these embeddings\footnote{Each embedding vector is weighted by the number of times it appears in the input feature, and divided by the L2 norm of the token counts; this gives good results for bag-of-words inputs according to TensorFlow documentation:
 \newline
 https://www.tensorflow.org/api\_docs/python/tf/feature\_column/embedding\_column}.
 Feature columns marked with \textit{u.s.enc} have been converted from raw text into dense embedding vectors of size 512 using a pre-trained model Universal Sentence Encoder \cite{uni_sent_enc}; cells marked with \textit{mobilenet} and \textit{inceptionv3} have respectively extracted image embeddings of size 1280 and 2048 using the Mobilenet \cite{mobilenet} and InceptionV3 \cite{inceptionv3} models that were pre-trained on the ImageNet challenge; these embedding models were used via TensorFlow Hub\footnote{TensorFlow Hub is a collection of TensorFlow models that are pre-trained on some other task and can be used as a feature extractor or as an initialisation for a model that is fine-tuned: https://www.tensorflow.org/hub/}.
@@ -129,12 +129,12 @@ Many metrics can be used to evaluate \textbf{multi-label classification}:
   \item recall: $\frac{TP}{TP + FN}$, fraction of positive labels that were correctly ``recalled'',
   \item F1: $2\frac{precision * recall}{precision + recall}$, harmonic average of precision and recall,
   \item TPR = recall: $\frac{TP}{TP+FN}$, true positive rate, probability of detection,
-  \item FPR: $\frac{FP}{FP+FN}$, false positive rate, probability of false alarm,
+  \item FPR: $\frac{FP}{FP+TN}$, false positive rate, probability of false alarm,
   \item ROC AUC: the area under the curve of TPR plotted against FPR.
   \item PR AUC: the area under the curve of precision plotted against recall.
 \end{itemize}
 
-In our case, an overwhelming number of labels are negative, therefore a very simple predictor (that predict ``negative'' for every product / category) would have an accuracy near 99\%; ROC AUC is not suitable for the same reason, as there would be no false positives.
+In our case, an overwhelming number of labels are negative, therefore a very simple predictor (that predict ``negative'' for every product / category) would have an accuracy near 99\%; ROC AUC is not suitable for the same reason, as a big change in FPs would result in a small change in FPR due to large TNs squashing FPR to a small number (see \cite{prauc} for details).
 Precision and recall are useful measures to understand the model: it is expected to see a sharp increase of precision and decrease of recall as the model learns to predict ``negative'' for most classes, followed by a gradual increase of recall as the model learns to predict ``positive'' for the correct classes.
 Precision and recall are competing metrics: increased precision tends to lead to decreased recall and vice versa, therefore models which combine the two are suitable for evaluating multi-label prediction problems with unbalanced classes.
 While F1 score gives the harmonic mean of precision and recall at a given threshold, PR AUC paints a more complete picture by showing what the ratio would be at all the threshold values\footnote{There are infinitely many threshold values in the range 0 ... 1, so naturally we consider a small number of threshold values when approximating AUC.}.
@@ -147,7 +147,7 @@ Refer to \cite{prauc} for an explanation why PR AUC should be a preferred metric
 \paragraph{Wide \& Deep}
 The PR AUC on the 800,000-item dataset for this model after hyperparameter tuning was 0.9981 (see section \ref{tuning} for a full description of the set-up).
 A manual examination of the predictions revealed that the top predictions for most categories was high-quality, but there was a large number of products below the decision boundary that actually belonged above it.
-A later run of the model on 1.2M products gave an PR AUC of 0.8647; this was using the hyperparameters that the tuning step produced, so it is likely that the decreased AUC PR score is caused by a bug\footnote{Three possible explanations come to mind: (1) the initial PR AUC was artificially high as some of the test set products ended up in the training set; (2) when migrating from the 800k dataset to the 1.2M dataset, the image embeddings were transferred over as an attempted optimisation approach, which may have mixed up image embeddings between products; (3) the model was overfitting, 10 epochs of 1.2M is effectively 15 epochs of 800k products (the fact that there were more products does not necessarily matter, because labels were assigned simplistically from keyword matches on the title).}.
+A later run of the model on 1.2M products gave an PR AUC of 0.8647; this was using the hyperparameters that the tuning step produced, so it is likely that the decreased AUC PR score is caused by a bug\footnote{Two explanations seem most likely: (1) the initial PR AUC was artificially high as some of the test set products ended up in the training set; (2) when migrating from the 800k dataset to the 1.2M dataset, the image embeddings were transferred over as an attempted optimisation approach, which may have mixed up image embeddings between products.}.
 There were occasional odd results from the model once it was trained on the 1.2M dataset; it was hard to tell which part of the model was causing it, or even whether all the input features are actually improving predictive power; therefore, a more systematic approach was tried, explained in the next section.
 
 \paragraph{Input Representation \& Model Type Combinations}
@@ -207,7 +207,7 @@ The rule-based labels are also independent, since a product may be labelled to b
 \begin{figure}
   \centering
   \includegraphics[width=0.6\linewidth]{figures/slides/excl_ind}
-  \caption{Exclusive (green) vs independent (yellow) categories. A product belonging to a mutually exclusive category would not belong to any other category (e.g. a jacket is never a wine), while a product can belong to many independent categories (e.g. the same jacket can be a bomber jacked as well as a leather jacket). }
+  \caption{Exclusive (green) vs independent (yellow) categories. A product belonging to a mutually exclusive category would not belong to any other category (e.g. a jacket is never a wine), while a product can belong to many independent categories (e.g. the same jacket can be a bomber jacket as well as a leather jacket). }
   \label{excl_ind}
 \end{figure}
 
@@ -250,7 +250,7 @@ We chose the latter approach.
 
 There were three purposes for labelling products: (1) creating a validation set, (2) creating an initial dataset for training the exclusive outputs so that reasonable uncertainty scores could be computed for active learning, and (3) labelling during active labelling rounds.
 There are three ways of picking products to be labelled: random sampling (a product is sampled randomly from all products that do not have an exclusive label), uncertainty sampling (the unlabelled product with the highest prediction entropy is chosen), and searching for a product manually using our web UI.
-When saving a label, the relevant metadata about how it was obtained is also persisted to enable filtering out certain types of labels when running experiments.
+When saving a label, the relevant metadata about how the product was sampled is also persisted to enable filtering out certain types of labels when running experiments.
 
 In the experiments of the following section, the validation set contained 509 randomly sampled products and 5439 products that were manually searched for; for training set the equivalent numbers were 509 and 5646.
 Initially random sampling was used to obtain labels for products, to avoid bias in gathering data only through title search.
@@ -282,7 +282,7 @@ To train jointly for the rule-based and exclusive objectives, the data from the 
 In the naive version, data from both datasets is loaded into memory and shuffled, but this would not work when we are also loading images or the dataset size grows.
 As a scaleable workaround, we read the file names of each objective into memory (a few hundred to a few thousand in our case), shuffle the file names, and alternate between reading $m$ files from the first objective and $n$ files from the second objective (we used $m = n = 1$); when one dataset runs out of files, wrap around, but if the other objective also runs out of files, terminate producing filenames.
 The resulting stream of filenames is read by a tf.data.Dataset, which loops through the produced filenames indefinitely and keeps a shuffle buffer of $b$ elements; within this buffer the data points from the different objectives get mixed up, so each training batch usually gets products from both objectives.
-Note that the file shards are of different sizes: how many products end up in each file depends on how many Dataflow workers were used and how work was divided among those workers.
+Note that the file shards are of different sizes: how many products end up in each file depends on how many Dataflow workers were used and how load was divided among those workers.
 Therefore, to avoid long periods where batches are filled with data points from a single objective, larger shuffle buffer sizes should be used.
 It takes time to read data from disk into the shuffle buffer, especially with images, so larger shuffle buffer sizes slow down training, as the buffer needs to be re-filled after every time the model is evaluated.
 
