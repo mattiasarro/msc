@@ -20,3 +20,14 @@ Further work and experiments with active labelling should be conducted to find o
 
 Overall, the choice of tools and approaches was reasonable.
 There are clearly more straightforward ways to do product classification, yet the complications introduced by transfer, multi-objective and active learning will most likely pay off when predicting much more difficult aspects, such as whether a product would sell well for a given audience or not - which has immense potential to increase profitability.
+
+
+\section{Future Work}
+
+\begin{itemize}
+  \item
+    Implement a training scheme where each batch contains a consistent number of data points from each training objective.
+    This has been implemented after the defence of the thesis\footnote{There is a solution to this even using tf.data.Dataset: https://stackoverflow.com/questions/49981542/tensorflow-concat-tf-data-dataset-batches/49990928\#49990928}, which removes the majority of training instability.
+\end{itemize}
+
+\section{Practical Take-Aways}

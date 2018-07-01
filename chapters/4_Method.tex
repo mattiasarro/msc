@@ -391,19 +391,25 @@ It is clear that the hyperparameters found by the \textit{Deep (exclusivised)} r
 \label{exp_al}
 
 A limited experiment with active labelling was conducted.
-After obtaining a small set of exclusive labels (as described in section \ref{labex}), the model noimg\_emb model was trained in a multi-objective setting, and the entropy of the exclusive objective was used to sample products to label.
-In both cases, products were sampled 1-by-1 based on the entropy score (deterministically, highest entropy first).
+After obtaining a small set of exclusive labels (as described in section \ref{labex}), the model noimg\_emb model was trained in a multi-objective setting, and the entropy of the exclusive objective was used (averaged across all exclusive classes) to sample products.
+Products were sampled 1-by-1 (deterministically, highest entropy first)\footnote{Ideally we would have also tried disagreement sampling, but this would have involved loading predictions from different models across a large number of large files, which is not only slow but can easily introduce bugs related to misaligned predictions (i.e. products are in a different order across the predictions of different models). To store probabilities for 1000 classes across 4M products as 32bit floats, one needs 16GB; multiply that with the number of models you need to compare uncertainty between.} and labelled by a human.
+The most confident prediction was pre-selected for labelling convenience.
 
-Ideally we would have also tried disagreement sampling, but this would have involved loading predictions from different models across a large number of large files, which is not only slow but can easily introduce bugs related to misaligned predictions (i.e. products are in a different order across the predictions of different models). To store probabilities for 1000 classes across 4M products as 32bit floats, one needs 16GB; multiply that with the number of models you need to compare uncertainty between.
-
-% Active labelling would be conducted in rounds.
-% At each round, an equal number of products were labelled using random sampling and uncertainty sampling.
-% After each round, three models were trained in a multi-objective manner.
-% The rule-based objective is common to all three, but the number of exclusive labels is different in each: one is limited to randomly sampled labels, one is limited to uncertainty-sampled products, and one uses both.
-% In all three cases the labels obtained in round 1 using text-based search were included.
-% In this setting it should be possible to determine whether uncertainty sampling helps us increase validation accuracy faster than random sampling.
+The initial idea was to perform active labelling in rounds, where a the same number (e.g. 1000 - 5000) of products would be labelled via random and uncertainty sampling.
+After each round, three models would be trained: one model that uses all the labels, one that uses only uncertainty-sampled labels, and one that uses randomly sampled products.
+Labelling products 1-by-1 turned out to be impractical, which is why only a single round of 200 products was labelled (100/100 random/uncertainty sampled), which were added to the 6155 products in the training set of the exclusive objective.
 
 \subsection{Results}
 
+The products returned by this method were in some sense what one might expect, at times returning products that were tricky to label.
+At times the product was hard to label because there actually did not exist an appropriate category for it.
+During this brief labelling round, 12 new categories were created - in all cases when trying to label a product sampled based on uncertainty.
+One unfortunate side effect of this sampling strategy is that it tends to return products that are often similar to one another.
+The final metric of interest (validation set accuracy of the exclusive objective) is not changed much by the sampling strategy, however as shown in figure \ref{al}, uncertainty sampling seems to speed up convergence somewhat - though sample size is too small to make any definitive claims.
 
-The products returned by this method were in some sense what one might expect - at times returning products that were tricky to label or did not yet have a category - but the products were very similar to one another. As there is little value in herefore this labelling round was aborted.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/active_learning/round1_rand_unc_accuracy}
+  \caption{Active learning: validation accuracy of the exclusive objective when training on a small number of randomly sampled vs uncertainty-sampled products.}
+  \label{al}
+\end{figure}

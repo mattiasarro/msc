@@ -2,7 +2,6 @@
 \label{disc}
 
 In this section we analyse the experiments that were described in the previous section.
-Since many different topics were explored, we organise the discussion into subsections.
 
 \section{Visual Similarity}
 
@@ -25,7 +24,7 @@ Perhaps the inherent discrete nature of language (sentences, words, topics as op
 \section{Individual Models \& Hyperparameters}
 
 Choosing a relatively complex model such as Wide \& Deep as a baseline model can be criticised: a baseline should be simple and interpretable.
-One of the justifications was the ability to turn some part of the model off, as removing all deep input columns would have resulted in a linear model and vice versa; eventually it was easier to have separate model types (deep, linear, wide \& deep).
+One of the justifications was the ability to turn some part of the model off, as removing all deep input columns would have resulted in a linear model and vice versa\footnote{Implementing separate model types (deep, linear, wide \& deep) turned out to be simpler.}.
 The other intuition was drawn from models with skip connections such as ResNets \cite{resnet} and DenseNets \cite{densenet}.
 The assumption was that linear models are relatively good at predicting the output, as the relevant word tokens would be present in the textual fields of many products; for a deep model to use this raw knowledge, it would need to learn an identity function from the input of the layer to the output, which can be a hard problem with some activation functions.
 Therefore, a linear layer with the same input as the deep layer could be justified to simplify learning for such simple cases, though not necessarily as the first ``baseline''.
