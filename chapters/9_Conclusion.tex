@@ -24,10 +24,63 @@ There are clearly more straightforward ways to do product classification, yet th
 
 \section{Future Work}
 
+The following is a summary of some of the possible directions for future work and research:
+
 \begin{itemize}
   \item
-    Implement a training scheme where each batch contains a consistent number of data points from each training objective.
-    This has been implemented after the defence of the thesis\footnote{There is a solution to this even using tf.data.Dataset: https://stackoverflow.com/questions/49981542/tensorflow-concat-tf-data-dataset-batches/49990928\#49990928}, which removes the majority of training instability.
+    Use a training scheme where each batch contains a consistent number of data points from each training objective.
+    This has been implemented after the defence of the thesis\footnote{There is a solution to this even using tf.data.Dataset:\\ https://stackoverflow.com/questions/49981542/tensorflow-concat-tf-data-dataset-batches/49990928\#49990928}, which removes the majority of training instability.
+  \item
+    Use bulk labelling of products.
+    Present the user with a page of products that the model predicts to belong to a given class; sort the products either by the ``confidence'' of the prediction (output from the softmax layer), or the entropy of the prediction.
+    The former case helps correct predictions that are confidently wrong, the latter helps the model learn from more challenging cases.
+    Preliminary results show great promise in terms of labelling efficiency and increase in model accuracy.
+  \item
+    Organise the the category tree such that there are no overlapping exclusive categories.
+    In one scheme, categories would be considered either exclusive or independent; exclusive categories can have independent children, but not vice versa.
+    Exclusive categories are considered as a multi-class classification problem as before, but independent categories are considered as multi-label classification - with the caveat that independent outputs are only predicted/optimised when their parent exclusive category is predicted/labelled.
+    Preliminary results show accuracy gains from 60\% to 80\% on the exclusive objective, and good label efficiency on the independent outputs.
+  \item
+    Examine whether multi-objective training continues to improve the accuracy of the objective with fewer labels when the objective receives an increasing amount of labels.
+    Multiple objectives might compete with one another unless the objectives are very similar.
+  \item
+    Experiment with optimisers that do not use adaptive learning rates.
+  \item
+    Experiment with Wasserstein loss to penalise misclassification to semantically nearby classes less than misclassification to semantically dissimilar classes.
+  \item
+    Experiment with training techniques that may further improve training: layer/batch normalisation, gradient clipping, and separate weighting schemes of the loss of different objectives.
 \end{itemize}
 
 \section{Practical Take-Aways}
+
+First and foremost, this work was a practical exercise in reproducing many results found in literature.
+As such, there are some non-academic points that the author learned, and could be useful for other ML practitioners.
+
+\begin{itemize}
+  \item
+    TensorFlow high-level APIs enable writing very succinct code, but unless the use case is very simple, it is not sufficient to use canned Estimators.
+    When in doubt what a function does, read its source code and add \textit{tf.Print} and \textit{print} statements to examine what the tensors passed around actually look like.
+    When working on non-standard models, create your own Estimator and Head by seeing how canned versions were implemented.
+    Using these high-level APIs will eventually pay off in terms of deployment ease and standardisation.
+  \item
+    Apache Airflow is a very popular tool for building data pipelines, probably currently the best solution.
+    It is good for building pipelines where the inputs are known up front, but less suitable for rapid experimentation where one might want to more conveniently provide dynamic arguments to sub-tasks (there is a solution for that in Airflow, but it is somewhat awkward).
+    The plug-ins for GCP in Airflow were not as feature-rich as one might expect, therefore it was often easier to create custom tasks that simply executed the relevant command-line \textit{gcloud} commands.
+    Additionally, at times the scheduler randomly did not schedule some tasks, and if the reason for it was logged somewhere, it got lost in the rest of Airflow's verbose logging system.
+  \item
+    On a big dataset, handling images as the input to the pipeline/model adds several orders of magnitude in extra computation.
+    In our case, the benefits were marginal, and had the only task been product classification, then including images as model inputs would have been impractical.
+  \item
+    Latencies in scheduling a Dataflow or ML Engine job are on the order of 5 min.
+    That is too slow for experimenting on such deployment platforms alone.
+    It is very beneficial to have a small dataset for experimentation, which can run the full pipeline quickly locally.
+    To facilitate this in the current project, there was a configuration flag that determined whether Dataflow and TensorFlow tasks were run locally or on the cloud, and whether the filesystem used was local or GCS.
+    The functions in \textit{tensorflow.python.lib.io.file\_io} can be used to write generic functions that operate on both GCS and local files.
+  \item
+    When a pipeline stage would fail, it could be easily re-run from the Airflow web UI.
+    Yet often re-running the stage would fail because the previous attempt had written/deleted some files to/from a place that the re-running stage would also attempt to access.
+    That would happen after a delay when the stage does some work, so finding out about an obvious problem was time-consuming.
+    A neat solution to this was writing a ``checks'' context manager that would take as input the task name as a string, and the context manager would execute pre- and postcondition checks for that task.
+    That way it was possible to define for most tasks certain conditions, such as there should (not) be a given  file in a given location before/after the execution of the task.
+    This reduced the time to find out about a potential problem or bug, and resulted in more useful error messages.
+\end{itemize}

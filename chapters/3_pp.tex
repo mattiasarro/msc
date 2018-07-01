@@ -64,6 +64,7 @@ Below is a list of input features with information about how they were represent
   \item Apache Beam - a data processing engine akin akin to Apache Spark.
   \item Dataflow - a GCP service for executing Apache Beam workloads.
   \item Tensorflow Transform - a Python library with a small set of operations for data preprocessing that can run inside a TensorFlow graph as well as an Apache Beam pipeline.
+  \item TensorBoard - a web interface for visualising the variables and metrics a TensorFlow train run produces.
   \item Google Cloud Storage (GCS) - Google Cloud Platform (GCP) object storage similar to Amazon S3.
   \item ElasticSearch (ES) - a NoSQL database with powerful full-text search and querying capabilities.
   \item RabbitMQ - a message queue, used for transferring data among our microservices (using the Logstash adapter, that can read from and write to (among other things) ElasticSearch and RabbitMQ).
@@ -195,4 +196,4 @@ Both input types and training objectives had simple configuration files dictatin
 
 Training was handled by the tf.estimator.train\_and\_evaluate function.
 It loads a model from the checkpoint directory if present, and trains the model for a specified number of steps, or until the input function terminates.
-It also periodically saves model checkpoints to GCS, and handles writing TF summary operations that are needed for data visualisations using TensorBoard\footnote{TensorBoard is a web interface for visualising the variables and metrics a TensorFlow train run produces; many of the visualisations in the following sections are taken from Tensorboard.}
+It also periodically saves model checkpoints to GCS, and handles writing TF summary operations that are needed for data visualisations using TensorBoard

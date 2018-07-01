@@ -1,19 +1,19 @@
 \noindent
 Neural networks are powerful and flexible models capable of highly accurate predictions, transfer and multi-objective learning, though their weakness is the amount of labelled data needed to train them.
-This work looks at three ways to tackle this label complexity problem: unsupervised and semi-supervised learning, transfer learning and active learning.
+This work looks at three ways to tackle this label complexity problem: semi-supervised, transfer and active learning.
 The former is described theoretically, and the usefulness of the latter two is evaluated through a series of experiments.
-First, a combination of deep and linear models with different input features and representations thereof is trained on a retail product classification problem to select well performing models.
-Transfer learning is evaluated subjectively by using pre-trained 2D CNNs to extract dense embeddings from images to be used for calculating visual similarity scores, and by using pre-trained 2D CNNs and deep averaging networks for the product classification task.
+First, a combination of deep and linear models with different input features and representations thereof is trained on a retail product classification problem.
+Transfer learning is evaluated (1) subjectively by using pre-trained 2D CNNs to extract dense embeddings from images, to be used for calculating visual similarity scores, and (2) by using pre-trained 2D CNNs and deep averaging networks for the product classification task.
 Multi-objective learning is evaluated on a series of experiments where a neural network is trained to predict two different product classification outputs.
-Active learning is conducted in rounds of uncertainty-sampled products that are labelled by humans.
+An basic active learning experiment is conducted by labelling a small set of uncertainty-sampled products.
 \\
 
 We corroborate the common finding that more input features tend to lead to better test set performance.
-Deep models with embedding inputs are the most performant, which gain additional boost when augmented with embeddings from pre-trained deep models.
+Deep models with random embedding inputs are the most performant, which gain additional boost when augmented with embeddings from pre-trained deep models.
 Linear models do best with sparse 1-hot inputs, and need a wider selection of input features to do well.
 Multi-objective learning produces higher accuracy for objectives with few labels, but causes the training to destabilise in many cases; this is probably caused by noise in the training data and a poor choice of optimiser.
 Preliminary results from uncertainty sampling suggest it is capable of finding hard-to-classify products, but tends to sample products of a similar nature, and might require very small iteration sizes to be effective.
 \\
 
 \noindent
-\textbf{Keywords:} machine learning, deep learning, neural networks, transfer learning, active learning, multi-objective learning, data-efficient learning, label-efficient learning, data engineering
+\textbf{Keywords:} machine learning, deep learning, transfer learning, active learning, multi-objective learning, label-efficient learning, data engineering

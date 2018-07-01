@@ -34,7 +34,7 @@ When its performance degraded once it was trained on a new dataset (that most li
 Training a large selection of deep and shallow models was a good way to get a sense of the capabilities of these models.
 The performance of linear models was lower than expected, but this is probably not a fair comparison, as the models were trained on the same sets of hyperparameters that were at least in part chosen to be suitable for deep models.
 In general the tools used (TensorFlow, Adam optimiser) may not be optimal for learning linear models, but considering the large difference of PR AUC between the two, there seem to be benefits to using deeper models.
-Contrary to our hypothesis, deep models with 1-hot / k-hot inputs did outperform shallow ones, but the difference in performance decreased when the models received a bigger selection of input features.
+Contrary to our hypothesis, deep models with 1-hot / k-hot inputs outperform shallow ones substantially, but the difference in performance decreased when the models received a bigger selection of input features.
 This implies that deep models are indeed generalising better from a small set of inputs; for example, the deep model that received averaged word embeddings of the title continued to improve even at epoch 6, and received a remarkably better PR AUC score (0.93) than its linear counterpart (0.42, or 0.53 for linear with k-hot inputs).
 
 The biggest problem in interpreting the PR AUC scores of the rule-based objective is that its labels were generated using a relatively simple automatic procedure which only considers text as its input.
@@ -67,13 +67,12 @@ Even though the rule-based objective gave good PR AUC scores, the model was not 
 As one might expect, training for multiple objectives has a higher variance in the gradients.
 This was exacerbated by the limitations of the tf.data APIs, which did not enable to efficiently alternate between the training objectives precisely.
 Probably the variability could be reduced if each batch had a consistent number of products from each objective.
-For more thorough experimentation, one should probably fall back to manually feeding data batch-by-batch, as was the standard in earlier versions of TensorFlow.
+% For more thorough experimentation, one should probably fall back to manually feeding data batch-by-batch, as was the standard in earlier versions of TensorFlow.
 
 Although Adam was a versatile optimiser across the different deep and shallow architectures for the rule-based objective, updates to the parameters of each top layer becomes less frequent in the multi-objective case.
 As Adam learns to update less frequently updated variables more heavily, this is probably the cause of a wide range of issues described in section \ref{multiobj}.
-Note that it is not formally confirmed that the peculiarities are caused by adaptive learning rates.
 Experimenting with a simpler optimiser and outputting per-step statistics about how many data points from each objective ended up in each bach would help further understand the shape of the loss functions.
-For example, currently the best guess to the peculiar shape of the rule-based training loss (blue line in figure \ref{pretrain}) in a multi-objective training setting is that the large jumps are caused by a large batch of data points from the exclusive objective which has had few updates in a while; the medium-variance periods that follow such jumps (e.g. steps 40k - 80k) also contain data from that objective; the gradually decreasing plateaus (e.g. steps 80k - 120k and 170k - 200k) are periods where the model is trained only on the rule-based objective, which is considerably more stable.
+% For example, currently the best guess to the peculiar shape of the rule-based training loss (blue line in figure \ref{pretrain}) in a multi-objective training setting is that the large jumps are caused by a large batch of data points from the exclusive objective which has had few updates in a while; the medium-variance periods that follow such jumps (e.g. steps 40k - 80k) also contain data from that objective; the gradually decreasing plateaus (e.g. steps 80k - 120k and 170k - 200k) are periods where the model is trained only on the rule-based objective, which is considerably more stable.
 
 It is satisfying that a multi-objective training scheme outperforms a method trained on just exclusive labels.
 Though the exclusivised objective at times exceeds multi-objective training in terms of accuracy, the latter is preferred due to its stability and predictability; also, this scheme will be useful once we add additional training objectives.
@@ -84,15 +83,10 @@ The remaining gains will come from active labelling, which should find the uncer
 An orthogonal approach is to train using the Wasserstein loss, which would be better at handling ambiguous and noisy labels; in this case, we might use the Wasserstein distance between the predicted and actual labels as the evaluation metric as well, as accuracy would still paint a pessimistic picture when in reality it is acceptable to classify into a semantically nearby class.
 Different training regimes could still be tried to stabilise multi-objective learning, such as gradient clipping, layer and batch normalisation.
 
-A separate question is how to phase out the old rule-based system that the client company wishes to replace.
-As the rule-based system would stop producing labels, any new products would be unlabelled according to it.
-This would happen more often than one might think due to the way the data import process happens.
-The most likely solution is to create an interface for mass-labelling of products: present the labeller pages with hundreds of products that are predicted to belong to a category, and have them confirm the page or pick out incorrect predictions.
-This way we create a large number of high-quality labels with relatively little effort.
-
 \section{Active Learning}
 
 Preliminary results indicate that uncertainty sampling is effective at identifying products that might lack a category or sufficient labels in the training data, but it tends to sample products that are very much alike.
-Therefore this strategy may not be very well suited for such a ``batch-active'' learning scenario as was presented.
+Therefore this strategy may not be very well suited for such a ``batch-active'' learning scenario that was presented.
 A workaround might be a series of smaller training rounds.
-Identifying unseen categories is a useful feature, though an analysis of validation error might produce similar results.
+Sampling products 1-by-1 is perhaps the biggest disadvantage of this approach, which results in a time-consuming process.
+An alternative would be a system which presents the user with a page of predictions to confirm/reject, which would apply a large number of labels.
