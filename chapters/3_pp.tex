@@ -23,15 +23,17 @@ Dataprep  was used to process a sample of ~800 000 products;  it produced histog
 The histograms revealed that a lot of the input features were mostly empty, but also that many of the inputs that would naturally be considered categorical  had much more unique value in them then one might expect.
 For example, each affiliate gives us the textual representation what they consider to be the category of the product,  but  rather than containing a small number of unique tokens, these contained all the full category paths along with the category delimiters, which  varied retailer by retailer (e.g.  it was common to see both ``Shoes > Sneakers'' and ``Shoes // Sneakers'').
 Representing these as categorical variables would have blown up the input space, which would have  resulted in more parameters, each parameter having fewer examples to learn from.
-Therefore, many such ``categorical''  were actually represented as text, which were tokenised and cleaned appropriately, allowing for better generalisation and smaller models.
+Therefore, many such ``categorical'' features were actually represented as text, which were tokenised and cleaned appropriately, allowing for better generalisation and smaller models.
 
 There was a single numerical field: price.
-This could have been min-max normalised to the range 0 ... 1, however there  was a small number of very high values that would have squash nearly all the other  prices.
+This could have been min-max normalised to the range 0 ... 1, however there  was a small number of very high values that would have squashed nearly all the other  prices.
 Rather than  carefully considering  how to mitigate this,  the input dimension was dropped, because it is not likely to have much predictive value for product classification.
 It would be trivial to bring this feature back for a training objective for which it would be much more useful.
 
 A trickier question was how many distinct tokens or categorical values to keep per input column.
 Keeping all of them would not have been sensible: there were still large numbers of tokens that appeared only once, often because there were some unwanted formatting characters, misspellings, or incorrect punctuation that caused a token to be considered a separate entity.
+The final number of tokens to keep was picked based on the histogram of tokenised values in each column; the threshold was picked roughly such that tokens that appear more than 5 times would be kept.
+
 There was a single configuration file that dictated which models used which features as input, whether those inputs were represented as textual, categorical, or dense values;  it also determined  the maximum number of unique values/tokens,  and the dimensionality of the embedding.
 This configuration file was read by Dataflow during pre-processing  and by TensorFlow during  inference and training, which made experimentation with  different types of models and input representations considerably easier.
 
@@ -52,7 +54,8 @@ Below is a list of input features with information about how they were represent
 \section{System Architecture}
 \label{architecture}
 
- The following technologies were used to build the system which had to interact with existing services  at the client company:
+ The following technologies were used to build the system which had to interact with existing services  at the client company.
+ Figure \ref{arch_diagram} shows the how data is passed between the main services, and how services and technologies interact.
 
 \begin{itemize}
   \item Apache Airflow (AF) - a Python framework for defining workflows of long-running tasks and dependencies between these tasks.
@@ -71,16 +74,17 @@ Below is a list of input features with information about how they were represent
   \item GraphQL - a query language for building flexible APIs
 \end{itemize}
 
-Figure \ref{arch_diagram} shows the how data is passed between the main services, and how services and technologies interact.
 
 All product data is stored in ElasticSearch (ES): the labels, top predictions of the ML system, and evaluation metrics from various train runs.
 ES is accessed from the public web application via GraphQL and the ML administration web UI (further referred to just as web UI\footnote{The web UI was initially built with Flask and React by the author as a quick way to get insight about the model, and then re-written as a more feature-rich version by an employee of the client company with Node.js, GraphQL, React and Redux.}).
 Data is pulled into the ML pipelines by dumping the results of an ES query to a local file, which is uploaded to GCS.
 Updates to the ES index are not done directly, since indexing the updated products is computationally expensive; instead, updates are put on a RabbitMQ queue, which is consumed by Logstash, which in turn updates products in ES at a rate that will not overburden the servers.
 
+\subsection{Airflow Pipelines \& Pipeline Runs}
+
 All ML training and prediction happens in a batch-oriented way, encapsulated as Airflow pipelines.
 Each pipeline is a directed acyclic graph of tasks, where a task can be a shell command or Python function; a pipeline defines dependencies of task execution, which allows us co-ordinate a series of operations that could be executed locally (inside the Docker container running AF) or remotely (such as in a GCP service).
-A typical pipeline dumps data locally, uploads it to GCS, schedules a Dataflow job to preprocess data, polls the Dataflow service until the Dataflow job is finished, schedules an ML engine job, polls the MLE service until it has completed, and runs an update process that reads the predictions and evaluation statistics from GCS and sends the updates to the RabbitMQ queue.
+A typical pipeline (shown in figure \ref{fig:af1}) dumps data locally, uploads it to GCS, schedules a Dataflow job to preprocess data, polls the Dataflow service until the Dataflow job is finished, schedules an ML engine job, polls the MLE service until it has completed, and runs an update process that reads the predictions and evaluation statistics from GCS and sends the updates to the RabbitMQ queue.
 Reading updates and sending these to RabbitMQ is done in a parallelised manner (using multiprocessing), since the update process is bottlenecked by network latency as well as computing the appropriate category path for each product (explained in \ref{cat_tree}).
 
 \begin{figure}
@@ -90,11 +94,11 @@ Reading updates and sending these to RabbitMQ is done in a parallelised manner (
   \label{arch_diagram}
 \end{figure}
 
-\subsection{Airflow Pipelines \& Pipeline Runs}
 
-A group of tasks that would need to be run together repeatedly is encapsulated in an Airflow pipeline, which is a directed acyclic graph (DAG) of tasks (also referred to as an AF pipeline).
-A DAG is run many times, either based on a schedule or triggered manually.
-Figure \ref{fig:af1} shows a screenshot of the most common Airflow pipeline that preprocesses the data, trains and predicts for all products.
+All pipelines create their own set of directories in GCS; the directory name becomes the \textit{run\_id}.
+Raw data is dumped into that directory; dataflow reads from and writes to subdirectories of the same run.
+The Tensorflow trainer also needs the \textit{run\_id} to find locations of the Tensorflow Transform model function (described below) and .tfrecords input files.
+A given run usually has a single model that is trained, however at times we train several models with different architectures or subsets of labels.
 
 \begin{figure}
 \centering
@@ -104,10 +108,6 @@ Figure \ref{fig:af1} shows a screenshot of the most common Airflow pipeline that
   \label{fig:af1}
 \end{figure}
 
-All pipelines create their own set of directories in GCS: the folder name becomes the \textit{run\_id}.
-Raw data is dumped into that directory; dataflow reads from and writes to subdirectories of the same run.
-The Tensorflow trainer also needs the \textit{run\_id} to find locations of the Tensorflow Transform model function (described below) and .tfrecords input files.
-A given run usually has a single model that is trained, however at times we train several models with different architectures or subsets of labels.
 
 % Most of our pipelines start by creating directories for our files.
 % Which files are stored where is configured in a simple file that is accessed by Airflow, Dataflow and TensorFlow (locally or inside MLE); the configuration has placeholders for variables that are determined per run or are specific to a task inside a run.
@@ -127,7 +127,7 @@ There are two types of Dataflow pipelines: for preprocessing training data and f
 \subsubsection{Preprocessing}
 \label{pp}
 
-This pipeline loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file (see section \ref{data_pp}).
+This pipeline loads the products dumped from ES (as JSON) and preprocesses data according to a configuration file.
 Figure \ref{df} shows a screenshot of this pipeline, as visualised by the GCP UI.
 
 In this pipeline, all fields are cleaned of obvious noise and superfluous whitespace.
@@ -166,11 +166,10 @@ Computing embeddings in Dataflow is slow, and me way want to enable more flexibl
 The most flexible approach is one in which nearest neighbours are computed in real time when a product is viewed by a user.
 The biggest challenge in such a system is keeping all the image embeddings in memory, which would require 32 GB of memory for the 4 million products we currently have\footnote{$~4000000 * 2048 * 32$ = number of products * embedding dimensionality * 32 bits per number}, and the number of products is likely to increase in the future.
 
-An option worth considering is deploying this as a TensorFlow model to MLE, which reads the embedding matrix in as a sharded tf.Variable; the shards can be distributed on different machines, which is handled automatically by TF.
-The input to this model would be just the UUID of the product in question, and the UUID of the category to which the nearest neighbour search is limited; the ``prediction'' of the model would be dot product of the product embedding in question, and all the other product embeddings that are in the given category.
-Therefore to get the nearest neighbours of an image embedding, TF would go through all the product embeddings to check for their membership of the given category - but this is fast given all the embeddings are always kept in memory.
-The nearest neighbour search will also be precise, which would be prohibitively slow when pre-computing nearest neighbours but should be manageable when done online, as there will be only a handful of requests per second and the dot products are calculated in parallel by multiple workers.
-We can also use autoscaling that would increase the number of workers to handle high loads, which would also put all workers to sleep after 15 minutes of inactivity.
+An option worth considering is deploying this as a TensorFlow model to MLE, which reads the embedding matrix in as a sharded tf.Variable; TF can operate on different shards in parallel, which reduces latency.
+The deployed model can store one embedding matrix per category, which would result in matrices with (hundreds of) thousands of rows.
+Performing a vector-matrix product at this scale is fast enough for real-time use \footnote{The author has experimented with a very similar set-up; latency was low enough..}.
+We can also use autoscaling built into MLE that would increase the number of workers to handle high loads, which would also put all workers to sleep after 15 minutes of inactivity.
 
 
 \subsection{TensorFlow and ML Engine}
