@@ -66,13 +66,13 @@ The goals of the work, in chronological order, is to:
   \item Use a pre-trained 2-dimensional convolutional neural network (2D CNN) to extract features for an approximate nearest-neighbour search of visually similar products.
   \item Build an interface for subjectively evaluating the visual similarity algorithm.
   \item Train  baseline model to reproduce the behaviour of the rule-based system.
-  \item Train and evaluate a number of different models on the \textbf{rule-based labels}\footnote{We call these the rule-based rather than independent labels/objective, as we are planning to train with independent training targets other than the rule-based labels at a later stage.}.
+  \item Train and evaluate a number of different models on the \textbf{rule-based labels}.
   \item
     Define a subset of the 1300 independent categories to be exclusive (non-overlapping).
     Build an interface for assigning \textbf{exclusive labels} to products either through \textbf{uncertainty} or \textbf{random} sampling.\footnote{The final version of this interface was built by an employee of the client company, though earlier versions for displaying the classification / similarity results were implemented by the author.}
   % \item Train a selection of models that had good performance as an ensemble, preferring model diversity over good performance. Evaluate this model on the rule-based test set as well as the ground truth dataset.
   \item Train models on both the exclusive labels, and in a multi-objective manner where both the exclusive and rule-based labels are used. Evaluate whether multi-objective training improves accuracy over training just on the exclusive labels.
-  \item Implement the active labelling mechanism defined in \ref{exp_al} and train a small selection of well-performing models in the following 3 settings: exclusive labels are either limited to random or uncertainty sampling (to determine the efficacy of active learning), or not limited (labels from random and uncertainty sampling are combined to have the largest training set).
+  \item Implement the active labelling mechanism defined in \ref{exp_al} and train a well-performing model in two settings: use labels obtained either through random or uncertainty sampling, and evaluate whether uncertainty sampling improves model performance.
   \item Document the results as well as the technical architecture and workflow.
 \end{itemize}
 
@@ -86,7 +86,7 @@ The following hypotheses were postulated prior to running most experiments\footn
 
 \begin{enumerate}
   \item Pre-trained 2D CNNs perform reasonably for visual item similarity, but fine-tuning might be needed.
-  \item Linear models are relatively good at predicting higher-level categories, worse at predicting lower-level ones.
+  % \item Linear models are relatively good at predicting higher-level categories, worse at predicting lower-level ones.
   \item Deep models with histogram inputs do not improve substantially on linear models.
   \item Shallow models with embedding inputs generalise better, and deep models with embedding inputs generalise slightly more.
   % \item XGBoost is the best performing model  for textual and categorical data.
@@ -108,7 +108,7 @@ How these hypotheses were evaluated is described in the relevant subsections of 
 \section{Ethical Consideration}
 
 Given how pervasive  machine learning is becoming, it is crucial that there is discussion about the safety, transparency and bias of machine learning systems.
-There have already been cases of black box algorithms being used to make decisions that severely influence a person's life -  predicting reoffending probability  of convicts to determine  whether they are given parole - with terrible results.
+There have already been cases of black box algorithms being used to make decisions that severely influence a person's life -  for example predicting reoffending probability  of convicts to determine  whether they are given parole - with terrible results.
 The model that was touted to be and objective substitute to a subjective judge has simply learnt the biases in the data (the prejudices and racism of  the judges at the time).
 It consistently underestimated reoffending rate of white convicts and overestimated the reoffending rate for black convicts \cite{propub}.
 Even though the data did not contain explicit information about race, the algorithm  was capable of implicitly detecting race through some other variable that was correlated with race.
@@ -129,6 +129,7 @@ Algorithms that are differentially private inject noise at the input, model or o
 \section{Sustainability}
 
 The reality of any e-commerce company is that increase revenue almost by definition means more waste  and increased carbon released into the atmosphere  as a result of production and transport.
+There are efficiency gains (fewer bricks-and-mortar stores, fewer consumers driving to a shopping mall, increased automation), however it would be wishful thinking to assume the net effect of e-commerce on the environment is positive.
 Efforts to mitigate these unwelcome side effects can be successful at a government level, though  the author firmly believes there ought to be stronger intergovernmental regulation to tax carbon emissions and the consumption of materials, as currently there is absolutely no incentive for retailers or consumers to reduce waste, and few incentives to recycle it.
 % The best a data scientist working for a retailer can hope for is poor performance of his models, which would not lead to increased sales.
 
@@ -140,7 +141,7 @@ Many directions for data-efficient learning are described in the theory section,
 \section{Outline}
 
 The following report is organised as follows.
-The required theoretical background is covered in section \ref{bg}: the different ways to represent input, various neural network models that could be used, unsupervised and semi-supervised learning methods, joint training, ensembling and active learning.
+The required theoretical background is covered in section \ref{bg}: the different ways to represent input, various neural network models that could be used, joint training, ensembling and active learning.
 In section \ref{pp_sa} we describe the system architecture and technical set-up, and in section \ref{meth} we describe each individual experiment separately, along with evaluation approaches and results.
 A more speculative and subjective analysis of the results is presented in section \ref{disc}.
-A summary of the work is presented in section \ref{sum}.
+A summary of the work is presented in section \ref{sum}, along with implementation-specific tips and proposals for future work.
