@@ -123,7 +123,7 @@ A given run usually has a single model that is trained, however at times we trai
 % As \textit{hparams\_id} encodes only the general model architecture and training objectives, the full set of all hyperparameters is persisted along model checkpoints as a JSON file - for future reference.
 
 \subsection{Dataflow Pipelines}
-There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{which were completely reasonable at the time, when the ML system was not a consideration}, the pipelines had the following tasks:
+There are two types of Dataflow pipelines: for preprocessing training data and for calculating product-product visual similarity. Omitting various details, dead-ends and workarounds that were needed due to technical limitations and prior system architecture choices\footnote{The architectural choices were completely reasonable at the time, when the ML system was not a consideration.}, the pipelines had the following tasks:
 
 \subsubsection{Preprocessing}
 \label{pp}
